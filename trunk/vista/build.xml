@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Oct 14, 2009 11:54:20 AM                                                        
+
+     vista    
+     builds vista distribution
+                   
+     psandhu                                                                
+     ====================================================================== -->
+<project name="vista" default="default">
+	<description>
+            builds vista distribution
+    </description>
+	<property name="dist.dir" location="build/dist/vista"/>
+	<property name="vista.lib" location="lib" />
+	<property name="jython.installdir" location="c:/Programs/jython2.5.0"/>
+
+	<!-- ================================= 
+          target: default              
+         ================================= -->
+	<target name="default" depends="compile" description="builds vista distribution">
+		<tstamp/>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: compile                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="compile">
+		<mkdir dir="build/classes"/>
+		<javac srcdir="src" destdir="build/classes" debug="on">
+			<classpath id="compile.classpath">
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+				<pathelement path="${java.class.path}/" />
+				<pathelement path="${additional.path}" />
+			</classpath>
+		</javac>
+		<copy todir="build/classes">
+			<fileset dir="src">
+				<include name="**/*.gif"/>
+				<include name="**/*.properties"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="package" depends="compile">
+		<mkdir dir="${dist.dir}"/>
+		<copy todir="${dist.dir}">
+			<fileset dir="resources"/>
+		</copy>
+		<copy todir="${dist.dir}/lib">
+			<fileset dir="lib"/>
+		</copy>
+		<copy todir="${dist.dir}/jython/">
+			<fileset dir="${jython.installdir}">
+				<include name="Lib/**"/>
+				<include name="jython.jar"/>
+				<include name="extlibs/**"/>
+				<include name="LICENSE*"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist.dir}/lib/vista.jar" basedir="build/classes"></jar>
+		<zip destfile="build/vista.zip" basedir="${dist.dir}/.." />
+	</target>
+	
+	<target name="clean">
+		<delete dir="build"/>
+	</target>
+
+</project>
