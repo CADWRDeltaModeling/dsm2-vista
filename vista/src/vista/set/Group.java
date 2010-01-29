@@ -1,0 +1,493 @@
+/*
+    Copyright (C) 1996, 1997, 1998 State of California, Department of 
+    Water Resources.
+
+    VISTA : A VISualization Tool and Analyzer. 
+	Version 1.0beta
+	by Nicky Sandhu
+    California Dept. of Water Resources
+    Division of Planning, Delta Modeling Section
+    1416 Ninth Street
+    Sacramento, CA 95814
+    (916)-653-7552
+    nsandhu@water.ca.gov
+
+    Send bug reports to nsandhu@water.ca.gov
+
+    This program is licensed to you under the terms of the GNU General
+    Public License, version 2, as published by the Free Software
+    Foundation.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, contact Dr. Francis Chung, below,
+    or the Free Software Foundation, 675 Mass Ave, Cambridge, MA
+    02139, USA.
+
+    THIS SOFTWARE AND DOCUMENTATION ARE PROVIDED BY THE CALIFORNIA
+    DEPARTMENT OF WATER RESOURCES AND CONTRIBUTORS "AS IS" AND ANY
+    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE CALIFORNIA
+    DEPARTMENT OF WATER RESOURCES OR ITS CONTRIBUTORS BE LIABLE FOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+    OR SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA OR PROFITS; OR
+    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+    USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+    DAMAGE.
+
+    For more information about VISTA, contact:
+
+    Dr. Francis Chung
+    California Dept. of Water Resources
+    Division of Planning, Delta Modeling Section
+    1416 Ninth Street
+    Sacramento, CA  95814
+    916-653-5601
+    chung@water.ca.gov
+
+    or see our home page: http://wwwdelmod.water.ca.gov/
+
+    Send bug reports to nsandhu@water.ca.gov or call (916)-653-7552
+
+ */
+package vista.set;
+
+import java.io.Serializable;
+
+import org.python.core.Py;
+
+import COM.objectspace.jgl.Array;
+import COM.objectspace.jgl.Filtering;
+import COM.objectspace.jgl.Finding;
+import COM.objectspace.jgl.InputIterator;
+import COM.objectspace.jgl.OutputIterator;
+import COM.objectspace.jgl.SetOperations;
+import COM.objectspace.jgl.Sorting;
+import COM.objectspace.jgl.UnaryPredicate;
+
+/**
+ * This class groups associate data references together.
+ * 
+ * @author Nicky Sandhu
+ * @version $Id: Group.java,v 1.1 2003/10/02 20:49:24 redwood Exp $
+ */
+public class Group implements Named, Serializable {
+	/**
+   *
+   */
+	// static final long serialVersionUID = -7794455500216432504L;
+	/**
+	 * private constructor.
+	 */
+	public Group() {
+		_name = "";
+		_referenceList = new Array();
+	}
+
+	/**
+	 * creates a group with a name..
+	 */
+	public Group(String name) {
+		_name = name;
+		_referenceList = new Array();
+	}
+
+	/**
+	 * creates an empty group with given name. This creates the shell of this
+	 * group which will be later filled in when the first access to its data
+	 * references is made...
+	 */
+	public static Group createGroup(String name) {
+		Group g = new Group();
+		g._name = name;
+		g._referenceList = new Array();
+		return g;
+	}
+
+	/**
+	 * creates a group with a name and reference list
+	 */
+	public static Group createGroup(String name, DataReference[] refs) {
+		if (refs == null)
+			return null;
+		if (name == null)
+			name = "";
+		synchronized (refs) {
+			Group g = new Group();
+			g._name = name;
+			g._referenceList = new Array(refs);
+			return g;
+		}
+	}
+
+	/**
+	 * creates a group with a name and reference list
+	 */
+	public static Group createGroup(String name, Array refArray) {
+		if (refArray == null)
+			return null;
+		if (name == null)
+			name = "";
+		synchronized (refArray) {
+			Group g = new Group();
+			g._name = name;
+			g._referenceList = new Array(refArray);
+			return g;
+		}
+	}
+
+	/**
+	 * creates a group which is the copy of another group. This would mean
+	 * copying the data references the other groups contain.
+	 */
+	public static Group createGroup(Group g) {
+		Group gcopy = new Group();
+		gcopy.setName(g.getName() + "(copy)");
+		gcopy._referenceList = new Array(g.getAllDataReferences());
+		return gcopy;
+	}
+
+	/**
+	 * gets group name
+	 */
+	public String getName() {
+		return _name;
+	}
+
+	/**
+	 * sets the group name
+	 */
+	public void setName(String name) {
+		_name = name;
+	}
+
+	/**
+	 * gets the number of data references
+	 */
+	public int getNumberOfDataReferences() {
+		return _referenceList.size();
+	}
+
+	/**
+	 * adds data reference if not already added at the specified index
+	 */
+	public void insertDataReferenceAt(int index, DataReference ref) {
+		if (!_referenceList.contains(ref))
+			_referenceList.insert(index, ref);
+	}
+
+	/**
+	 * adds data reference only if it not already present. This method takes a
+	 * hit primarily because it searches for the occurence of a similar data
+	 * reference before adding it. It is faster to create a group with an array
+	 * of references.
+	 * 
+	 */
+	public synchronized void addDataReference(DataReference ref) {
+		if (!_referenceList.contains(ref))
+			_referenceList.add(ref);
+	}
+
+	/**
+	 * removes data reference
+	 */
+	public void removeDataReference(DataReference ref) {
+		_referenceList.remove(ref);
+	}
+
+	/**
+	 * removes data reference in a certain continuous range
+	 */
+	public void removeDataReference(int index0, int index1) {
+		if (index0 > index1) {
+			int swap = index1;
+			index1 = index0;
+			index0 = swap;
+		}
+		_referenceList.remove(index0, index1);
+	}
+
+	/**
+	 * gets data reference by index
+	 */
+	public DataReference getDataReference(int index) {
+		if (index < _referenceList.size())
+			return (DataReference) _referenceList.at(index);
+		else
+			return null;
+	}
+
+	/**
+	 * gets data reference by name
+	 */
+	public DataReference getDataReference(String dataName) {
+		InputIterator iterator = Finding.findIf(_referenceList,
+				new MatchNamePredicate(dataName));
+		return (DataReference) iterator.get();
+	}
+
+	/**
+	 * gets all the data references
+	 */
+	public DataReference[] getAllDataReferences() {
+		DataReference[] refs = new DataReference[getNumberOfDataReferences()];
+		_referenceList.copyTo(refs);
+		return refs;
+	}
+
+	/**
+	 * copies this group into given group.
+	 */
+	public void copyInto(Group group) {
+		group._referenceList = new Array(getAllDataReferences());
+	}
+
+	/**
+	 * returns a copy of itself.
+	 */
+	public Object clone() {
+		return createGroup(this);
+	}
+
+	/**
+	 * Creates a new group which is the union of this group and the specified
+	 * groupg
+	 */
+	public Group unionWith(Group group) {
+		if (group == null)
+			return (Group) this.clone();
+		String name = this._name + " union " + group._name;
+		// make copies of reference list and sort by hash code
+		Array ref1 = new Array(getAllDataReferences());
+		Array ref2 = new Array(group.getAllDataReferences());
+		Sorting.sort(ref1);
+		Sorting.sort(ref2);
+		Array referenceList = new Array(ref1.size() + ref2.size());
+		// referenceList.ensureCapacity( ref1.size() + ref2.size() );
+		OutputIterator outI = referenceList.start();
+		// make the union of the reference lists
+		SetOperations.setUnion(ref1.begin(), ref1.end(), ref2.begin(), ref2
+				.end(), outI);
+		referenceList = (Array) Filtering.reject(referenceList, new IsNull());
+		Group groupUnion = new Group();
+		groupUnion._name = name;
+		groupUnion._referenceList = referenceList;
+		return groupUnion;
+	}
+
+	/**
+	 * Creates a new group which is the intersection of this group and the
+	 * specified group. Returns null if intersection is the null set.
+	 */
+	public Group intersectionWith(Group group) {
+		if (group == null)
+			return (Group) this.clone();
+		String name = this._name + " intersection " + group._name;
+		// make copies of reference list and sort by hash code
+		Array ref1 = new Array(getAllDataReferences());
+		Array ref2 = new Array(group.getAllDataReferences());
+		Sorting.sort(ref1);
+		Sorting.sort(ref2);
+		Array referenceList = new Array();
+		referenceList.ensureCapacity(Math.max(ref1.size(), ref2.size()));
+		OutputIterator outI = referenceList.start();
+		// make the intersection of the reference lists
+		SetOperations.setIntersection(ref1.begin(), ref1.end(), ref2.begin(),
+				ref2.end(), outI);
+		referenceList = (Array) Filtering.reject(referenceList, new IsNull());
+		Group groupIntersection = new Group();
+		groupIntersection._name = name;
+		groupIntersection._referenceList = referenceList;
+		return groupIntersection;
+	}
+
+	/**
+	 * Sorts group by calling upon the SortAlgorithm to return an array of data
+	 * references by some criteria. The reference list is being directly
+	 * manipulated by the sorting mechanism.
+	 */
+	public void sortBy(Sorter sortAlgo) {
+		// DataReference [] refs = getAllDataReferences();
+		// com.sun.java.utils.collections.Arrays.sort(refs, comparator);
+		sortAlgo.sort(_referenceList);
+		// _referenceList = new Array(refs);
+	}
+
+	/**
+	 * filter on the pathname using regular expression. The current group is
+	 * left to contain only those expressions that have the regular expression
+	 * in them.
+	 */
+	public void filterBy(String regex) {
+		filterBy(true, new PathnamePredicate(regex));
+	}
+
+	/**
+	 * filters on this group using filter. This causes the reference list held
+	 * by this group to be modified. This change is physically reflected by
+	 * appending the filter expression string to the name of this group.
+	 */
+	public void filterBy(boolean selecting, UnaryPredicate predicate) {
+		// filtering operations...
+		DataReferenceFilter filter = new DataReferenceFilter(
+				getAllDataReferences(), predicate);
+		filter.setSelecting(selecting);
+		filter.filter();
+		DataReference[] refs = filter.getFilteredArray();
+		// modify list
+		this._referenceList = new Array(refs);
+		// modify name
+		String filterName = null;
+		if (predicate instanceof RegExPredicate)
+			filterName = ((RegExPredicate) predicate).getRegularExpression();
+		else
+			filterName = predicate.toString();
+		if (predicate instanceof PathPartPredicate) {
+			String sep = "=";
+			if (!selecting)
+				sep = "!=";
+			filterName = Pathname.getPartName(((PathPartPredicate) predicate)
+					.getPartId())
+					+ sep + filterName;
+		}
+		if (this._name.indexOf(filterName) == -1)
+			this._name = this._name + "<" + filterName + ">";
+	}
+
+	/**
+    *
+    */
+	public DataReference[] find(String[] pathParts) {
+		// initialize group...
+		getNumberOfDataReferences();
+		//
+		Array result = (Array) Filtering.select(_referenceList,
+				new PathPartsFilter(pathParts));
+		if (result == null || result.size() == 0)
+			return null;
+		DataReference[] refs = new DataReference[result.size()];
+		result.copyTo(refs);
+		return refs;
+	}
+
+	/**
+   *
+   */
+	public void reload() {
+	}
+
+	/**
+	 * name of this group.
+	 */
+	public String toString() {
+		return _name;
+	}
+
+	/**
+	 * for python script adding: allows g1+g2 kind of expressions
+	 */
+	public Group __add__(Group g) {
+		return unionWith(g);
+	}
+
+	/**
+   *
+   */
+	public Group __concat__(Group g) {
+		return __add__(g);
+	}
+
+	/**
+   *
+   */
+	public int __len__() {
+		return getNumberOfDataReferences();
+	}
+
+	/**
+   *
+   */
+	public DataReference __getitem__(int i) {
+		DataReference ref = getDataReference(i);
+		if (ref != null)
+			return getDataReference(i);
+		else
+			throw Py.IndexError("index out of range: " + i);
+	}
+
+	/**
+   *
+   */
+	public DataReference[] __getslice__(int i, int j) {
+		int bi, ei;
+		if (i < 0)
+			i = getNumberOfDataReferences() + i;
+		if (j < 0)
+			j = getNumberOfDataReferences() + j;
+		bi = Math.min(i, j);
+		ei = Math.max(i, j);
+		ei = Math.min(ei, getNumberOfDataReferences() - 1);
+		DataReference[] refArray = new DataReference[ei - bi + 1];
+		// initialize group
+		getDataReference(0);
+		//
+		for (int k = 0; k < refArray.length; k++) {
+			refArray[k] = (DataReference) _referenceList.at(k + bi);
+		}
+		return refArray;
+	}
+
+	/**
+   *
+   */
+	public void __setslice__(int i, int j, DataReference[] array) {
+		int bi, ei;
+		if (i < 0)
+			i = getNumberOfDataReferences() + i;
+		if (j < 0)
+			j = getNumberOfDataReferences() + j;
+		bi = Math.min(i, j);
+		ei = Math.max(i, j);
+		// initialize group
+		getDataReference(0);
+		//
+		for (int k = 0; k < array.length; k++) {
+			_referenceList.put(k + bi, array[k]);
+		}
+	}
+
+	/**
+   *
+   */
+	public void __setitem__(int i, DataReference ref) {
+		insertDataReferenceAt(i, ref);
+	}
+
+	/**
+   *
+   */
+	public void __delitem__(int i) {
+		removeDataReference(i, i);
+	}
+
+	/**
+   *
+   */
+	public void __delslice__(int i, int j) {
+		removeDataReference(i, j);
+	}
+
+	/**
+	 * The name of this group
+	 */
+	private String _name;
+	/**
+	 * The expandable array containing the reference list. This could be
+	 * replaced by a linked list kind of implementation if insertion and
+	 * deletion get excessive.
+	 */
+	private Array _referenceList;
+}
