@@ -1,4 +1,5 @@
 #summary Documents the python modules that wrap the Java code
+#labels Featured
 
 = Links =
  * [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/pydocs/annutils.html annutils]
