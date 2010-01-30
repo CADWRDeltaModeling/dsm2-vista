@@ -1,0 +1,100 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module vtimeseries</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vtimeseries</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vtimeseries.py">d:\dev\wk-vista\vista\lib\lib\vtimeseries.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="string.html">string</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="java.lang.html#Object">java.lang.Object</a>(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial">org.python.modules.jarray
+</font></dt></dl>
+</dd>
+</dl>
+ <strong>jarray</strong> = &lt;type 'org.python.modules.jarray'&gt;</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-dsIndex"><strong>dsIndex</strong></a>(ds, timeinst)</dt><dd><tt><a href="#-dsIndex">dsIndex</a>(ds,&nbsp;timeinst):<br>
+Returns&nbsp;the&nbsp;nearest&nbsp;index&nbsp;of&nbsp;the&nbsp;dataset&nbsp;that&nbsp;includes&nbsp;timeinst,<br>
+or&nbsp;None&nbsp;if&nbsp;the&nbsp;timeinst&nbsp;is&nbsp;not&nbsp;in&nbsp;the&nbsp;dataset.</tt></dd></dl>
+ <dl><dt><a name="-interpolate"><strong>interpolate</strong></a>(ref, tm_intvl<font color="#909090">='1day'</font>, flat<font color="#909090">=True</font>)</dt><dd><tt><a href="#-interpolate">interpolate</a>(ref,tm_intvl='1day',flat=True):<br>
+generates&nbsp;from&nbsp;given&nbsp;data&nbsp;which&nbsp;may&nbsp;be&nbsp;reference&nbsp;or&nbsp;regular&nbsp;time&nbsp;series<br>
+either&nbsp;a&nbsp;reference&nbsp;or&nbsp;time&nbsp;series&nbsp;depending&nbsp;upon&nbsp;the&nbsp;input.&nbsp;The&nbsp;generated<br>
+data&nbsp;interpolates&nbsp;using&nbsp;values&nbsp;of&nbsp;input&nbsp;creating&nbsp;a&nbsp;data&nbsp;set&nbsp;of&nbsp;interval<br>
+smaller&nbsp;than&nbsp;given&nbsp;data.<br>
+For&nbsp;right&nbsp;now&nbsp;only&nbsp;flat&nbsp;=&nbsp;True&nbsp;works&nbsp;but&nbsp;someday&nbsp;we'll&nbsp;have&nbsp;the&nbsp;linear<br>
+interpolate&nbsp;working&nbsp;as&nbsp;well.<br>
+&nbsp;<br>
+Usage:<br>
+ref1&nbsp;=&nbsp;<a href="#-interpolate">interpolate</a>(ref_input,'1day')<br>
+OR<br>
+ds1&nbsp;=&nbsp;<a href="#-interpolate">interpolate</a>(ref_input.getData(),'1day')</tt></dd></dl>
+ <dl><dt><a name="-resample"><strong>resample</strong></a>(ref, outint, offset<font color="#909090">=0</font>)</dt><dd><tt>Resample&nbsp;a&nbsp;time&nbsp;series&nbsp;at&nbsp;regular&nbsp;intervals<br>
+(e.g.&nbsp;turn&nbsp;15&nbsp;minute&nbsp;data&nbsp;into&nbsp;1&nbsp;hour&nbsp;data)<br>
+&nbsp;<br>
+Arguments:<br>
+ref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reference&nbsp;to&nbsp;series&nbsp;to&nbsp;be&nbsp;resampled<br>
+outint&nbsp;&nbsp;(string)&nbsp;time&nbsp;interval&nbsp;for&nbsp;resampling.&nbsp;Must&nbsp;be&nbsp;greater&nbsp;than&nbsp;that&nbsp;of&nbsp;ref<br>
+offset&nbsp;&nbsp;shift&nbsp;in&nbsp;sampling&nbsp;time.&nbsp;The&nbsp;offset&nbsp;is&nbsp;measured&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;units&nbsp;of&nbsp;the&nbsp;original&nbsp;series.&nbsp;For&nbsp;example,&nbsp;when&nbsp;15min&nbsp;is&nbsp;data&nbsp;is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sampled&nbsp;daily,&nbsp;the&nbsp;default&nbsp;is&nbsp;to&nbsp;sample&nbsp;at&nbsp;time&nbsp;2400&nbsp;hours.&nbsp;To<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample&nbsp;at&nbsp;1200&nbsp;hours,&nbsp;use&nbsp;offset=48.<br>
+Return&nbsp;value:&nbsp;&nbsp;&nbsp;&nbsp;reference&nbsp;to&nbsp;resampled&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-taf2cfs"><strong>taf2cfs</strong></a>(ref)</dt><dd><tt><a href="#-taf2cfs">taf2cfs</a>(ref):<br>
+converts&nbsp;units&nbsp;of&nbsp;TAF&nbsp;to&nbsp;CFS&nbsp;for&nbsp;the&nbsp;given&nbsp;reference.&nbsp;Additionaly&nbsp;it<br>
+also&nbsp;sets&nbsp;the&nbsp;units&nbsp;of&nbsp;the&nbsp;data&nbsp;set&nbsp;pointed&nbsp;to&nbsp;by&nbsp;the&nbsp;reference&nbsp;to&nbsp;CFS.<br>
+This&nbsp;method&nbsp;does&nbsp;an&nbsp;exact&nbsp;conversion&nbsp;based&nbsp;on&nbsp;the&nbsp;number&nbsp;of&nbsp;days&nbsp;in<br>
+the&nbsp;particular&nbsp;month</tt></dd></dl>
+ <dl><dt><a name="-time"><strong>time</strong></a>(tmstr, pattern<font color="#909090">=None</font>)</dt><dd><tt><a href="#-time">time</a>(tmstr,pattern):<br>
+creates&nbsp;a&nbsp;time&nbsp;object&nbsp;for&nbsp;the&nbsp;given&nbsp;time&nbsp;string&nbsp;in&nbsp;ddMMMyyyy&nbsp;HHmm<br>
+format.</tt></dd></dl>
+ <dl><dt><a name="-timeinterval"><strong>timeinterval</strong></a>(tmistr)</dt><dd><tt><a href="#-timeinterval">timeinterval</a>(tmistr):<br>
+creates&nbsp;a&nbsp;time&nbsp;interval&nbsp;object&nbsp;for&nbsp;the&nbsp;given&nbsp;time&nbsp;interval<br>
+in&nbsp;the&nbsp;format&nbsp;of&nbsp;#interval&nbsp;where&nbsp;#&nbsp;is&nbsp;a&nbsp;an&nbsp;integer&nbsp;and<br>
+interval&nbsp;is&nbsp;a&nbsp;string&nbsp;such&nbsp;as&nbsp;min,&nbsp;hour,&nbsp;day,&nbsp;month,&nbsp;year</tt></dd></dl>
+ <dl><dt><a name="-timewindow"><strong>timewindow</strong></a>(twstr)</dt><dd><tt><a href="#-timewindow">timewindow</a>(tm)<br>
+creates&nbsp;a&nbsp;time&nbsp;window&nbsp;object&nbsp;from&nbsp;a&nbsp;string</tt></dd></dl>
+ <dl><dt><a name="-toreg"><strong>toreg</strong></a>(irts, tw<font color="#909090">=None</font>, ti<font color="#909090">='1hour'</font>)</dt><dd><tt><a href="#-toreg">toreg</a>(irts,tw=None,ti='1hour'):<br>
+Converts&nbsp;irregular&nbsp;time&nbsp;series&nbsp;to&nbsp;regular&nbsp;time&nbsp;series&nbsp;with<br>
+a&nbsp;time&nbsp;window&nbsp;and&nbsp;time&nbsp;interval.</tt></dd></dl>
+ <dl><dt><a name="-where_missing"><strong>where_missing</strong></a>(rts, filter<font color="#909090">=vista.set.CompositeFilter@11c5c88</font>)</dt><dd><tt><a href="#-where_missing">where_missing</a>(rts,filter=Constants.DEFAULT_FLAG_FILTER):<br>
+&nbsp;returns&nbsp;a&nbsp;time&nbsp;series&nbsp;with&nbsp;a&nbsp;1&nbsp;where&nbsp;missing&nbsp;or&nbsp;not&nbsp;acceptable&nbsp;with&nbsp;filter<br>
+&nbsp;and&nbsp;0&nbsp;otherwise<br>
+&nbsp;where&nbsp;rts&nbsp;is&nbsp;a&nbsp;regular&nbsp;time&nbsp;series&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filter&nbsp;is&nbsp;of&nbsp;type&nbsp;vista.set.ElementFilter&nbsp;e.g.&nbsp;Constants.DEFAULT_FLAG_FILTER</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>array</strong> = &lt;java function array 0xf&gt;<br>
+<strong>zeros</strong> = &lt;java function zeros 0x11&gt;</td></tr></table>
+</body></html>

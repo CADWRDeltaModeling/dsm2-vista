@@ -1,0 +1,204 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module vexpr</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vexpr</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vexpr.py">d:\dev\wk-vista\vista\lib\lib\vexpr.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="parser.generic.html#GenericASTBuilder">parser.generic.GenericASTBuilder</a>(<a href="parser.generic.html#GenericParser">parser.generic.GenericParser</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="vexpr.html#Parser">Parser</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="parser.generic.html#GenericScanner">parser.generic.GenericScanner</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="vexpr.html#Scanner">Scanner</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Parser">class <strong>Parser</strong></a>(<a href="parser.generic.html#GenericASTBuilder">parser.generic.GenericASTBuilder</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="vexpr.html#Parser">Parser</a></dd>
+<dd><a href="parser.generic.html#GenericASTBuilder">parser.generic.GenericASTBuilder</a></dd>
+<dd><a href="parser.generic.html#GenericParser">parser.generic.GenericParser</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Parser-__init__"><strong>__init__</strong></a>(self, start<font color="#909090">='bool_expr'</font>)</dt></dl>
+
+<dl><dt><a name="Parser-error"><strong>error</strong></a>(self, token)</dt></dl>
+
+<dl><dt><a name="Parser-nonterminal"><strong>nonterminal</strong></a>(self, type, args)</dt></dl>
+
+<dl><dt><a name="Parser-p_bool_exp"><strong>p_bool_exp</strong></a>(self, args)</dt><dd><tt>bool_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;bool_expr&nbsp;logop&nbsp;logic_expr<br>
+&nbsp;<br>
+bool_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;logic_expr<br>
+&nbsp;<br>
+logic_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;not&nbsp;relational_expr<br>
+&nbsp;<br>
+logic_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;relational_expr<br>
+&nbsp;<br>
+relational_expr&nbsp;&nbsp;::=&nbsp;arithmetic_expr&nbsp;relop&nbsp;arithmetic_expr<br>
+&nbsp;<br>
+relational_expr&nbsp;&nbsp;::=&nbsp;arithmetic_expr<br>
+&nbsp;<br>
+arithmetic_expr&nbsp;&nbsp;::=&nbsp;arithmetic_expr&nbsp;addop&nbsp;sum_expr<br>
+&nbsp;<br>
+addop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;+<br>
+&nbsp;<br>
+addop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;-<br>
+&nbsp;<br>
+arithmetic_expr&nbsp;&nbsp;::=&nbsp;sum_expr<br>
+&nbsp;<br>
+sum_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;sum_expr&nbsp;mulop&nbsp;mul_expr&nbsp;<br>
+&nbsp;<br>
+sum_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;mul_expr<br>
+&nbsp;<br>
+mul_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;-&nbsp;factor<br>
+&nbsp;<br>
+mul_expr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;factor<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;(&nbsp;bool_expr&nbsp;)<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;id<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;number<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;factor&nbsp;shift_op&nbsp;number<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;id&nbsp;(&nbsp;args&nbsp;)<br>
+&nbsp;<br>
+factor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;[&nbsp;list&nbsp;]<br>
+&nbsp;<br>
+list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;member&nbsp;,&nbsp;list<br>
+&nbsp;<br>
+list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;member<br>
+&nbsp;<br>
+member&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;factor<br>
+&nbsp;<br>
+member&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;-&nbsp;number<br>
+&nbsp;<br>
+member&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;number<br>
+&nbsp;<br>
+shift_op&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;&lt;&lt;<br>
+&nbsp;<br>
+shift_op&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;&gt;&gt;<br>
+&nbsp;<br>
+args&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;args&nbsp;,&nbsp;arg<br>
+&nbsp;<br>
+args&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;arg<br>
+&nbsp;<br>
+args&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=<br>
+&nbsp;<br>
+arg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;factor<br>
+&nbsp;<br>
+arg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;bool_expr<br>
+&nbsp;<br>
+arg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::=&nbsp;string</tt></dd></dl>
+
+<dl><dt><a name="Parser-terminal"><strong>terminal</strong></a>(self, token)</dt></dl>
+
+<hr>
+Methods inherited from <a href="parser.generic.html#GenericASTBuilder">parser.generic.GenericASTBuilder</a>:<br>
+<dl><dt><a name="Parser-buildASTNode"><strong>buildASTNode</strong></a>(self, args, lhs)</dt></dl>
+
+<dl><dt><a name="Parser-preprocess"><strong>preprocess</strong></a>(self, rule, func)</dt></dl>
+
+<hr>
+Methods inherited from <a href="parser.generic.html#GenericParser">parser.generic.GenericParser</a>:<br>
+<dl><dt><a name="Parser-ambiguity"><strong>ambiguity</strong></a>(self, children)</dt></dl>
+
+<dl><dt><a name="Parser-augment"><strong>augment</strong></a>(self, start)</dt></dl>
+
+<dl><dt><a name="Parser-buildState"><strong>buildState</strong></a>(self, token, states, i, tree)</dt></dl>
+
+<dl><dt><a name="Parser-buildTree"><strong>buildTree</strong></a>(self, tokens, tree, root)</dt></dl>
+
+<dl><dt><a name="Parser-buildTree_r"><strong>buildTree_r</strong></a>(self, stack, tokens, tokpos, tree, root)</dt></dl>
+
+<dl><dt><a name="Parser-collectRules"><strong>collectRules</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Parser-parse"><strong>parse</strong></a>(self, tokens)</dt></dl>
+
+<dl><dt><a name="Parser-resolve"><strong>resolve</strong></a>(self, list)</dt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Scanner">class <strong>Scanner</strong></a>(<a href="parser.generic.html#GenericScanner">parser.generic.GenericScanner</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Scanner-__init__"><strong>__init__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Scanner-error"><strong>error</strong></a>(selfs, s, pos)</dt></dl>
+
+<dl><dt><a name="Scanner-t_add_opt"><strong>t_add_opt</strong></a>(self, s)</dt><dd><tt>\+|-</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_bracketst"><strong>t_bracketst</strong></a>(self, s)</dt><dd><tt>\[|\]|\(|\)</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_func_idt"><strong>t_func_idt</strong></a>(self, s)</dt><dd><tt>[a-zA-Z_][\.a-zA-Z_0-9]*</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_groupt"><strong>t_groupt</strong></a>(self, s)</dt><dd><tt>\(|\)</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_logical_opt"><strong>t_logical_opt</strong></a>(self, s)</dt><dd><tt>and|or</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_mul_opt"><strong>t_mul_opt</strong></a>(self, s)</dt><dd><tt>\*|\/</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_nott"><strong>t_nott</strong></a>(self, s)</dt><dd><tt>not</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_numbert"><strong>t_numbert</strong></a>(self, s)</dt><dd><tt>(\d+(\.(\d+)?)?|\.(\d+)?)((e|E)(\+|-)?\d+)?</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_relational_opt"><strong>t_relational_opt</strong></a>(self, s)</dt><dd><tt>&lt;(?!(&lt;|=))|&gt;(?!(&gt;|=))|&lt;=|&gt;=|\!=|==</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_separatort"><strong>t_separatort</strong></a>(self, s)</dt><dd><tt>[,]</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_shift_opt"><strong>t_shift_opt</strong></a>(self, s)</dt><dd><tt>&lt;&lt;|&gt;&gt;</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_stringt"><strong>t_stringt</strong></a>(self, s)</dt><dd><tt>(\"|\')([^\"\'])*(\"|\')</tt></dd></dl>
+
+<dl><dt><a name="Scanner-t_whitespacet"><strong>t_whitespacet</strong></a>(self, s)</dt><dd><tt>[&nbsp;\t\r\n]+</tt></dd></dl>
+
+<dl><dt><a name="Scanner-tokenize"><strong>tokenize</strong></a>(self, input)</dt></dl>
+
+<hr>
+Methods inherited from <a href="parser.generic.html#GenericScanner">parser.generic.GenericScanner</a>:<br>
+<dl><dt><a name="Scanner-makeRE"><strong>makeRE</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="Scanner-reflect"><strong>reflect</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Scanner-t_default"><strong>t_default</strong></a>(self, s)</dt><dd><tt>(&nbsp;.&nbsp;|&nbsp;\n&nbsp;)+</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-parse"><strong>parse</strong></a>(tokens, start<font color="#909090">='bool_expr'</font>)</dt></dl>
+ <dl><dt><a name="-scan"><strong>scan</strong></a>(x)</dt></dl>
+</td></tr></table>
+</body></html>
