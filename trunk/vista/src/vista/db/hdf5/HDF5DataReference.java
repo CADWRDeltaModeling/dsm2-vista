@@ -98,8 +98,8 @@ public class HDF5DataReference extends DataReference {
 				//
 				startDims[0] = 0;
 				if (startDims.length > 2){
-					startDims[1] = nodePosition;
-					startDims[2] = locationNumber;
+					startDims[1] = locationNumber;
+					startDims[2] = nodePosition;
 				} else {
 					startDims[1] = locationNumber;
 				}
@@ -192,7 +192,7 @@ public class HDF5DataReference extends DataReference {
 	}
 
 	private double getBottomElevation(H5File h5file, int locationNumber2, int nodePosition2) throws Exception {
-		HObject hObject = h5file.get("/hydro/geometry/channel geometry");
+		HObject hObject = h5file.get("/hydro/geometry/channel_bottom");
 		if (!(hObject instanceof H5ScalarDS)) {
 			throw new IllegalArgumentException("Path: " + path
 					+ " in HDF5 file: " + h5file.getPath()
