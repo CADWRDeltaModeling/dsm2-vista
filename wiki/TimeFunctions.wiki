@@ -1,0 +1,23 @@
+#summary Describes the functions available for time manipulation
+
+= Introduction =
+
+Time functions are available in the [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/time/package-summary.html vista.time] package. These functions provide ability to define a [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/time/Time.html time point], a [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/time/TimeInterval.html time interval] (in minutes) and a [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/time/TimeWindow.html time window].
+
+= Time Formatting =
+
+To read in a time from a string in jython
+{{{
+>>> t1 = time('20041219','yyyyMMdd')
+}}}
+
+To convert it to standard format (military style)
+{{{
+>>> t2 = time(t1)
+}}}
+
+To get the string representation of the time
+{{{
+>>> print 'Time in original format: ', str(t1), ' & the same time in standard format: ', str(t2) 
+Time in original format:  20041219  & the same time in standard format:  18DEC2004 2400
+}}}
