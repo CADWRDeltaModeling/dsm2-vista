@@ -96,7 +96,7 @@ public class VistaUtils {
    */
 	public static String getVersionId() {
 		Properties props = new Properties();
-		String version = "1.0-$Rev$";
+		String version = "1.0-v02/03/2010";
 		try {
 			props.load(VistaUtils.getResourceAsStream("/vista/version"));
 			version = props.getProperty("version");
