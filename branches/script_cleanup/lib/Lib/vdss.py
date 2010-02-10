@@ -12,13 +12,6 @@ from vista.db.dss import DSSUtil
 from vista.time import TimeFactory
 from vista.app import MainProperties
 DSSUtil.setAccessProperties(MainProperties.getProperties())
-
-def wrap_data(ds, filename='', server='',pathname=''):
-    """
-    wrap_data(dataset, filename='', server='', pathname=''
-    wraps data set in a filename, servername and pathname
-    """
-    return gen_ref(ds,filename,server,pathname)
 #
 def gen_ref(ds, filename='', server='', pathname=''):
     "generates a DataReference given a dataset"
