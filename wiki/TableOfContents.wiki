@@ -6,3 +6,5 @@ Vista is a user interface for time series data storage, retrieval, analysis and 
 * [Introduction Introduction to Vista]
   * [HECDSSFormat Time Series Storage Format]
 * Time Series
+* [TimeFunctions Time Functions]
+* [PythonModuleDocs Python Module Docs]
