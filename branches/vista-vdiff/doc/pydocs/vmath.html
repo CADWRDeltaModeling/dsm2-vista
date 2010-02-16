@@ -1,0 +1,113 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module vmath</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vmath</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vmath.py">d:\dev\wk-vista\vista\lib\lib\vmath.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="datetime.html">datetime</a><br>
+</td><td width="25%" valign=top><a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="string.html">string</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="java.lang.html#Object">java.lang.Object</a>(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial">org.python.modules.jarray
+</font></dt></dl>
+</dd>
+</dl>
+ <strong>jarray</strong> = &lt;type 'org.python.modules.jarray'&gt;</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-avg"><strong>avg</strong></a>(ts)</dt><dd><tt>The&nbsp;average&nbsp;of&nbsp;a&nbsp;time&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-findTidalPT"><strong>findTidalPT</strong></a>(dsref, dsrefSm<font color="#909090">=None</font>)</dt><dd><tt><a href="#-findTidalPT">findTidalPT</a>(dataset-or-reference,&nbsp;[dsrefSm],&nbsp;[dsSmOffset]):<br>
+Find&nbsp;tidal&nbsp;Peaks&nbsp;and&nbsp;Troughs&nbsp;within&nbsp;a&nbsp;dataset&nbsp;or&nbsp;reference&nbsp;(either&nbsp;RTS&nbsp;or&nbsp;ITS).<br>
+Return&nbsp;a&nbsp;list&nbsp;of&nbsp;two&nbsp;irregular&nbsp;time&nbsp;series&nbsp;of&nbsp;the&nbsp;computed&nbsp;values;<br>
+for&nbsp;each&nbsp;element&nbsp;the&nbsp;time&nbsp;is&nbsp;the&nbsp;time&nbsp;of&nbsp;the&nbsp;peak&nbsp;or&nbsp;trough;<br>
+y&nbsp;is&nbsp;the&nbsp;value&nbsp;of&nbsp;the&nbsp;peak&nbsp;or&nbsp;trough.&nbsp;<br>
+Optional&nbsp;dsrefSm&nbsp;is&nbsp;a&nbsp;smoothed&nbsp;version&nbsp;of&nbsp;dsref,&nbsp;helpful&nbsp;for&nbsp;noisy<br>
+timeseries&nbsp;such&nbsp;as&nbsp;observed&nbsp;EC.&nbsp;&nbsp;The&nbsp;smoothed&nbsp;version&nbsp;should&nbsp;be&nbsp;padded<br>
+and&nbsp;extended&nbsp;with&nbsp;Constants.MISSING_VALUE&nbsp;if&nbsp;needed.</tt></dd></dl>
+ <dl><dt><a name="-godin"><strong>godin</strong></a>(ref)</dt><dd><tt>&nbsp;Tidal&nbsp;average&nbsp;using&nbsp;a&nbsp;filter&nbsp;similar&nbsp;to&nbsp;the&nbsp;Godin&nbsp;25-24-24&nbsp;tidal&nbsp;average.<br>
+&nbsp;Arguments:<br>
+&nbsp;ref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reference&nbsp;to&nbsp;series&nbsp;to&nbsp;be&nbsp;averaged<br>
+&nbsp;Return&nbsp;value:<br>
+&nbsp;reference&nbsp;to&nbsp;averaged&nbsp;filter<br>
+&nbsp;<br>
+&nbsp;This&nbsp;is&nbsp;the&nbsp;Godin&nbsp;filter&nbsp;discussed&nbsp;in&nbsp;the&nbsp;G-model&nbsp;literature&nbsp;<br>
+&nbsp;and&nbsp;popular&nbsp;in&nbsp;the&nbsp;tidal&nbsp;literature&nbsp;(though<br>
+&nbsp;not&nbsp;necessarily&nbsp;under&nbsp;the&nbsp;name&nbsp;Godin&nbsp;filter).<br>
+&nbsp;<br>
+&nbsp;For&nbsp;hourly&nbsp;data,&nbsp;the&nbsp;25-24-24&nbsp;filter&nbsp;is&nbsp;applied&nbsp;exactly&nbsp;<br>
+(25-hour&nbsp;moving&nbsp;average,&nbsp;then&nbsp;two&nbsp;24-hour&nbsp;moving<br>
+&nbsp;averages).&nbsp;When&nbsp;the&nbsp;input&nbsp;series&nbsp;uses&nbsp;time&nbsp;steps,&nbsp;<br>
+&nbsp;the&nbsp;lunar&nbsp;tidal&nbsp;cycle&nbsp;is&nbsp;assumed&nbsp;to&nbsp;be&nbsp;24hours_45&nbsp;minutes<br>
+&nbsp;(e.g.&nbsp;99&nbsp;values&nbsp;for&nbsp;15&nbsp;min&nbsp;data).<br>
+&nbsp;<br>
+&nbsp;The&nbsp;mechanical&nbsp;difference&nbsp;between&nbsp;tide_avg&nbsp;and&nbsp;tidal_avg,&nbsp;<br>
+&nbsp;is&nbsp;that&nbsp;this&nbsp;filter&nbsp;removes&nbsp;24-hour&nbsp;constituents&nbsp;more<br>
+&nbsp;completely.&nbsp;A&nbsp;practical&nbsp;difference&nbsp;is&nbsp;that&nbsp;this&nbsp;returned&nbsp;average&nbsp;<br>
+&nbsp;is&nbsp;period-centered.&nbsp;The&nbsp;shift&nbsp;operator&nbsp;can<br>
+&nbsp;be&nbsp;easily&nbsp;used&nbsp;to&nbsp;adjust&nbsp;this&nbsp;to&nbsp;the&nbsp;statutory&nbsp;version</tt></dd></dl>
+ <dl><dt><a name="-merge"><strong>merge</strong></a>(args, filter<font color="#909090">=vista.set.CompositeFilter@11c5c88</font>)</dt><dd><tt><a href="#-merge">merge</a>(args,filter=Constants.DEFAULT_FLAG_FILTER):<br>
+where&nbsp;args&nbsp;is&nbsp;an&nbsp;array&nbsp;of&nbsp;data&nbsp;references&nbsp;or&nbsp;data&nbsp;sets<br>
+&amp;&nbsp;filter&nbsp;is&nbsp;the&nbsp;filter&nbsp;for&nbsp;accepting&nbsp;or&nbsp;rejecting&nbsp;values<br>
+(type&nbsp;vista.set.ElementFilter)<br>
+It&nbsp;returns&nbsp;a&nbsp;merged&nbsp;reference&nbsp;if&nbsp;given&nbsp;an&nbsp;array&nbsp;of&nbsp;data&nbsp;references&nbsp;or<br>
+a&nbsp;merged&nbsp;data&nbsp;set&nbsp;if&nbsp;given&nbsp;an&nbsp;array&nbsp;of&nbsp;data&nbsp;sets<br>
+(or&nbsp;if&nbsp;any&nbsp;array&nbsp;object&nbsp;is&nbsp;a&nbsp;data&nbsp;set).</tt></dd></dl>
+ <dl><dt><a name="-mov_avg"><strong>mov_avg</strong></a>(dsref, backLength, forwardLength)</dt><dd><tt><a href="#-mov_avg">mov_avg</a>(dsref,backLength,forwardLength):<br>
+Does&nbsp;a&nbsp;moving&nbsp;average&nbsp;of&nbsp;the&nbsp;time&nbsp;series&nbsp;(dataset&nbsp;or&nbsp;ref)&nbsp;with&nbsp;<br>
+backLength&nbsp;previous&nbsp;points&nbsp;and&nbsp;forwardLength&nbsp;future&nbsp;points&nbsp;and<br>
+the&nbsp;present&nbsp;point.&nbsp;Returns&nbsp;the&nbsp;result&nbsp;as&nbsp;a&nbsp;new&nbsp;time&nbsp;series.</tt></dd></dl>
+ <dl><dt><a name="-per_avg"><strong>per_avg</strong></a>(ds, interval<font color="#909090">='1mon'</font>)</dt><dd><tt><a href="#-per_avg">per_avg</a>(dataset,&nbsp;interval='1mon'):<br>
+Period&nbsp;averages&nbsp;given&nbsp;regular&nbsp;time&nbsp;series&nbsp;or&nbsp;data&nbsp;reference&nbsp;to&nbsp;the&nbsp;given&nbsp;interval</tt></dd></dl>
+ <dl><dt><a name="-per_max"><strong>per_max</strong></a>(ds, interval<font color="#909090">='1mon'</font>)</dt><dd><tt><a href="#-per_max">per_max</a>(dataset,&nbsp;interval='1mon'):<br>
+Period&nbsp;maximums&nbsp;for&nbsp;a&nbsp;given&nbsp;regular&nbsp;time&nbsp;series&nbsp;or&nbsp;data&nbsp;reference&nbsp;for&nbsp;the&nbsp;given&nbsp;interval</tt></dd></dl>
+ <dl><dt><a name="-per_min"><strong>per_min</strong></a>(ds, interval<font color="#909090">='1mon'</font>)</dt><dd><tt><a href="#-per_min">per_min</a>(dataset,&nbsp;interval='1mon'):<br>
+Period&nbsp;maximums&nbsp;for&nbsp;a&nbsp;given&nbsp;regular&nbsp;time&nbsp;series&nbsp;or&nbsp;data&nbsp;reference&nbsp;for&nbsp;the&nbsp;given&nbsp;interval</tt></dd></dl>
+ <dl><dt><a name="-sdev"><strong>sdev</strong></a>(ts)</dt><dd><tt>The&nbsp;standard&nbsp;deviation&nbsp;of&nbsp;a&nbsp;time&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-tidal_avg"><strong>tidal_avg</strong></a>(ref)</dt><dd><tt><a href="#-tidal_avg">tidal_avg</a>(ref):<br>
+calculates&nbsp;the&nbsp;tidal&nbsp;average&nbsp;of&nbsp;the&nbsp;given&nbsp;reference&nbsp;and&nbsp;returns&nbsp;it&nbsp;in<br>
+another&nbsp;reference.&nbsp;The&nbsp;returning&nbsp;reference&nbsp;can&nbsp;be&nbsp;treated&nbsp;just&nbsp;like&nbsp;any<br>
+other&nbsp;reference.<br>
+A&nbsp;tidal&nbsp;cycle&nbsp;is&nbsp;assumed&nbsp;to&nbsp;be&nbsp;24hours_45&nbsp;minutes&nbsp;but&nbsp;for&nbsp;1hour&nbsp;time&nbsp;interval<br>
+data&nbsp;it&nbsp;is&nbsp;rounded&nbsp;off&nbsp;to&nbsp;25hours.</tt></dd></dl>
+ <dl><dt><a name="-total"><strong>total</strong></a>(ts)</dt><dd><tt>The&nbsp;total&nbsp;of&nbsp;a&nbsp;time&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-tsmax"><strong>tsmax</strong></a>(ts)</dt><dd><tt>The&nbsp;maximum&nbsp;of&nbsp;a&nbsp;time&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-tsmin"><strong>tsmin</strong></a>(ts)</dt><dd><tt>The&nbsp;minimum&nbsp;value&nbsp;of&nbsp;a&nbsp;time&nbsp;series</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>TestDefaultTime</strong> = None<br>
+<strong>TestDefaultTimeInterval</strong> = None<br>
+<strong>array</strong> = &lt;java function array 0xf&gt;<br>
+<strong>zeros</strong> = &lt;java function zeros 0x11&gt;</td></tr></table>
+</body></html>
