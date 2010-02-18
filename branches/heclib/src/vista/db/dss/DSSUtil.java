@@ -55,6 +55,9 @@
  */
 package vista.db.dss;
 
+import hec.heclib.util.Heclib;
+import hec.heclib.util.stringContainer;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -859,31 +862,25 @@ public class DSSUtil {
 		return blockStart;
 	}
 
-	/**
-    *
-    */
-	public static void loadDSSLibrary() {
-		try {
-			String vh = System.getProperty("vista.home");
-			// no vista home defined then user wants to load from
-			// system library path
-			if (vh == null) {
-				System.loadLibrary("dss");
-			} else {
-				String osname = System.getProperty("os.name");
-				String fs = System.getProperty("file.separator");
-				if (osname.indexOf("Sun") >= 0 || osname.indexOf("olaris") >= 0) {
-					System.load(vh + fs + "lib" + fs + "libdss.so");
-				} else if (osname.indexOf("Win") >= 0) {
-					System.load(vh + fs + "lib" + fs + "DSS.dll");
-				} else {
-					// we don't have anything for other than this yet!
-					System.loadLibrary("dss");
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("Could not load dss library");
-			System.err.println(e.getMessage());
+	public static int[] openDSSFile(String dssFile){
+		Heclib.zset("PROGRAM", "VISTA", 0);
+		Heclib.zset("MLEVEL", "", 0);
+		Heclib.zset("CCDATE", "ON", 0);
+		stringContainer outName = new stringContainer();
+		boolean exists = Heclib.zfname(dssFile, outName );
+		if (!exists){
+			throw new RuntimeException("** The DSS File does not exist: "+dssFile);
 		}
+		int[] ifltab = new int[600];
+		int[] status = new int[1];
+		Heclib.zopen(ifltab, dssFile, status);
+		if ( status[0] != 0){
+			throw new RuntimeException(" *** Error in opening DSS File: "+dssFile+ " Status: "+ status[0]);
+		}
+		return ifltab;
+	}
+	
+	public static void closeDSSFile(int[] ifltab){
+     	Heclib.zclose(ifltab);
 	}
 }
