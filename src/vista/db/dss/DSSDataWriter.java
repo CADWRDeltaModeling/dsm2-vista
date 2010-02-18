@@ -72,13 +72,6 @@ import vista.set.SetUtils;
  */
 class DSSDataWriter {
 	/**
-	 * load the dss library
-	 */
-	static {
-		DSSUtil.loadDSSLibrary();
-	}
-
-	/**
    *
    */
 	public DSSDataWriter() {
@@ -125,22 +118,28 @@ class DSSDataWriter {
 	/**
 	 * time series data
 	 */
-	private synchronized native void storeTimeSeriesData(String dssFile,
+	private synchronized void storeTimeSeriesData(String dssFile,
 			String pathname, long startJulmin, long endJulmin, DSSData data,
-			boolean storeFlags);
+			boolean storeFlags) {
+		throw new RuntimeException("Not yet implemented!");
+	}
 
 	/**
 	 * store irregular time series
 	 */
-	private synchronized native void storeIrregularTimeSeriesData(
-			String dssFile, String pathname, long startJulmin, long endJulmin,
-			DSSData data, boolean storeFlags);
+	private synchronized void storeIrregularTimeSeriesData(String dssFile,
+			String pathname, long startJulmin, long endJulmin, DSSData data,
+			boolean storeFlags) {
+		throw new RuntimeException("Not yet implemented!");
+	}
 
 	/**
 	 * store paired data
 	 */
-	private synchronized native void storePairedData(String dssFile,
-			String pathname, DSSData data, boolean storeFlags);
+	private synchronized void storePairedData(String dssFile, String pathname,
+			DSSData data, boolean storeFlags) {
+		throw new RuntimeException("Not yet implemented!");
+	}
 
 	/**
 	 * 
