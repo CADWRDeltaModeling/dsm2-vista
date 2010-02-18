@@ -1,0 +1,76 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module vchecker</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vchecker</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vchecker.py">d:\dev\wk-vista\vista\lib\lib\vchecker.py</a></font></td></tr></table>
+    <p><tt>vchecker:<br>
+This&nbsp;module&nbsp;contains&nbsp;the&nbsp;functions&nbsp;for&nbsp;checking&nbsp;data&nbsp;based&nbsp;on&nbsp;its&nbsp;value,&nbsp;rate&nbsp;of<br>
+change,&nbsp;quality&nbsp;flag&nbsp;values&nbsp;etcetra.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="string.html">string</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="java.lang.html#Object">java.lang.Object</a>(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial">org.python.modules.jarray
+</font></dt></dl>
+</dd>
+</dl>
+ <strong>jarray</strong> = &lt;type 'org.python.modules.jarray'&gt;</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-diff"><strong>diff</strong></a>(rts1, rts2, outfile<font color="#909090">=None</font>)</dt><dd><tt><a href="#-diff">diff</a>(rts1,rts2,outfile=None):<br>
+Prints&nbsp;to&nbsp;stdout&nbsp;the&nbsp;differences&nbsp;between&nbsp;rts1&nbsp;and&nbsp;rts2&nbsp;to<br>
+outfile&nbsp;or&nbsp;if&nbsp;outfile&nbsp;is&nbsp;None&nbsp;to&nbsp;standard&nbsp;out.&nbsp;When&nbsp;writing<br>
+to&nbsp;file&nbsp;it&nbsp;appends&nbsp;to&nbsp;existing&nbsp;outfile&nbsp;if&nbsp;any.</tt></dd></dl>
+ <dl><dt><a name="-display_missing"><strong>display_missing</strong></a>(ds)</dt><dd><tt><a href="#-display_missing">display_missing</a>(ds)<br>
+where<br>
+ds&nbsp;is&nbsp;a&nbsp;data&nbsp;set&nbsp;or&nbsp;time&nbsp;series<br>
+displays&nbsp;missing&nbsp;value&nbsp;ranges&nbsp;for&nbsp;given&nbsp;time&nbsp;series</tt></dd></dl>
+ <dl><dt><a name="-flagData"><strong>flagData</strong></a>(ftype, dataset, valArray, log<font color="#909090">='flag.log'</font>, Special<font color="#909090">=False</font>)</dt><dd><tt><a href="#-flagData">flagData</a>(ftype,&nbsp;dataset,&nbsp;valArray,&nbsp;log&nbsp;=&nbsp;'flag.log',&nbsp;Special&nbsp;=&nbsp;False):<br>
+Flags&nbsp;a&nbsp;datastream's&nbsp;values&nbsp;for&nbsp;bad&nbsp;data:<br>
+ftype='R':&nbsp;datavalue&nbsp;not&nbsp;within&nbsp;valArray[0]&nbsp;to&nbsp;valArray[1]&nbsp;marked&nbsp;as&nbsp;reject.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;='D':&nbsp;datavalue&nbsp;difference&nbsp;from&nbsp;previous&nbsp;value&nbsp;not&nbsp;within<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valArray[0]&nbsp;to&nbsp;valArray[1]&nbsp;range&nbsp;marked&nbsp;as&nbsp;reject.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;='M':&nbsp;datavalue&nbsp;equals&nbsp;or&nbsp;very&nbsp;close&nbsp;to&nbsp;val[0:],&nbsp;an&nbsp;array&nbsp;of&nbsp;Missing&nbsp;Value&nbsp;markers;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DSS&nbsp;flag&nbsp;set&nbsp;to&nbsp;missing.<br>
+All&nbsp;values&nbsp;marked&nbsp;are&nbsp;written&nbsp;to&nbsp;log&nbsp;file,&nbsp;with&nbsp;optional&nbsp;Special&nbsp;treatment.<br>
+Flags&nbsp;added&nbsp;to&nbsp;timeseries&nbsp;if&nbsp;needed.</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>TestMovingAverageProxy</strong> = None<br>
+<strong>TestPositionAtTime</strong> = None<br>
+<strong>array</strong> = &lt;java function array 0xf&gt;<br>
+<strong>native</strong> = &lt;java package vista.db.dss.native 0x10&gt;<br>
+<strong>pp_map</strong> = {'a': 0, 'b': 1, 'c': 2, 'f': 5}<br>
+<strong>zeros</strong> = &lt;java function zeros 0x11&gt;</td></tr></table>
+</body></html>

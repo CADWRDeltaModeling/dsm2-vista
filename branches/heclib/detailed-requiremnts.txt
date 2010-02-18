@@ -1,0 +1,173 @@
+Dec 19/98
+1. Schematic/map display
+	- IEP data with DSM2 schematic
+	- Calsim schematic
+	- for map displays I will  wait till Feb end to get something
+from John. In the meantime see if some gis info is available from
+Rich. 
+
+2. Axis tick improvements
+	- time tick generator
+	- value tick generator
+
+3. DSS retrieval/storage design improvements
+	- add delete and squeeze
+	- ask Bill for the latest hec library
+	- allow .vistaServer to determine the name of people allowed
+to edit data base and their user name mappings. Also level of output
+or server and access properties (dss ) should be in here. 
+	- allow for multi dimensional paired data sets.
+	- a where and find for data sets
+	- move all  proxy pathname construction logic for math
+operations  into data set and its attributes. 
+	- determin E par of irregular ts using heuristics only if none
+provided by user 
+3c. Time
+	- make implementations public and give easy constructor names
+	- improve format to handle all format strings in hec format
+	
+4. Additional access to DSS facilities ( squeeze, delete, etc)
+	- see above. Also use jswig to get all hec dss
+functionality. Abstract out and implement DSSFile class.  
+
+3b. DataTable
+ - don't display flag values as a default
+ - edit attributes should be able to edit pathname as well
+ - trim beginning and ending missing values from data set.
+ - make attributes easily accessible
+ - make a toolbar with buttons for graph and statistics
+ - show flag menu only when flags are being displayed.
+ - for python scripts allow plot and tabulate and DataGraph and
+DataTable and Curve factory methods work on data sets as well. 
+ -  ability to extend Regular time series and insert and extend
+irregular time series.  ( ascending times only ). This probably means
+the addition of insert and append functions to the data set
+classess. This also means there should be a way to delete  points as
+well. For the regular time series this would be interpreted to setting
+the said value to missing. 
+5. Math functions ( fft, moving-average, ann)
+	- finish the fft 
+	- add generic moveing average for ARMA/ARIMA models
+6a. Plot options
+	- background coloar and curve cdefault color palette should be
+easily chosen. For back and white color plots for now the palette
+should include the selection of line with various symbols and all of
+them in black and white. ( a black and  white mode could be enabled) 
+	- # of curves per plot and # of plots per graph and ignore
+units options should be available 
+	- easy access to modifying graph title, legends, axis labels.
+	- easy access to modifiying curve attributes, font sizes for
+various titles/labels/legends. 
+	- easy access to adding an horizontal/vertical line, an
+arbitrary label that can be anchored anywhere withing the plot. Also
+allow plot titles. Also allow plot legends to be placed at more than
+one default location. 
+	- adding grid to plot.
+
+6c. 
+ - improve zooming and panning witha non - zoomed windo on which an
+appropriate sized rectangle is moved. Also put in option for automatic
+scaling as opposed to fixed scaling. 
+ - paired data plot from current zoom of two or more
+curves. Similarily a time=series plot from a paired zoom. 
+	
+6b. Curve editor
+	- point based vs influence region based.
+	- user selects curve editing mode. Then user clicks near a
+curve and drags it to a new location. The curve updates only after
+user pauses  in the drag 
+	
+7. GroupEditCreator Dialog
+	- create a dialog that enables one to set the servername, file
+name, and a search and replace ofpathname parts. 
+8. Improvements to GroupFrame, SessionFrame
+ - a field to enter a URL like dss file location . The field is to
+consist of an optional url followed by a , and then a directory
+name. A return or pressing the connect button would start up the
+connections. 
+ - a bookmark like facility for each user to be saved in a .vista
+directory in their home directory. This would allow the user to
+select from a growing menu item of hotlists. Follow the browser design
+in this case. 
+ - remove new and load session menu items. remove group intersection
+item. 
+ - allow for opening multiple group frames.
+ - allow delete key to delete item in table.
+ - allow arrow up and down keys to move in a table
+ - allow user to edit a pathname or a group of pathnames with search
+and replace kind of option. E parts are special edits which allow user to choose one of the standard periods above current interval. time
+window D part is also special and the intersecting time window is
+used. 
+ - for math operations allow no spaces within bpart names and uses
+brackets when math operations are visible within names. Also fpart
+should reflect the original f part if possible. 
+ - never touch original dss  file groups with modifications. In fact
+as soon as user opens the dss file default group  i should cone it.  
+ - improve path part filters to be right under the header fields.
+ - have the lines in the group table react to +,-,/,*  buttons along
+with all the numeric buttons. Also allow for group selections during
+these operations 
+ - a mechanism to save all the filtering and sorting operations done
+on a group. allow the application to load and apply these operations
+at any later time. Use simple text format that would be easy to edit
+outside of vista. 
+
+9. Undo/redo operations and automatic script generation
+10. More types of plots - bar plots, contour plots, vector plots
+ - comparative bar plots, stacked bar plots, error bar plots
+11. Data import facilities
+ - excel csv format
+12. GUI addition features and improvements
+ -
+13. improved time window filtering
+  use a time window field that understands time.
+14. improved data selection on characteristics ( not just pathname
+parts) 
+15. Linear/log scaling
+16. Overall quality assurance plan
+17. Improve math operation panel
+ - put a merge button  in clear sight to allow merging. Most math
+operations can be handled via key stroke combinations.  period average
+would be a special case when changing E part of the pathname.as would
+be period min or max  which could be radio buttons to toggle between
+the various states. Linear regression and filling in missing data with
+it or by simple linear interpolation would be useful to hide   in a
+tab panel. 
+18. A mandatory test set for testing various requirements
+implementation 
+19. Data check kind of scripts
+ - incorporate data checking of datchk kind  into the gui.
+ - highlight the problem areas or mark  them with flags.
+20. Integrate scripting and gui and allow user customizable menus for
+doing scripting.
+21. User manual, Programmers manual (Scripting and extension)
+ - incorporate some kind of html online help with swing set
+22. Better printing control (Java 2D)
+ XX - atleast get printing working with java1.1. (Mar '3, 99)
+ - allow user portrait and landscape mode size selection with
+ease. Then explore possibility of having the print dialog be
+initialized with a few default properties. 
+23. More line styles and thicknesses etcetra ( java 2d)
+  - add line thickness and some nice default styles.
+24. Report generation with styled text.]
+ XX - generate one like the DWRSIM monthly report ( Mar 3'99)
+ - generate one like the CALFED reports which  Sanjaya has.
+
+25. MDI kind of interface to enable vista to be neater.
+
+26. a packaging mechanism to construct one jar file containing all
+the relevant class files 
+
+27. Continuous time series for ITS to RTS and vice-versa converstions
+
+28. Import Data Functionality 
+ - excel csv format
+ - dssts format
+ - dssits format
+29. Plots from all jans, febs etcetra. This would be selection
+according to a pattern. 
+30. Prefiltering group at server
+31. Scatter plots
+	allow setting of flags based on region selection 
+ - plot regression line for typical scatter plot. Also when zoomed int
+32. Formatting of real values is kind of kludgey.

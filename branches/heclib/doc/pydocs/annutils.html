@@ -1,0 +1,123 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module annutils</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>annutils</strong></big></big> (version 0.7)</font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\annutils.py">d:\dev\wk-vista\vista\lib\lib\annutils.py</a></font></td></tr></table>
+    <p><tt>A&nbsp;set&nbsp;of&nbsp;utilities&nbsp;to&nbsp;build&nbsp;pattern&nbsp;sets&nbsp;using&nbsp;regular&nbsp;time&nbsp;series&nbsp;data<br>
+sets&nbsp;and&nbsp;a&nbsp;given&nbsp;set&nbsp;of&nbsp;parameters.&nbsp;These&nbsp;are&nbsp;intended&nbsp;to&nbsp;replace&nbsp;the&nbsp;awk<br>
+scripts&nbsp;that&nbsp;read&nbsp;from&nbsp;text&nbsp;files&nbsp;and&nbsp;generated&nbsp;those&nbsp;pattern&nbsp;sets<br>
+&nbsp;<br>
+Extraction&nbsp;of&nbsp;target&nbsp;and&nbsp;simulated&nbsp;values&nbsp;can&nbsp;be&nbsp;done&nbsp;either&nbsp;using&nbsp;the<br>
+simulate&nbsp;function&nbsp;generated&nbsp;by&nbsp;compiling&nbsp;the&nbsp;java&nbsp;file&nbsp;generated&nbsp;from&nbsp;snns2java.awk<br>
+or&nbsp;by&nbsp;using&nbsp;the&nbsp;extractres&nbsp;function&nbsp;directly&nbsp;on&nbsp;the&nbsp;.res<br>
+file&nbsp;from&nbsp;SNNS.<br>
+&nbsp;<br>
+No&nbsp;replacement&nbsp;stratgies&nbsp;are&nbsp;attempted&nbsp;here.&nbsp;There&nbsp;are&nbsp;plenty&nbsp;of&nbsp;tools<br>
+outside&nbsp;this&nbsp;module&nbsp;designed&nbsp;for&nbsp;this.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="string.html">string</a><br>
+</td><td width="25%" valign=top><a href="vutils.html">vutils</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="java.lang.html#Object">java.lang.Object</a>(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial">org.python.modules.jarray
+</font></dt></dl>
+</dd>
+</dl>
+ <strong>jarray</strong> = &lt;type 'org.python.modules.jarray'&gt;</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-buildinput"><strong>buildinput</strong></a>(rts, ndays, navgs, lenavgs)</dt><dd><tt><a href="#-buildinput">buildinput</a>(rts):<br>
+This&nbsp;builds&nbsp;a&nbsp;set&nbsp;of&nbsp;time&nbsp;series&nbsp;each&nbsp;of&nbsp;which&nbsp;is&nbsp;a&nbsp;present&nbsp;or&nbsp;past&nbsp;value&nbsp;of<br>
+the&nbsp;given&nbsp;time&nbsp;series.&nbsp;Some&nbsp;of&nbsp;the&nbsp;values&nbsp;may&nbsp;be&nbsp;obtained&nbsp;by&nbsp;period&nbsp;averaging<br>
+over&nbsp;a&nbsp;week.</tt></dd></dl>
+ <dl><dt><a name="-dump_patterns"><strong>dump_patterns</strong></a>(inputs, outputs, outfile, calibration_percentage<font color="#909090">=0.75</font>, skip<font color="#909090">=365</font>, append<font color="#909090">=0</font>, fast_write<font color="#909090">=0</font>)</dt><dd><tt><a href="#-dump_patterns">dump_patterns</a>(inputs,outputs,outfile,calibration_percentage=0.75,append=0):<br>
+dumps&nbsp;the&nbsp;patterns&nbsp;to&nbsp;the&nbsp;given&nbsp;outfile.<br>
+outfile.cal&nbsp;which&nbsp;contains&nbsp;calibration%&nbsp;of&nbsp;the&nbsp;points<br>
+outfile.ver&nbsp;which&nbsp;contains&nbsp;validation%&nbsp;=&nbsp;100&nbsp;-&nbsp;calibration%&nbsp;of&nbsp;the&nbsp;points<br>
+append=1&nbsp;appends&nbsp;to&nbsp;the&nbsp;previous&nbsp;.cal&nbsp;and&nbsp;.ver&nbsp;files&nbsp;if&nbsp;they&nbsp;exist</tt></dd></dl>
+ <dl><dt><a name="-extractres"><strong>extractres</strong></a>(file<font color="#909090">='calibrate.res'</font>, stime<font color="#909090">='01jan1975 0000'</font>, time_intvl<font color="#909090">='1day'</font>)</dt><dd><tt><a href="#-extractres">extractres</a>(file='calibrate.res',stime='01jan1975&nbsp;0000',time_intvl='1day'):<br>
+&nbsp;<br>
+Used&nbsp;to&nbsp;extract&nbsp;from&nbsp;result&nbsp;file&nbsp;a&nbsp;target&nbsp;and&nbsp;a&nbsp;simulated&nbsp;time&nbsp;series&nbsp;which<br>
+starts&nbsp;at&nbsp;the&nbsp;start&nbsp;time&nbsp;and&nbsp;of&nbsp;the&nbsp;given&nbsp;time&nbsp;interval.<br>
+&nbsp;<br>
+The&nbsp;return&nbsp;value&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;the&nbsp;target&nbsp;and&nbsp;simulated&nbsp;regular&nbsp;time&nbsp;series<br>
+&nbsp;<br>
+e.g.<br>
+target,simulated&nbsp;=&nbsp;<a href="#-extractres">extractres</a>('calibrate.res','01jan1975&nbsp;0000','1day')</tt></dd></dl>
+ <dl><dt><a name="-gcalc"><strong>gcalc</strong></a>(ds, beta, delta_t, g_prev<font color="#909090">=0</font>)</dt><dd><tt>Function&nbsp;to&nbsp;calculate&nbsp;daily&nbsp;G&nbsp;values&nbsp;from&nbsp;net&nbsp;delta<br>
+outflow&nbsp;conditions&nbsp;<br>
+&nbsp;<br>
+G=Qavg/(1+(Qavg/Gprev-1)*exp(-Qavg*t/Beta))<br>
+G,Qavg&nbsp;in&nbsp;cubic&nbsp;feet/sec<br>
+t&nbsp;in&nbsp;seconds<br>
+Beta&nbsp;in&nbsp;ft^3<br>
+Beta&nbsp;for&nbsp;jerseypt&nbsp;=&nbsp;550<br>
+&nbsp;<br>
+Gavg=Qavg&nbsp;+&nbsp;Beta/delta_t*ln((1+(Qavg/Gprev&nbsp;-&nbsp;1)*exp(-Qavg*delta_t/Beta))/(Qavg/Gprev))</tt></dd></dl>
+ <dl><dt><a name="-gmodel"><strong>gmodel</strong></a>(ds, so, sb, beta, alpha, gprev<font color="#909090">=4000</font>)</dt><dd><tt><a href="#-gmodel">gmodel</a>(ds,so,sb,beta,alpha,gprev=4000):<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;takes&nbsp;a&nbsp;time&nbsp;series&nbsp;(probably&nbsp;NDO)&nbsp;and&nbsp;a&nbsp;set&nbsp;of&nbsp;parameters<br>
+and&nbsp;returns&nbsp;a&nbsp;time&nbsp;series&nbsp;of&nbsp;the&nbsp;EC&nbsp;values.<br>
+&nbsp;<br>
+All&nbsp;the&nbsp;parameters&nbsp;are&nbsp;scaled&nbsp;and&nbsp;look&nbsp;at&nbsp;the&nbsp;source&nbsp;code&nbsp;listing&nbsp;for<br>
+more&nbsp;information.<br>
+&nbsp;<br>
+For&nbsp;missing&nbsp;values&nbsp;the&nbsp;previous&nbsp;good&nbsp;flow&nbsp;value&nbsp;is&nbsp;used&nbsp;when&nbsp;calculating<br>
+g.&nbsp;To&nbsp;change&nbsp;this&nbsp;strategy&nbsp;modify&nbsp;the&nbsp;source&nbsp;code.</tt></dd></dl>
+ <dl><dt><a name="-prepare_simulate"><strong>prepare_simulate</strong></a>(net_file, module<font color="#909090">=None</font>)</dt><dd><tt><a href="#-prepare_simulate">prepare_simulate</a>(net_file,module=None):<br>
+prepares&nbsp;the&nbsp;java&nbsp;files&nbsp;needed&nbsp;from&nbsp;the&nbsp;given&nbsp;network&nbsp;file&nbsp;name<br>
+and&nbsp;module&nbsp;name&nbsp;(optional)</tt></dd></dl>
+ <dl><dt><a name="-simulate"><strong>simulate</strong></a>(inputs, ann_func, nouts<font color="#909090">=1</font>)</dt><dd><tt><a href="#-simulate">simulate</a>(inputs,ann_func,nouts=1):<br>
+&nbsp;<br>
+this&nbsp;function&nbsp;simulates&nbsp;the&nbsp;given&nbsp;ann_func&nbsp;which&nbsp;is&nbsp;a&nbsp;string&nbsp;name&nbsp;of&nbsp;the<br>
+function&nbsp;that&nbsp;exists&nbsp;in&nbsp;ANN&nbsp;package.&nbsp;The&nbsp;usual&nbsp;way&nbsp;to&nbsp;do&nbsp;this&nbsp;is&nbsp;to&nbsp;convert<br>
+the&nbsp;SNNS&nbsp;generated&nbsp;"C"&nbsp;network&nbsp;to&nbsp;java&nbsp;using&nbsp;snns2java&nbsp;script.&nbsp;The&nbsp;generated<br>
+java&nbsp;file&nbsp;is&nbsp;put&nbsp;in&nbsp;the&nbsp;ANN&nbsp;directory&nbsp;and&nbsp;compiled&nbsp;using&nbsp;"javac&nbsp;ann_func.java"<br>
+command.<br>
+&nbsp;<br>
+inputs&nbsp;is&nbsp;the&nbsp;given&nbsp;inputs&nbsp;after&nbsp;being&nbsp;scaled&nbsp;and&nbsp;shifted&nbsp;for&nbsp;memory&nbsp;(Use<br>
+buildinputs&nbsp;function&nbsp;for&nbsp;that)</tt></dd></dl>
+ <dl><dt><a name="-testnet"><strong>testnet</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>__author__</strong> = 'Nicky Sandhu'<br>
+<strong>__future_tasks__</strong> = '<font color="#c040c0">\n</font>version 0.5<font color="#c040c0">\n</font>X1. Need to convert snns2java.awk t...n 0.7<font color="#c040c0">\n</font>Checked for accuracy with old awk scripts.<font color="#c040c0">\n</font>'<br>
+<strong>__version__</strong> = '0.7'</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#7799ee">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Author</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#7799ee"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Nicky&nbsp;Sandhu</td></tr></table>
+</body></html>
