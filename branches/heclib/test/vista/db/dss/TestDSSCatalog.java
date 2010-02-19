@@ -2,7 +2,6 @@ package vista.db.dss;
 
 import java.io.File;
 
-import vista.db.dss.hec.DSSDataReader;
 import junit.framework.TestCase;
 
 public class TestDSSCatalog extends TestCase {

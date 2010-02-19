@@ -84,7 +84,7 @@ public class DSSDataReader {
 	public void generateCatalog(String dssFile) {
 		int[] ifltab = DSSUtil.openDSSFile(dssFile);
 		int[] numberFound = new int[] { -1 };// way to indicate to create new
-												// catalog
+		// catalog
 		int[] catalogUnit = new int[1];
 		Heclib.makedsscatalog(dssFile, ifltab, "NEW COND", numberFound,
 				catalogUnit);
@@ -189,19 +189,23 @@ public class DSSDataReader {
 	 * returns an integer for the type of record contained in the pathname
 	 */
 	private synchronized int getRecordType(String dssFile, String pathname) {
-		int[] ifltab = DSSUtil.openDSSFile(dssFile);
-		int[] checkedNumber = new int[] { 0 };
-		stringContainer type = new stringContainer();
-		int[] dataType = new int[] { 0 };
-		int[] existsInt = new int[] { 0 };
-		Heclib.zdtype(ifltab, pathname, checkedNumber, existsInt, type,
-				dataType);
-		if (existsInt[0] != 0) {
-			throw new RuntimeException(" ** The pathname: " + pathname
-					+ " does not exist in file: " + dssFile);
+		int[] ifltab = null;
+		try {
+			ifltab = DSSUtil.openDSSFile(dssFile);
+			int[] checkedNumber = new int[] { 0 };
+			stringContainer type = new stringContainer();
+			int[] dataType = new int[] { 0 };
+			int[] existsInt = new int[] { 0 };
+			Heclib.zdtype(ifltab, pathname, checkedNumber, existsInt, type,
+					dataType);
+			if (existsInt[0] == 0) {
+				throw new RuntimeException(" ** The pathname: " + pathname
+						+ " does not exist in file: " + dssFile);
+			}
+			return dataType[0];
+		} finally {
+			DSSUtil.closeDSSFile(ifltab);
 		}
-		DSSUtil.closeDSSFile(ifltab);
-		return dataType[0];
 	}
 
 	/**
@@ -221,7 +225,7 @@ public class DSSDataReader {
 		String cdate = Heclib.juldat(idate, 104);
 		stringContainer ctime = new stringContainer();
 		itime = Heclib.m2ihm(itime, ctime);
-		float[] values = new float[nvals];
+		double[] values = new double[nvals];
 		int[] flags = new int[0];
 		if (retrieveFlags) {
 			flags = new int[nvals];
@@ -241,7 +245,7 @@ public class DSSDataReader {
 		int[] offset = new int[1];
 		int[] compression = new int[1];
 		int[] istat = { 0 };
-		Heclib.zrrtsx(ifltab, pathname, cdate, ctime.toString(), nvals, values,
+		Heclib.zrrtsxd(ifltab, pathname, cdate, ctime.toString(), nvals, values,
 				flags, readFlags, flagsWereRead, units, type, userHead,
 				maxUserHead, numberHeadRead, offset, compression, istat);
 		DSSUtil.closeDSSFile(ifltab);
@@ -250,10 +254,7 @@ public class DSSDataReader {
 			data._numberRead = nvals;
 			data._offset = offset[0];
 			data._flags = flags;
-			data._yValues = new double[nvals];
-			for(int i=0; i < nvals; i++){
-				data._yValues[i] = values[i];
-			}
+			data._yValues = values;
 			data._yUnits = units.toString();
 			data._yType = type.toString();
 			return istat[0];
@@ -272,21 +273,22 @@ public class DSSDataReader {
 		String[] pathParts = pathname.split("/");
 		String ePart = pathParts[5];
 		int[] interval = new int[1];
-		int[] status = {1}; //1 => get integer interval from E part
+		int[] status = { 1 }; // 1 => get integer interval from E part
 		Heclib.zgintl(interval, ePart, new int[1], status);
-		if (status[0] != 0){
-			if (status[0] == 1){
-				throw new RuntimeException("Irregular time E part: "+ePart);
+		if (status[0] != 0) {
+			if (status[0] == 1) {
+				throw new RuntimeException("Irregular time E part: " + ePart);
 			} else {
-				throw new RuntimeException("Non-time series E part: "+ePart);
+				throw new RuntimeException("Non-time series E part: " + ePart);
 			}
 		}
-	     int startJulian = (int) startJulmin/1440;
-	     int startTime = (int) startJulmin%1440;
-	     int endJulian = (int) endJulmin/1440;
-	     int endTime = (int) endJulmin%1440;
-	     int nvals = HecTime.nopers(interval[0], startJulian, startTime, endJulian, endTime);
-	     return nvals+1;// by 1 to include end of interval
+		int startJulian = (int) startJulmin / 1440;
+		int startTime = (int) startJulmin % 1440;
+		int endJulian = (int) endJulmin / 1440;
+		int endTime = (int) endJulmin % 1440;
+		int nvals = HecTime.nopers(interval[0], startJulian, startTime,
+				endJulian, endTime);
+		return nvals + 1;// by 1 to include end of interval
 	}
 
 	/**
@@ -295,7 +297,56 @@ public class DSSDataReader {
 	private synchronized int retrieveIrregularTimeSeries(String dssFile,
 			String pathname, long startJulmin, long endJulmin,
 			boolean retrieveFlags, DSSData data) {
-		throw new RuntimeException("Not yet implemented");
+		int[] ifltab = null;
+		try{
+			ifltab = DSSUtil.openDSSFile(dssFile);
+			int startJulian = (int) startJulmin / 1440;
+			int startTime = (int) startJulmin % 1440;
+			int endJulian = (int) endJulmin / 1440;
+			int endTime = (int) endJulmin % 1440;
+			int MAX_VALUES = 100000;
+			int[] timeBuffer = new int[MAX_VALUES];
+			int[] flags = new int[MAX_VALUES];
+			double[] dataValues = new double[MAX_VALUES];
+			int dataSize = MAX_VALUES;
+			int[] numberRead = new int[1];
+			int[] beginJulian = new int[1];
+			int readFlags = retrieveFlags ? 1 : 0;
+			int[] flagsRead  = new int[1];
+			stringContainer units = new stringContainer();
+			stringContainer type = new stringContainer();
+			// FIXME: it doesn't look like HEC uses this function call in their java
+			// code. really this should have been
+			// similar to their doublearrayContainer but instead I have to guess at
+			// the max size of the header array
+			int maxUserHead = 100;
+			int[] userHead = new int[maxUserHead];
+			int[] numberHeadRead = new int[1];
+			int inflag=0;
+			int[] status = {0};
+			Heclib.zritsxd(ifltab, pathname, startJulian, startTime, endJulian,
+					endTime, timeBuffer, dataValues, dataSize, numberRead,
+					beginJulian, flags, readFlags, flagsRead, units, type,
+					userHead, maxUserHead, numberHeadRead, inflag, status);
+			if (status[0]==0){
+				data._dataType=DSSUtil.IRREGULAR_TIME_SERIES;
+				data._flags = flags;
+				data._numberRead=numberRead[0];
+				double[] xValues = new double[data._numberRead];
+				for(int i=0; i < data._numberRead;i++){
+					xValues[i] = timeBuffer[i] + beginJulian[i];
+				}
+				data._xValues=xValues;
+				double[] yValues = new double[data._numberRead];
+				System.arraycopy(dataValues, 0, yValues, 0, data._numberRead);
+				data._yValues=dataValues;
+				data._yType=type.toString();
+				data._yUnits=units.toString();
+			}
+			return status[0];
+		} finally{
+			DSSUtil.closeDSSFile(ifltab);
+		}
 	}
 
 	/**
@@ -303,7 +354,16 @@ public class DSSDataReader {
    */
 	private synchronized int retrievePairedData(String dssFile,
 			String pathname, DSSData data) {
-		throw new RuntimeException("Not yet implemented!");
+		int[] ifltab = null;
+		try{
+			ifltab = DSSUtil.openDSSFile(dssFile);
+			int[] status = {0};
+			int[] nord;
+			//Heclib.zrpdd(ifltab, pathname, nord, numberOfCurves, ihoriz, cunitsX, ctypeX, cunitsY, ctypeY, values, kvals, numberOfValues, clabel, klabel, labelsExist, headu, kheadu, nheadu, istat)
+			return status[0];
+		} finally{
+			DSSUtil.closeDSSFile(ifltab);
+		}
 	}
 
 	private final static boolean DEBUG = false;
