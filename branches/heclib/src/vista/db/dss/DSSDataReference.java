@@ -55,6 +55,7 @@
  */
 package vista.db.dss;
 
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import vista.set.DataReference;
@@ -175,7 +176,7 @@ class DSSDataReference extends DataReference {
 				re.printStackTrace();
 				throw new DataRetrievalException(re.getMessage());
 			}
-			dataset = new WeakReference<DataSet>(data);
+			dataset = new SoftReference<DataSet>(data);
 		}
 		return dataset.get();
 	}
@@ -207,7 +208,7 @@ class DSSDataReference extends DataReference {
 
 	private void setData(DataSet data) {
 		dataset.clear();
-		dataset = new WeakReference<DataSet>(data);
+		dataset = new SoftReference<DataSet>(data);
 	}
 
 	/**
@@ -236,7 +237,7 @@ class DSSDataReference extends DataReference {
 	/**
 	 * The data set contained by this reference. Don't save data on serializing
 	 */
-	private transient WeakReference<DataSet> dataset;
+	private transient SoftReference<DataSet> dataset;
 	/**
 	 * separator for name
 	 */

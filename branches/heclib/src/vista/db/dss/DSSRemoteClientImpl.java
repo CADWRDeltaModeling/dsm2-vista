@@ -123,9 +123,6 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 			if (currentDir.isDirectory() && currentDir.canRead()) {
 				list = currentDir.list(new SubscriptFilenameFilter(
 						DSSUtil.DSS_EXTENSION));
-				if (list.length == 0)
-					throw new RemoteException("Directory: " + directory
-							+ " does not contain any dss files?");
 			} else {
 				if (!currentDir.isDirectory()) {
 					throw new RemoteException(directory
