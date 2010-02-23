@@ -55,6 +55,8 @@
  */
 package vista.db.dss;
 
+import hec.heclib.util.Heclib;
+import hec.heclib.util.stringContainer;
 import vista.set.DataSet;
 import vista.set.DataSetAttr;
 import vista.set.SetUtils;
@@ -121,7 +123,30 @@ class DSSDataWriter {
 	private synchronized void storeTimeSeriesData(String dssFile,
 			String pathname, long startJulmin, long endJulmin, DSSData data,
 			boolean storeFlags) {
-		throw new RuntimeException("Not yet implemented!");
+		int[] ifltab = null;
+		try{
+			ifltab = DSSUtil.openDSSFile(dssFile, true);
+			int idate = (int) startJulmin / 1440;
+			int startTime = (int) startJulmin % 1440;
+			String startDate = Heclib.juldat(idate, 104);
+			stringContainer hourMinutes = new stringContainer();
+			Heclib.m2ihm(startTime, hourMinutes );
+			int istoreFlags = storeFlags ? 1 : 0;
+			int[] flags = storeFlags ? data._flags : new int[1];
+			int[] userHeader = new int[]{0};
+			int numberHeader=0;
+			// TODO: figure out values for compression, plan, etc.
+			int plan = 0;
+			int compression=0;
+			int baseValueSet=0;
+			float baseValue=0;
+			int highDelta=0;
+			int delatPrecision=0;
+			int[] status= new int[]{0};
+			Heclib.zsrtsxd(ifltab, pathname, startDate, hourMinutes.toString(), data._numberRead, data._yValues, flags , istoreFlags, data._yUnits, data._yType, userHeader, numberHeader, plan, compression, baseValue, baseValueSet, highDelta, delatPrecision, status);
+		} finally{
+			DSSUtil.closeDSSFile(ifltab);
+		}
 	}
 
 	/**

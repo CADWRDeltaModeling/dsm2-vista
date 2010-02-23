@@ -227,7 +227,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		int recordType = _dataReader.recordType(filename, pathname);
 		if (recordType != DSSUtil.REGULAR_TIME_SERIES
 				&& recordType != DSSUtil.IRREGULAR_TIME_SERIES
-				&& recordType != DSSUtil.PAIRED)
+				&& recordType != DSSUtil.PAIRED && recordType != 105)
 			throw new RemoteException("Data " + filename + ":" + pathname
 					+ " is of unrecognized type: " + recordType);
 	}
@@ -259,7 +259,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		int recordType = _dataReader.recordType(filename, pathname);
 		int startTime = 0;
 		int endTime = 0;
-		if (recordType == DSSUtil.REGULAR_TIME_SERIES) {
+		if (recordType == DSSUtil.REGULAR_TIME_SERIES || recordType == 105) {
 			startTime = (int) ref.getTimeWindow().getStartTime()
 					.getTimeInMinutes();
 			endTime = (int) ref.getTimeWindow().getEndTime().getTimeInMinutes();
