@@ -200,7 +200,7 @@ public class DSSUtil {
 		DSSDataReader reader = new DSSDataReader();
 		int recType = reader.recordType(filename, pathname);
 		Pathname path = Pathname.createPathname(pathname);
-		if (recType == DSSUtil.REGULAR_TIME_SERIES) {
+		if (recType == DSSUtil.REGULAR_TIME_SERIES || recType == DSSUtil.REGULAR_TIME_SERIES+5) {
 			TimeInterval ti = DSSUtil.createTimeInterval(path);
 			TimeWindow tw = DSSUtil.createTimeWindow(path);
 			int st = (int) tw.getStartTime().getTimeInMinutes();
@@ -216,7 +216,7 @@ public class DSSUtil {
 			Time stime = tw.getStartTime();
 			return new RegularTimeSeries(filename + "::" + pathname, stime, ti,
 					data._yValues, data._flags, attr);
-		} else if (recType == DSSUtil.IRREGULAR_TIME_SERIES) {
+		} else if (recType == DSSUtil.IRREGULAR_TIME_SERIES || recType == DSSUtil.IRREGULAR_TIME_SERIES+5) {
 			TimeInterval ti = DSSUtil.createTimeInterval(path);
 			TimeWindow tw = DSSUtil.createTimeWindow(path);
 			int st = (int) tw.getStartTime().getTimeInMinutes();
@@ -862,13 +862,13 @@ public class DSSUtil {
 		return blockStart;
 	}
 
-	public static int[] openDSSFile(String dssFile){
+	public static int[] openDSSFile(String dssFile, boolean toWrite){
 		Heclib.zset("PROGRAM", "VISTA", 0);
 		Heclib.zset("MLEVEL", "", 0);
 		Heclib.zset("CCDATE", "ON", 0);
 		stringContainer outName = new stringContainer();
 		boolean exists = Heclib.zfname(dssFile, outName );
-		if (!exists){
+		if (!exists && !toWrite){
 			throw new RuntimeException("** The DSS File does not exist: "+dssFile);
 		}
 		int[] ifltab = new int[600];
