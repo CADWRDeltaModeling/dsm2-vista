@@ -61,7 +61,7 @@ package vista.db.dss;
  * @author Nicky Sandhu
  * @version $Id: DSSData.java,v 1.1 2003/10/02 20:48:44 redwood Exp $
  */
-class DSSData {
+public class DSSData {
 	/**
 	 * The type of data as defined by constants in DSSUtil class
 	 * 

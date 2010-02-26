@@ -492,6 +492,7 @@ public class DataTable extends DefaultFrame {
 	 */
 	public void quitWindow(ActionEvent evt) {
 		this.setVisible(false);
+		this._ref = null;
 		this.dispose();
 	}
 
