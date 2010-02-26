@@ -123,9 +123,6 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 			if (currentDir.isDirectory() && currentDir.canRead()) {
 				list = currentDir.list(new SubscriptFilenameFilter(
 						DSSUtil.DSS_EXTENSION));
-				if (list.length == 0)
-					throw new RemoteException("Directory: " + directory
-							+ " does not contain any dss files?");
 			} else {
 				if (!currentDir.isDirectory()) {
 					throw new RemoteException(directory
@@ -164,12 +161,15 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 			throws RemoteException {
 		long stm = System.currentTimeMillis();
 		String catalogFile = DSSUtil.getCatalogFilename(dssFile);
-		long timeDifference = new File(catalogFile).lastModified() - new File(dssFile).lastModified();
+		long timeDifference = new File(catalogFile).lastModified()
+				- new File(dssFile).lastModified();
 		if (doFreshCatalog
-				|| ((!new File(catalogFile).exists()) || Math.abs(timeDifference) > 10)) {
+				|| ((!new File(catalogFile).exists()) || Math
+						.abs(timeDifference) > 10)) {
 			try {
 				_dataReader.generateCatalog(dssFile);
-				// as dss calls zclose on dss file last, the file gets recataloged every time
+				// as dss calls zclose on dss file last, the file gets
+				// recataloged every time
 				// to avoid that, lets touch the catalog file once again.
 				new File(catalogFile).setLastModified(new Date().getTime());
 			} catch (Exception ie) {
@@ -230,7 +230,9 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		int recordType = _dataReader.recordType(filename, pathname);
 		if (recordType != DSSUtil.REGULAR_TIME_SERIES
 				&& recordType != DSSUtil.IRREGULAR_TIME_SERIES
-				&& recordType != DSSUtil.PAIRED)
+				&& recordType != DSSUtil.PAIRED
+				&& recordType != DSSUtil.REGULAR_TIME_SERIES + 5
+				&& recordType != DSSUtil.IRREGULAR_TIME_SERIES + 5)
 			throw new RemoteException("Data " + filename + ":" + pathname
 					+ " is of unrecognized type: " + recordType);
 	}
@@ -262,7 +264,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		int recordType = _dataReader.recordType(filename, pathname);
 		int startTime = 0;
 		int endTime = 0;
-		if (recordType == DSSUtil.REGULAR_TIME_SERIES) {
+		if (recordType == DSSUtil.REGULAR_TIME_SERIES || recordType == DSSUtil.REGULAR_TIME_SERIES+5) {
 			startTime = (int) ref.getTimeWindow().getStartTime()
 					.getTimeInMinutes();
 			endTime = (int) ref.getTimeWindow().getEndTime().getTimeInMinutes();
@@ -341,7 +343,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 			}
 			return new DefaultDataSet(dataName, data._xValues, data._yValues,
 					data._flags, attr);
-		} else if (recordType == DSSUtil.IRREGULAR_TIME_SERIES) { // irregular
+		} else if (recordType == DSSUtil.IRREGULAR_TIME_SERIES || recordType == DSSUtil.IRREGULAR_TIME_SERIES+5) { // irregular
 			// time
 			startTime = (int) ref.getTimeWindow().getStartTime()
 					.getTimeInMinutes();

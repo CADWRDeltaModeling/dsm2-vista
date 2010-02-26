@@ -101,10 +101,13 @@ public class DataType {
 	 * Regular - Interval Time Series Data
 	 */
 	public static final int REGULAR_TIME_SERIES = 100;
+	
+	public static final int REGULAR_TIME_SERIES_DOUBLE = 105;
 	/**
 	 * Irregular - Interval Time Series Data
 	 */
 	public static final int IRREGULAR_TIME_SERIES = 110;
+	public static final int IRREGULAR_TIME_SERIES_DOUBLE = 115;
 	/**
 	 * Paired Data
 	 */

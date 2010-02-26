@@ -13,7 +13,7 @@
     </description>
 	<property name="dist.dir" location="build/dist/vista"/>
 	<property name="vista.lib" location="lib" />
-	<property name="jython.installdir" location="c:/Programs/jython2.5.0"/>
+	<property name="jython.installdir" location="c:/Programs/jython2.5.1"/>
 
 	<!-- ================================= 
           target: default              
