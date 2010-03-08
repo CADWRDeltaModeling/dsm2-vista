@@ -2,7 +2,7 @@ import vutils
 from vutils import *
 from math import sqrt
 import xyz 
-from xyz import get_dsm2model
+from xyz import GetDsm2Model
     
 def ref2ds(ref):
     if isinstance(ref, DataReference):
@@ -18,8 +18,9 @@ def rmse(ref1,ref2):
     ''' return the root mean square error from two references '''
     ds1 = ref2ds(ref1)
     ds2 = ref2ds(ref2)
-    ds3 = (ds2-ds1)*(ds2-ds1)/len(ds1)
-    sum_mse = Stats.total(ds3)
+    ds3 = ds2 - ds1
+    ds4 = ds3 * ds3 /len(ds3)
+    sum_mse = Stats.total(ds4)
     root_mse = sqrt(sum_mse)    
     return root_mse
       
@@ -64,7 +65,7 @@ def dss_ts_diff_metric(dss_file1, dss_file2, difference_metric=rmse, tw_string=N
             try:
                 ref3 = ref2 - ref1
             except:
-                print 'Error: The time window ' + tw_string + ' is out of range! Please specify the correct time window.'
+                print 'Error: The time window ' + tw_string + ' is out of range for' + a[2] + '! Please specify the correct time window.'
                 break         
             rootmse = difference_metric(ref1,ref2)
             metric[outPath] = rootmse 
@@ -95,21 +96,30 @@ def get_metric_xy(metric,hydro_echo_file,gis_inp_file,output_file):
     - Usage Example:
       get_metric_xy(ms,'D:\DSM2-SensTest\hydro_echo.inp','D:\DSM2-SensTest\gis.inp','D:\DSM2-SensTest\metric_xy.txt')
     '''  
-    dsm2model = get_dsm2model(hydro_echo_file,gis_inp_file)
+    dsm2model = GetDsm2Model(hydro_echo_file,gis_inp_file)
     f = open(output_file, 'w')
     f.write('ID,Name,Longitude,Latitude,Val\n')
     logstr = 'Stations failed to locate: '
+    chkarr = []
     for mpath,val in metric.iteritems():
         pname = get_name_from_path(mpath)
         try:
-            a = dsm2model.get_xy_by_name(pname.lower())
-            f.write(a['channel_id'] + ',' + a['channel_name'] + ',' + str(a['longitude'])+ ',' + str(a['latitude']) + ',' + str(val) +'\n')
+            if if_id_not_exist(dsm2model.get_id_by_name(pname.lower()),chkarr):
+                a = dsm2model.get_xy_by_name(pname.lower())
+                f.write(a['channel_id'] + ',' + a['channel_name'].upper() + ',' + str(a['longitude'])+ ',' + str(a['latitude']) + ',' + str(val) +'\n')
+                chkarr.append(dsm2model.get_id_by_name(pname.lower()))
         except:
             logstr += pname + ','
     f.close()
-    return logstr
+    print logstr
+    return chkarr
 
+def if_id_not_exist(id,exist_arr):
+    for k in exist_arr:
+        if id == k:
+            return False
+    return True
+    
 def get_name_from_path(pathname):
     a = pathname.split('/')
     return a[2] 
-    
