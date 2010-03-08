@@ -5,7 +5,7 @@ from java.io import FileInputStream
 from vista.db.hdf5 import *
 from math import *
 
-class get_dsm2model:
+class GetDsm2Model:
     ''' 
        class get_dsm2model(hydro_echo_file, gis_inp_file)
      - This class is used to obtain the latitude/longtitude/azimuth angle from 
@@ -14,7 +14,7 @@ class get_dsm2model:
        hydro_echo_file  hydro echo file from DSM input 
        gis_inp_file     gis input file downloaded from DSM2 Grid Map interface
      - Usage examples:
-       dsm2model = get_dsm2model('D:\DSM2-SensTest\hydro_echo.inp','D:\DSM2-SensTest\gis.inp')
+       dsm2model = GetDsm2Model('D:\DSM2-SensTest\hydro_echo.inp','D:\DSM2-SensTest\gis.inp')
        channel_info = dsm2model.get_xy_by_chid('17') 
        channel_info = dsm2model.get_xy_by_name('calaveras')
     ''' 
@@ -24,17 +24,17 @@ class get_dsm2model:
         p.parseAndAddToModel(tables,FileInputStream(gis_inp_file))
         self.data = tables.toDSM2Model()
         
-    def get_xy_by_chid(self,chid):
+    def get_xy_by_id(self,chid):
         res = {}        
         channels = self.data.getChannels()
         nodes = self.data.getNodes()
         out_chn = self.data.getOutputs()
         out_chn_data = out_chn.channelOutputs
         for chref in out_chn_data:
-            if chid == chref.channelId:
+            if chid == chref.channelId: 
+                #if there are multiple names for one channel id, the last name in hydro file will be picked up.
                 res['channel_id'] = chref.channelId
-                res['channel_name'] = chref.name
-                break
+                res['channel_name'] = chref.name   
         try:
             chtemp = channels.getChannel(chid)
             node_down = nodes.getNode(chtemp.downNodeId)
@@ -47,20 +47,20 @@ class get_dsm2model:
         return res
     
     def get_xy_by_name(self,chname):
-        chid = self.get_chid_by_name(chname)
-        return self.get_xy_by_chid(chid)
+        chid = self.get_id_by_name(chname)
+        return self.get_xy_by_id(chid)
     
-    def get_chid_by_name(self,chname): 
+    def get_id_by_name(self,chname): 
         out_chn = self.data.getOutputs()
         out_chn_data = out_chn.channelOutputs
         for chref in out_chn_data:
-            if chname == chref.name:
+            if chname.lower() == chref.name.lower():
                 chid = chref.channelId
         return chid
             
-def getxyz_for_hdf5(hydro_echo_file,gis_inp_file,hdf5_file,output_file,tw_string=None):
+def getxyz_from_hdf5(hydro_echo_file,gis_inp_file,hdf5_file,output_file,tw_string=None):
     '''
-    getxyz_for_hdf5(hydro_echo_file,gis_inp_file,hdf5_file,output_file,tw_string=None)
+    getxyz_from_hdf5(hydro_echo_file,gis_inp_file,hdf5_file,output_file,tw_string=None)
     - This module summarizes lat/lng/variable_from_tide_file/flow_direction information.
     - Arguments:
       hydro_echo_file  hydro echo file from DSM input
@@ -84,10 +84,10 @@ def getxyz_for_hdf5(hydro_echo_file,gis_inp_file,hdf5_file,output_file,tw_string
     dir = zeros(len(gfor_chid),'d')
     arr_y = [] 
     j = 0
-    dms2model = get_dsm2model(hydro_echo_file,gis_inp_file)
+    dms2model = GetDsm2Model(hydro_echo_file,gis_inp_file)
     for ref in gfor_chid:
         chan_id = get_channel_id_from_hdf5ref(ref)            
-        channel = dms2model.get_xy_by_chid(chan_id)
+        channel = dms2model.get_xy_by_id(chan_id)
         id[j] = int(chan_id)
         lat[j] = channel['latitude']
         lng[j] = channel['longitude']
@@ -161,4 +161,3 @@ def varify_input_args(file_path):
     else:
         print 'File: ' + file_path + ' does not exist!'
         return False
-
