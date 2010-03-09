@@ -45,6 +45,7 @@
 	</target>
 	
 	<target name="package" depends="compile">
+		<tstamp/>
 		<mkdir dir="${dist.dir}"/>
 		<copy todir="${dist.dir}">
 			<fileset dir="resources"/>
@@ -61,11 +62,10 @@
 			</fileset>
 		</copy>
 		<jar destfile="${dist.dir}/lib/vista.jar" basedir="build/classes"></jar>
-		<zip destfile="build/vista.zip" basedir="${dist.dir}/.." />
+		<zip destfile="build/vista-${DSTAMP}.zip" basedir="${dist.dir}/.." />
 	</target>
 	
 	<target name="clean">
 		<delete dir="build"/>
 	</target>
-
-</project>
+	</project>

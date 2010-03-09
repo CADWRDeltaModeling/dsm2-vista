@@ -114,12 +114,12 @@ public class DSSDataReader {
 			int recType = recordType(dssFile, pathname);
 			switch (recType) {
 			case DataType.REGULAR_TIME_SERIES:
-			case DataType.REGULAR_TIME_SERIES+5:
+			case DataType.REGULAR_TIME_SERIES + 5:
 				data = getTimeSeriesData(dssFile, pathname, startJulmin,
 						endJulmin, retrieveFlags);
 				break;
 			case DataType.IRREGULAR_TIME_SERIES:
-			case DataType.IRREGULAR_TIME_SERIES+5:
+			case DataType.IRREGULAR_TIME_SERIES + 5:
 				data = getIrregularTimeSeriesData(dssFile, pathname,
 						startJulmin, endJulmin, retrieveFlags);
 				break;
@@ -256,7 +256,7 @@ public class DSSDataReader {
 			data._dataType = DSSUtil.REGULAR_TIME_SERIES;
 			data._numberRead = nvals;
 			data._offset = offset[0];
-			if (retrieveFlags){
+			if (retrieveFlags) {
 				data._flags = flags;
 			}
 			data._yValues = values;
@@ -309,32 +309,36 @@ public class DSSDataReader {
 			int startTime = (int) startJulmin % 1440;
 			int endJulian = (int) endJulmin / 1440;
 			int endTime = (int) endJulmin % 1440;
-			int MAX_VALUES = 100000;
-			int[] timeBuffer = new int[MAX_VALUES];
-			int[] flags = new int[MAX_VALUES];
-			double[] dataValues = new double[MAX_VALUES];
+			int MAX_VALUES = 10000;
+			int[] timeBuffer = null;
+			int[] flags = null;
+			double[] dataValues = null;
 			int dataSize = MAX_VALUES;
 			int[] numberRead = new int[1];
 			int[] beginJulian = new int[1];
 			int readFlags = retrieveFlags ? 1 : 0;
 			int[] flagsRead = new int[1];
+			int[] status = { 1 }; // just to get into the first loop
 			stringContainer units = new stringContainer();
 			stringContainer type = new stringContainer();
-			// FIXME: it doesn't look like HEC uses this function call in their
-			// java
-			// code. really this should have been
-			// similar to their doublearrayContainer but instead I have to guess
-			// at
-			// the max size of the header array
-			int maxUserHead = 100;
-			int[] userHead = new int[maxUserHead];
-			int[] numberHeadRead = new int[1];
-			int inflag = 0;
-			int[] status = { 0 };
-			Heclib.zritsxd(ifltab, pathname, startJulian, startTime, endJulian,
-					endTime, timeBuffer, dataValues, dataSize, numberRead,
-					beginJulian, flags, readFlags, flagsRead, units, type,
-					userHead, maxUserHead, numberHeadRead, inflag, status);
+			int ntries = 0;
+			while (status[0] == 1 && ntries < 3) {
+				MAX_VALUES = 5*MAX_VALUES;
+				timeBuffer = new int[MAX_VALUES];
+				flags = new int[MAX_VALUES];
+				dataValues = new double[MAX_VALUES];
+				dataSize = MAX_VALUES;
+				ntries++;
+				int maxUserHead = 100;
+				int[] userHead = new int[maxUserHead];
+				int[] numberHeadRead = new int[1];
+				int inflag = 0;
+				Heclib.zritsxd(ifltab, pathname, startJulian, startTime,
+						endJulian, endTime, timeBuffer, dataValues, dataSize,
+						numberRead, beginJulian, flags, readFlags, flagsRead,
+						units, type, userHead, maxUserHead, numberHeadRead,
+						inflag, status);
+			}
 			if (status[0] == 0) {
 				data._dataType = DSSUtil.IRREGULAR_TIME_SERIES;
 				data._numberRead = numberRead[0];
@@ -355,6 +359,9 @@ public class DSSDataReader {
 				}
 				data._yType = type.toString();
 				data._yUnits = units.toString();
+			} else if (status[0] == 1) {
+				throw new RuntimeException(
+						"Irregular time series has higher density of data than expected!");
 			}
 			return status[0];
 		} finally {
@@ -371,29 +378,30 @@ public class DSSDataReader {
 		try {
 			ifltab = DSSUtil.openDSSFile(dssFile, false);
 			int[] status = { 0 };
-			int[] nord = new int[]{0};
-			int[] numberOfCurves = new int[] {0};
-			int[] ihoriz = new int[] {0};
+			int[] nord = new int[] { 0 };
+			int[] numberOfCurves = new int[] { 0 };
+			int[] ihoriz = new int[] { 0 };
 			stringContainer cunitsX = new stringContainer();
 			stringContainer ctypeX = new stringContainer();
 			stringContainer cunitsY = new stringContainer();
 			stringContainer ctypeY = new stringContainer();
 			double[] values = new double[100000];
 			int kvals = 100000;
-			int[] numberOfValues = new int[]{0};
+			int[] numberOfValues = new int[] { 0 };
 			String[] clabel = new String[50];
 			int klabel = 50;
 			booleanContainer labelsExist = new booleanContainer();
 			float[] headu = new float[50];
 			int kheadu = 50;
-			int[] nheadu = new int[]{0};
-			int[] istat = new int[] {0};
+			int[] nheadu = new int[] { 0 };
+			int[] istat = new int[] { 0 };
 			Heclib.zrpdd(ifltab, pathname, nord, numberOfCurves, ihoriz,
-			 cunitsX, ctypeX, cunitsY, ctypeY, values, kvals, numberOfValues,
-			 clabel, klabel, labelsExist, headu, kheadu, nheadu, istat);
-			if (istat[0]==0){
+					cunitsX, ctypeX, cunitsY, ctypeY, values, kvals,
+					numberOfValues, clabel, klabel, labelsExist, headu, kheadu,
+					nheadu, istat);
+			if (istat[0] == 0) {
 				data._numberRead = nord[0];
-				data._dataType=DSSUtil.PAIRED;
+				data._dataType = DSSUtil.PAIRED;
 				data._xType = ctypeX.toString();
 				data._xUnits = cunitsX.toString();
 				data._yType = ctypeY.toString();
@@ -401,9 +409,11 @@ public class DSSDataReader {
 				data._xValues = new double[data._numberRead];
 				data._yValues = new double[data._numberRead];
 				System.arraycopy(values, 0, data._xValues, 0, data._numberRead);
-				System.arraycopy(values, data._numberRead, data._yValues, 0, data._numberRead);
+				System.arraycopy(values, data._numberRead, data._yValues, 0,
+						data._numberRead);
 			} else {
-				throw new RuntimeException("Error retrieving paired data from "+dssFile+"::"+pathname+" status = "+istat[0]);
+				throw new RuntimeException("Error retrieving paired data from "
+						+ dssFile + "::" + pathname + " status = " + istat[0]);
 			}
 			return status[0];
 		} finally {
