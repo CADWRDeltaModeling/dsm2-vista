@@ -126,9 +126,9 @@ def writedss(filename, pathname, ds) :
     """
     DSSUtil.writeData(filename,pathname,ds)
 #
-def writeascii(filename,ds,outputFlags=0) :
+def writeascii(filename,ds,outputFlags=False) :
     """
-    writeascii(filename,ds,outputFlags=0)
+    writeascii(filename,ds,outputFlags=False)
     writes the given data set to the given filename.
     """
     SetUtils.write(ds,filename,outputFlags)
