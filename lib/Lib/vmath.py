@@ -5,7 +5,7 @@ import jarray, string, re, datetime
 from vista.time import *
 from vista.set import ProxyFactory, TimeSeriesMath, \
      MovingAverageProxy, Constants, Stats, DataReference, \
-     RegularTimeSeries, IrregularTimeSeries
+     RegularTimeSeries, IrregularTimeSeries, FlagUtils
 from vdss import wrap_data
 from vtimeseries import *
 #
@@ -47,9 +47,9 @@ def godin(ref):
     the lunar tidal cycle is assumed to be 24hours_45 minutes
     (e.g. 99 values for 15 min data).
 
-    The mechanical difference between tide_avg and tidal_avg, 
-    is that this filter removes 24-hour constituents more
-    completely. A practical difference is that this returned average 
+    The mechanical difference between godin and tidal_avg, 
+    is this filter removes 24-hour constituents more
+    completely. A practical difference is this returned average 
     is period-centered. The shift operator can
     be easily used to adjust this to the statutory version 
     """
