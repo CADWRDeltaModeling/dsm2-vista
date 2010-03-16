@@ -454,4 +454,29 @@ public class FlagUtils {
 					+ " is out of bounds");
 		}
 	}
+	
+	/**
+	 * Converts from a string representation of a flag value to its
+	 * integer stored value. A string representation of a flag is
+	 * (UNSCREENED|MISSING|QUESTIONABLE|REJECT)"|"<username>
+	 * @param flagString
+	 * @return
+	 */
+	public static final int makeFlagValue(String flagString){
+		int flag = 0;
+		String[] fields = flagString.split("\\|");
+		if (fields == null || fields.length != 2){
+			throw new RuntimeException("Invalid flag value: "+flagString);
+		}
+	    int qualityFlagId = FlagUtils.getQualityFlagId(fields[0]);
+	    int userId = DSSUtil.getUserId(fields[1].toLowerCase());
+	    FlaggedDataSetElement dse = new FlaggedDataSetElement();
+	    dse.setFlag(0);
+	    if (qualityFlagId == 0)
+	        FlagUtils.clearAllFlags(dse,userId);
+	    else{
+	        FlagUtils.setQualityFlag(dse,qualityFlagId,userId);
+	    }
+	    return dse.getFlag();
+	}
 }

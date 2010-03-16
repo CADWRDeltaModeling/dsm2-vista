@@ -344,13 +344,13 @@ public class DSSDataReader {
 				data._numberRead = numberRead[0];
 				double[] xValues = new double[data._numberRead];
 				for (int i = 0; i < data._numberRead; i++) {
-					xValues[i] = timeBuffer[i] + beginJulian[0];
+					xValues[i] = timeBuffer[i] + beginJulian[0]*1440;
 				}
 				data._xValues = xValues;
 				double[] yValues = new double[data._numberRead];
 				System.arraycopy(dataValues, 0, yValues, 0, data._numberRead);
 				data._yValues = yValues;
-				if (flagsRead[0] == 1) {
+				if (flagsRead[0] != 0) {
 					int[] dFlags = new int[data._numberRead];
 					System.arraycopy(flags, 0, dFlags, 0, data._numberRead);
 					data._flags = dFlags;
