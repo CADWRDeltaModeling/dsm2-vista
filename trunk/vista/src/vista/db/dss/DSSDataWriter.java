@@ -64,7 +64,7 @@ import vista.set.SetUtils;
 /**
  * 
  * The class with native function calls to the HEC-DSS library. Only limited
- * functionality of retriving data is available at this time. Storing data
+ * functionality of retrieving data is available at this time. Storing data
  * options will be added later.
  * 
  * Does not allow multithreaded access. However multi-user access is allowed.
@@ -73,9 +73,11 @@ import vista.set.SetUtils;
  * @version $Id: DSSDataWriter.java,v 1.1 2003/10/02 20:48:45 redwood Exp $
  */
 class DSSDataWriter {
+	public static final boolean DOUBLE_PRECISION = false;
+
 	/**
-   *
-   */
+    *
+    */
 	public DSSDataWriter() {
 	}
 
@@ -143,14 +145,32 @@ class DSSDataWriter {
 			int highDelta = 0;
 			int delatPrecision = 0;
 			int[] status = new int[] { 0 };
-			Heclib.zsrtsxd(ifltab, pathname, startDate, hourMinutes.toString(),
-					data._numberRead, data._yValues, flags, istoreFlags,
-					data._yUnits, data._yType, userHeader, numberHeader, plan,
-					compression, baseValue, baseValueSet, highDelta,
-					delatPrecision, status);
+			if (DOUBLE_PRECISION) {
+				Heclib.zsrtsxd(ifltab, pathname, startDate, hourMinutes
+						.toString(), data._numberRead, data._yValues, flags,
+						istoreFlags, data._yUnits, data._yType, userHeader,
+						numberHeader, plan, compression, baseValue,
+						baseValueSet, highDelta, delatPrecision, status);
+			} else {
+				float[] yvalues = extractYValuesAsFloat(data);
+				Heclib.zsrtsx(ifltab, pathname, startDate, hourMinutes
+						.toString(), data._numberRead, yvalues, flags,
+						istoreFlags, data._yUnits, data._yType, userHeader,
+						numberHeader, plan, compression, baseValue,
+						baseValueSet, highDelta, delatPrecision, status);
+
+			}
 		} finally {
 			DSSUtil.closeDSSFile(ifltab);
 		}
+	}
+
+	private float[] extractYValuesAsFloat(DSSData data) {
+		float[] yvalues = new float[data._numberRead];
+		for (int i = 0; i < yvalues.length; i++) {
+			yvalues[i] = (float) data._yValues[i];
+		}
+		return yvalues;
 	}
 
 	/**
@@ -164,22 +184,22 @@ class DSSDataWriter {
 			ifltab = DSSUtil.openDSSFile(dssFile, true);
 			double[] values = data._yValues;
 			int[] times = new int[data._numberRead];
-			for(int i=0; i < data._numberRead; i++){
+			for (int i = 0; i < data._numberRead; i++) {
 				times[i] = (int) data._xValues[i];
 			}
 			int numberVals = data._numberRead;
 			int startDate = (int) startJulmin / 1440;
 			int[] flags = data._flags;
 			int storeFlagData = 0;
-			if (storeFlags){
+			if (storeFlags) {
 				flags = data._flags;
 				storeFlagData = 1;
-				if (flags==null){
+				if (flags == null) {
 					flags = new int[data._numberRead];
 				}
 			} else {
 				storeFlagData = 0;
-				flags = new int[]{0};
+				flags = new int[] { 0 };
 			}
 			String unitsX = data._yUnits;
 			String typeX = data._yType;
@@ -187,9 +207,17 @@ class DSSDataWriter {
 			int numberHeader = 0;
 			int inFlag = 0; // 1 is to replace data not merge data
 			int[] status = new int[1];
-			Heclib.zsitsxd(ifltab, pathname, times, values, numberVals,
-					startDate, flags, storeFlagData, unitsX, typeX, userHeader,
-					numberHeader, inFlag, status);
+			if (DOUBLE_PRECISION) {
+				Heclib.zsitsxd(ifltab, pathname, times, values, numberVals,
+						startDate, flags, storeFlagData, unitsX, typeX,
+						userHeader, numberHeader, inFlag, status);
+			} else {
+				float[] yvalues = extractYValuesAsFloat(data);
+				Heclib.zsitsx(ifltab, pathname, times, yvalues, numberVals,
+						startDate, flags, storeFlagData, unitsX, typeX,
+						userHeader, numberHeader, inFlag, status);
+
+			}
 		} finally {
 			DSSUtil.closeDSSFile(ifltab);
 		}
