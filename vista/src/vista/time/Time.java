@@ -55,6 +55,8 @@
  */
 package vista.time;
 
+import java.util.Date;
+
 /**
  * An interface to a time object.
  * 
@@ -167,6 +169,12 @@ public interface Time extends java.io.Serializable {
 	 * @return the number of minutes to given time
 	 */
 	public long getNumberOfMinutesTo(Time time);
+	
+	/**
+	 * Converts the time value to date
+	 * @return
+	 */
+	public Date getDate();
 
 	/**
 	 * calculate exactly the number of intervals as defined by the interval to
