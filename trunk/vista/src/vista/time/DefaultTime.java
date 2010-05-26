@@ -258,6 +258,11 @@ class DefaultTime implements Time, Serializable {
 		return Math.round((_date.getTime() - _time0) / 60000.0);
 	}
 
+	@Override
+	public Date getDate() {
+		return new Date(_date.getTime());
+	}
+
 	/**
 	 * creates a copy of the time object
 	 * 
@@ -965,4 +970,5 @@ class DefaultTime implements Time, Serializable {
 	public Object __rsub__(String tistr) {
 		return __sub__(tistr);
 	}
+
 }
