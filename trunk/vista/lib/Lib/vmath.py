@@ -1,13 +1,14 @@
-__doc__ = """
+_doc__ = """
 
 """
-import jarray, string, re, datetime
+import jarray, string, re
 from vista.time import *
 from vista.set import ProxyFactory, TimeSeriesMath, \
      MovingAverageProxy, Constants, Stats, DataReference, \
-     RegularTimeSeries, IrregularTimeSeries
+     RegularTimeSeries, IrregularTimeSeries, FlagUtils
 from vdss import wrap_data
 from vtimeseries import *
+from datetime import *
 #
 def tidal_avg(ref):
     """
@@ -47,9 +48,9 @@ def godin(ref):
     the lunar tidal cycle is assumed to be 24hours_45 minutes
     (e.g. 99 values for 15 min data).
 
-    The mechanical difference between tide_avg and tidal_avg, 
-    is that this filter removes 24-hour constituents more
-    completely. A practical difference is that this returned average 
+    The mechanical difference between godin and tidal_avg, 
+    is this filter removes 24-hour constituents more
+    completely. A practical difference is this returned average 
     is period-centered. The shift operator can
     be easily used to adjust this to the statutory version 
     """
@@ -85,190 +86,167 @@ def godin(ref):
     else:
 	return ma.getData()
 #
-def per_avg(ds, interval='1mon'):
+def per_oper(dsref, oper, interval):
     """
-    per_avg(dataset, interval='1mon'):
-    Period averages given regular time series or data reference to the given interval
+    per_oper(dataset-or-reference, operation, interval='1mon'):
+    Period operations (average, max, min) given regular or irregular time series
+    or data reference within each interval, over the entire TS. Always
+    return a RTS.
     """
-    if hasattr(ds, 'getServername'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return ProxyFactory.createPeriodOperationProxy(ProxyFactory.PERIOD_AVERAGE, ds, ti);
-    elif hasattr(ds, 'getTimeInterval'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return TimeSeriesMath.doPeriodOperation(ds, ti,
-                                                TimeSeriesMath.PERIOD_AVERAGE)
-    else:
-	return None
-#
-def per_max(ds, interval='1mon'):
-    """
-    per_max(dataset, interval='1mon'):
-    Period maximums for a given regular time series or data reference for the given interval
-    """
-    if hasattr(ds, 'getServername'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return ProxyFactory.createPeriodOperationProxy(ProxyFactory.PERIOD_MAX, ds, ti);
-    elif hasattr(ds, 'getTimeInterval'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return TimeSeriesMath.doPeriodOperation(ds, ti,
-                                                TimeSeriesMath.PERIOD_MAX)
-    else:
-        return None
-#
-def per_min(ds, interval='1mon'):
-    """
-    per_min(dataset, interval='1mon'):
-    Period maximums for a given regular time series or data reference for the given interval
-    """
-    if hasattr(ds, 'getServername'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return ProxyFactory.createPeriodOperationProxy(ProxyFactory.PERIOD_MIN, ds, ti);
-    elif hasattr(ds, 'getTimeInterval'):
-        ti = TimeFactory.getInstance().createTimeInterval(interval)
-        return TimeSeriesMath.doPeriodOperation(ds, ti,
-                                                TimeSeriesMath.PERIOD_MIN)
-    else:
-        return None
-#
-#
-def findTidalPT(dsref,dsrefSm=None):
-    """
-    findTidalPT(dataset-or-reference, [dsrefSm], [dsSmOffset]):
-    Find tidal Peaks and Troughs within a dataset or reference (either RTS or ITS).
-    Return a list of two irregular time series of the computed values;
-    for each element the time is the time of the peak or trough;
-    y is the value of the peak or trough. 
-    Optional dsrefSm is a smoothed version of dsref, helpful for noisy
-    timeseries such as observed EC.  The smoothed version should be padded
-    and extended with Constants.MISSING_VALUE if needed.
-    """
-    TF = TimeFactory.getInstance()
+    ti = TimeFactory.getInstance().createTimeInterval(interval)
+    #
     if isinstance(dsref, DataReference):
-        ds = dsref.getData()
-        ref = dsref
+        ds = dsref.getData();
         isRef = True
     else:
         ds = dsref
-        ref = wrap_data(dsref)
         isRef = False
-    # initialize
-    # amount by which a potential peak or trough must be higher or lower than
-    # values tiFBWindow back and ahead
-    FBFactor = 1.03
-    tiFBWindow = TF.createTimeInterval('1HOUR_45MIN') # time to look forward/back for lesser/greater vals for P/T
-    pn = ds.getName()
-    # use smoothed dataset if given
-    if (dsrefSm):
-        dsUse=dsrefSm
+    # check for regular time series
+    if isinstance(ds,RegularTimeSeries):
+        isRTS = True
     else:
-        dsUse=ds
+        isRTS = False
+    #
+    if oper[:2].lower() == 'av': 
+        OPER = TimeSeriesMath.PERIOD_AVERAGE
+    elif oper[:3].lower() == 'max':
+        OPER = TimeSeriesMath.PERIOD_MAX
+    elif oper[:3].lower() == 'min':            
+        OPER = TimeSeriesMath.PERIOD_MIN
+    else:
+        raise 'Operation must be ave, max, or min.'
+    if isRTS:
+        if isRef:
+            pn = dsref.getPathname()
+            pn.setPart(Pathname.E_PART,interval)
+            pn = str(pn)
+            return wrap_data(TimeSeriesMath.doPeriodOperation(ds, ti, OPER), \
+                             filename=dsref.getFilename(),pathname=pn)
+        else:
+            return TimeSeriesMath.doPeriodOperation(ds, ti, OPER)
+    else:   # ITS
+        if isRef:
+            pn = Pathname.createPathname(dsref.getPathname())
+            pn.setPart(Pathname.E_PART,interval)
+            pn = str(pn)
+            return wrap_data(doPeriodOp(ds, ti, OPER), \
+                             filename=dsref.getFilename(),pathname=pn)
+        else:
+            return doPeriodOp(ds, ti, OPER)
+#
+def doPeriodOp(ds, ti, OPER):
+    TF = TimeFactory.getInstance()
+    dsi = ds.getIterator()
+    if OPER == TimeSeriesMath.PERIOD_AVERAGE: perVal = 0.
+    elif OPER == TimeSeriesMath.PERIOD_MAX: perVal = 1.e-10
+    elif OPER == TimeSeriesMath.PERIOD_MIN: perVal = 1.e+10
     filter = Constants.DEFAULT_FLAG_FILTER
-    bigNumber = 1.e8
-    xpar = []  # x peak time array
-    xtar = []  # x trough time array
-    ypar = []  # y peak values array
-    ytar = []  # y trough values array
-    yp = -bigNumber
-    yt = bigNumber
-    dsi = dsUse.getIterator()
-    e1 = dsi.getElement()
-    x1 = e1.getX()
-    t1 = TF.createTime(long(x1))
-    xp = x1
-    xt = x1
-    dsi.resetIterator()
-    before = datetime.now()
-    while (t1 + tiFBWindow).compare(dsUse.getEndTime()) < 0:
-        if dsi.getIndex() % 5000 == 0:
-            print 5000./(datetime.now()-before),t1
-            before = datetime.now()
-        # advance iterator to allow room for backward tiFBWindow
-        if (t1 - tiFBWindow).compare(dsUse.getStartTime()) < 0:
-            dsi.advance()
-            e1 = dsi.getElement()
-            x1 = e1.getX()
-            t1 = TF.createTime(long(x1))
-            continue
-        # 1 or 2 hours behind
-        e0 = dsUse.getElementAt((t1 - tiFBWindow).format())
-        #  1 or 2 hours head
-        e2 = dsUse.getElementAt((t1 + tiFBWindow).format())
-        e0OK = filter.isAcceptable(e0)
-        e1OK = filter.isAcceptable(e1)
-        e2OK = filter.isAcceptable(e2)
-        if e0OK and e1OK and e2OK:
-            y0 = e0.getY()
-            y1 = e1.getY()
-            y2 = e2.getY()
-            # Checks for Peak
-            if y1 > yp and y1 > y0 * FBFactor and y1 > y2 * FBFactor:   # new peak
-                    yp = y1
-                    xp = x1
-                    tp = t1
-                    ndxp = dsi.getIndex()
-            if yp != -bigNumber and x1 > xp and y0 > y1 > y2:
-                # tiFBWindow time after highest peak, on downslope: record highest peak
-                if (dsrefSm):   # use y value from original dataset for peak
-                    yp = ds.getElementAt(ndxp).getY()
-                xpar.append(xp)
-                ypar.append(yp)
-                yp = -bigNumber
-            # Checks for Trough
-            if y1 < yt and y1 < y0 / FBFactor and y1 < y2 / FBFactor:   # new trough
-                    yt = y1
-                    xt = x1
-                    tt = t1
-                    ndxt = dsi.getIndex()
-            if yt != bigNumber and x1 > xt and y0 < y1 < y2:
-                # tiFBWindow time after lowest trough, on upslope: record lowest trough
-                if (dsrefSm):   # use y value from original dataset for trough
-                    yt = ds.getElementAt(ndxt).getY()
-                xtar.append(xt)
-                ytar.append(yt)
-                yt = bigNumber
+    e = dsi.getElement()
+    xPrev = long(e.getX())
+    nPers = 0
+    nGood = 0
+    xar = []
+    yar = []
+    flar = []
+    tNext = TF.createTime(xPrev).ceiling(ti)
+    xNext = tNext.getTimeInMinutes()
+    while (not dsi.atEnd()):
+        e = dsi.getElement()
+        y = e.getY()
+        x = long(e.getX())
+        if x < xNext:
+            if filter.isAcceptable(e):
+                nGood += 1
+                if OPER == TimeSeriesMath.PERIOD_AVERAGE: 
+                    perVal += y
+                elif OPER == TimeSeriesMath.PERIOD_MAX: 
+                    if y > perVal: xMM = x; perVal = y
+                elif OPER == TimeSeriesMath.PERIOD_MIN: 
+                    if y < perVal: xMM = x; perVal = y
+        else:
+            nPers += 1
+            if nGood == 0:
+                # use "end of period" for time of Missing or Average Value 
+                xar.append(float(xNext))
+                perVal = Constants.MISSING_VALUE
+#                flar.append(FlagUtils.MISSING_FLAG)
+                flar.append(5)
+            else:
+                if OPER == TimeSeriesMath.PERIOD_AVERAGE:
+                    xar.append(float(xNext))
+                    perVal = perVal / nGood
+                else:
+                    # use its time instant for time of Max or Min Value
+                    xar.append(float(xMM))
+#                flar.append(FlagUtils.OK_FLAG)
+                flar.append(3)
+            yar.append(perVal)
+            if OPER == TimeSeriesMath.PERIOD_AVERAGE:
+                perVal = 0.
+            elif OPER == TimeSeriesMath.PERIOD_MAX:
+                perVal = 1.e-10
+            elif OPER == TimeSeriesMath.PERIOD_MIN:
+                perVal = 1.e+10
+            tNext.incrementBy(ti)
+            xPrev = xNext
+            xNext = tNext.getTimeInMinutes()
+            nGood = 0
+        #
         dsi.advance()
-        e1 = dsi.getElement()
-        x1 = e1.getX()
-        t1 = TF.createTime(long(x1))
-    return [IrregularTimeSeries(ds.getName(), xpar, ypar), \
-            IrregularTimeSeries(ds.getName(), xtar, ytar)]
+    dsOp = IrregularTimeSeries(ds.getName(), xar, yar, flar, ds.getAttributes())
+    if OPER == TimeSeriesMath.PERIOD_AVERAGE:
+        dsOp.getAttributes().setYType('PER-AVER')
+    elif OPER == TimeSeriesMath.PERIOD_MAX:
+        dsOp.getAttributes().setYType('INST-VAL')
+    elif OPER == TimeSeriesMath.PERIOD_MIN:
+        dsOp.getAttributes().setYType('INST-VAL')
+    return ITS2RTS(dsOp,None,str(ti))
 #
-
+def per_avg(ds, interval='1mon'):
+    return per_oper(ds, 'ave', interval)
 #
-#def mov_avg(dsref, backLength, forwardLength):
+def per_max(ds, interval='1mon'):
+    return per_oper(ds, 'max', interval)
+#
+def per_min(ds, interval='1mon'):
+    return per_oper(ds, 'min', interval)
+#
+#def mov_avg(ts, backLength, forwardLength):
 #    '''
-#    mov_avg(dsref,backLength,forwardLength):
+#    mov_avg(ts,backLength,forwardLength):
 #    Does a moving average of the time series (dataset or ref) with 
 #    backLength previous points and forwardLength future points and
 #    the present point. Returns the result as a new time series.
 #    '''
-#    if isinstance(dsref, DataReference):
-#        return ProxyFactory.createMovingAverageProxy(dsref, backLength, forwardLength)
+#    if isinstance(ts, DataReference):
+#        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
 #    else:
 #        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
 #  
 def mov_avg(dsref, backLength, forwardLength):
     '''
-    mov_avg(dsref,backLength,forwardLength):
+    mov_avg(ts,backLength,forwardLength):
     Does a moving average of the time series (dataset or ref) with 
     backLength previous points and forwardLength future points and
     the present point. Returns the result as a new time series.
     '''
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
-    ds = None
     if isinstance(dsref, DataReference):
         ds = dsref.getData()
         ref = dsref
         isRef = True
-    else:
-        ref = wrap_data(dsref)
-        ds = dsref
+    else:   # dataset
+        if isinstance(dsref, RegularTimeSeries):    #RTS
+            ds = dsref
+        else:       # ITS
+            ds = IrregularTimeSeries(dsref)
+            ds.setAttributes(dsref.getAttributes())
         isRef = False
     # first fill a list with back and forward y values
     # then MAs are then computed by
-    # adding the new value, subtracting the oldest,
-    # divide by n
+    # adding the newest value, removing the oldest,
+    # divide by the number of good values in the vector
     smallNumber = 1.e-10
     totLength = backLength + forwardLength + 1
     vecY = jarray.zeros(totLength, 'd')
@@ -292,7 +270,10 @@ def mov_avg(dsref, backLength, forwardLength):
                 aveY = Constants.MISSING_VALUE
             el1.setY(aveY)
         ds.putElementAt(ndx, el1)
-    return ds
+    if isRef:
+        return wrap_data(ds,filename=dsref.getFilename(),pathname=str(dsref.getPathname()))
+    else:
+        return ds
 #  
 def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     """
@@ -305,15 +286,15 @@ def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     (or if any array object is a data set).
     
     """
-    from vista.set import MovingAverageProxy, ProxyFactory
+    from vista.set import MovingAverageProxy, ProxyFactory, DataSet, DataReference
     if len(args) == 0: raise "Nothing to merge"
     if len(args) == 1: return args[0]
     refs = []
     any_ds = False # will become true if any array objects are data sets
     for arg in args:
-    	if hasattr(arg, 'getServername'): # arg is a data ref
+    	if isinstance(arg, DataReference): # arg is a data ref
     	    refs.append(arg)
-    	elif hasattr(arg, 'getPathname'): # arg is a data set
+    	elif isinstance(arg, DataSet): # arg is a data set
     	    any_ds = True
     	    refs.append(wrap_data(arg))
     	else:
@@ -331,12 +312,10 @@ def tsmax(ts):
     The maximum of a time series
     """
     data = None
-    if hasattr(ts, 'getServername'):
-	   data = ts.getData()
-    elif hasattr(ts, 'getTimeInterval'):
+    if isinstance(dsref, DataReference):
+        data = ts.getData()
+    else:   # dataset
         data = ts
-    else:
-        return None
     return Stats.max(data)
 #
 def tsmin(ts):
@@ -344,12 +323,10 @@ def tsmin(ts):
     The minimum value of a time series
     """
     data = None
-    if hasattr(ts, 'getServername'):
+    if isinstance(dsref, DataReference):
         data = ts.getData()
-    elif hasattr(ts, 'getTimeInterval'):
+    else:   # dataset
         data = ts
-    else:
-        return None
     return Stats.min(data)
 #
 def avg(ts):
@@ -357,12 +334,10 @@ def avg(ts):
     The average of a time series
     """
     data = None
-    if hasattr(ts, 'getServername'):
-	   data = ts.getData()
-    elif hasattr(ts, 'getTimeInterval'):
+    if isinstance(ts, DataReference):
+        data = ts.getData()
+    else:   # dataset
         data = ts
-    else:
-        return avg(ts)  #fixme, is this recursive?
     return Stats.avg(data)
 #
 def sdev(ts):
@@ -370,12 +345,10 @@ def sdev(ts):
     The standard deviation of a time series
     """
     data = None
-    if hasattr(ts, 'getServername'):
-	   data = ts.getData()
-    elif hasattr(ts, 'getTimeInterval'):
-	   data = ts
-    else:
-        return avg(ts)  #fixme, should this be sdev?
+    if isinstance(dsref, DataReference):
+        data = ts.getData()
+    else:   # dataset
+        data = ts
     return Stats.sdev(data)
 #
 def total(ts):
@@ -383,11 +356,9 @@ def total(ts):
     The total of a time series
     """
     data = None
-    if hasattr(ts, 'getServername'):
+    if isinstance(dsref, DataReference):
         data = ts.getData()
-    elif hasattr(ts, 'getTimeInterval'):
+    else:   # dataset
         data = ts
-    else:
-        return total(ts)    #fixme, recursive?
     return Stats.total(data)
 #
