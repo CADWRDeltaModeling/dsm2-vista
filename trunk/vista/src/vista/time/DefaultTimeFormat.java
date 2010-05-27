@@ -99,7 +99,7 @@ class DefaultTimeFormat extends TimeFormat {
 	public DefaultTimeFormat(String pattern, Locale locale) {
 		_pattern = pattern;
 		_formatter = new SimpleDateFormat(pattern, locale);
-		_formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+		_formatter.setTimeZone(TimeZone.getDefault());
 	}
 
 	/**
