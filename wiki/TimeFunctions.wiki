@@ -22,8 +22,21 @@ To get the string representation of the time
 Time in original format:  20041219  & the same time in standard format:  18DEC2004 2400
 }}}
 
-To get the equivalent (java.util.Date) 
+To get the equivalent (java.util.Date) in TimeZone GMT do as follows
 {{{
 >>> print t1.date
 Sun Dec 19 00:00:00 PST 2004
+}}}
+
+if you want to convert this to a local timezone use the following to get offset in millisecs
+{{{
+>>> offset=TimeZone.getDefault().getOffset(t1.date.time)
+>>> from java.util import Date
+>>> Date(t1.date.time-offset)
+Mon Jan 01 01:00:00 PST 1990
+}}}
+
+To get time from TimeElement te
+{{{
+>>> time(long(te.x)).date
 }}}
