@@ -260,7 +260,7 @@ class DefaultTime implements Time, Serializable {
 
 	@Override
 	public Date getDate() {
-		return new Date(_date.getTime());
+		return _date;
 	}
 
 	/**
@@ -846,8 +846,7 @@ class DefaultTime implements Time, Serializable {
 	 * sets the base time as midnight Dec 31, 1899
 	 */
 	static {
-		//TimeZone tz = TimeZone.getTimeZone("GMT");
-		TimeZone tz = TimeZone.getDefault();
+		TimeZone tz = TimeZone.getTimeZone("GMT");
 		_calendar = Calendar.getInstance(tz);
 		// _calendar.set(1900,0,1, 0, 0, 0);
 		_calendar.set(1900, 1, 1, 0, 0, 0);
