@@ -846,10 +846,11 @@ class DefaultTime implements Time, Serializable {
 	 * sets the base time as midnight Dec 31, 1899
 	 */
 	static {
-		TimeZone tz = TimeZone.getTimeZone("GMT");
+		//TimeZone tz = TimeZone.getTimeZone("GMT");
+		TimeZone tz = TimeZone.getDefault();
 		_calendar = Calendar.getInstance(tz);
 		// _calendar.set(1900,0,1, 0, 0, 0);
-		_calendar.set(1899, 11, 31, 0, 0, 0);
+		_calendar.set(1900, 1, 1, 0, 0, 0);
 		Date date0 = _calendar.getTime();
 		_time0 = date0.getTime();
 	}
