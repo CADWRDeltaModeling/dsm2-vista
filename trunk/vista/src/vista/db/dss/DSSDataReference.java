@@ -152,9 +152,9 @@ class DSSDataReference extends DataReference {
    *
    */
 	public void reloadData() {
-		if (dataset != null){
+		if (dataset != null) {
 			dataset.clear();
-			dataset=null;
+			dataset = null;
 		}
 		getData();
 	}
@@ -163,7 +163,7 @@ class DSSDataReference extends DataReference {
 	 * Retrieves dss data as a data set.
 	 */
 	public DataSet getData() {
-		if (dataset == null || dataset.get() == null){
+		if (dataset == null || dataset.get() == null) {
 			DataSet data = null;
 			try {
 				DSSRemoteClient client = DSSUtil.createRemoteClient(
@@ -194,7 +194,7 @@ class DSSDataReference extends DataReference {
 	protected void setTimeWindow(TimeWindow tw) {
 		_dtw = tw;
 		DataSet data = null;
-		if (dataset != null){
+		if (dataset != null) {
 			data = dataset.get();
 		}
 		if (data instanceof TimeSeries) {
@@ -207,7 +207,9 @@ class DSSDataReference extends DataReference {
 	}
 
 	private void setData(DataSet data) {
-		dataset.clear();
+		if (dataset != null) {
+			dataset.clear();
+		}
 		dataset = new SoftReference<DataSet>(data);
 	}
 
