@@ -21,3 +21,9 @@ To get the string representation of the time
 >>> print 'Time in original format: ', str(t1), ' & the same time in standard format: ', str(t2) 
 Time in original format:  20041219  & the same time in standard format:  18DEC2004 2400
 }}}
+
+To get the equivalent (java.util.Date) 
+{{{
+>>> print t1.date
+Sun Dec 19 00:00:00 PST 2004
+}}}
