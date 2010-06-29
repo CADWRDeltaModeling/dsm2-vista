@@ -1,9 +1,9 @@
 <html>
 <head>
-<title>Exceedance Chart</title>
+<title>Time Series Chart</title>
 <!--<link type="text/css" rel="stylesheet" href="ex.css?"/>-->
 <script type="text/javascript" src="protovis-d3.2.js"></script>
-<script type="text/javascript" src="exceedance_data.js"></script>
+<script type="text/javascript" src="time_series_data.js"></script>
 <style type="text/css">
 #fig {
 	width: 430px;
@@ -13,13 +13,12 @@
 </head>
 <body>
 <div id="fig_mp"></div>
-<div id="fig_cm"></div>
 <script type="text/javascript">
-function exceedancePlot(div_id, data){
+function time_series_plot(div_id, data){
 /* Sizing and scales. */
 var w = 800,
     h = 600,
-    x = pv.Scale.linear(100,0).range(0, w),
+    x = pv.Scale.linear(data.values, function(d) d.x).range(0, w),
     y = pv.Scale.linear(data.values, function(d) Math.min(d.y1,d.y2), function(d) Math.max(d.y1,d.y2)).range(0, h);
 
 var curves=[{"color":"red", "width":3},{"color":"blue", "width":3, "dashArray": "10,3"}]
@@ -33,6 +32,12 @@ var vis = new pv.Panel()
     .left(60)
     .right(10)
     .top(50);
+/* Add mouse zoom in/pan behavior */
+vis.add(pv.Panel)
+	.events("all")
+    .event("mousedown", pv.Behavior.pan())
+    .event("mousewheel", pv.Behavior.zoom())
+
 /* Border around plot */
 vis.add(pv.Area)
 	.data([0,1])
@@ -44,7 +49,6 @@ vis.add(pv.Area)
 /* X-axis ticks. */
 vis.add(pv.Rule)
     	.data(x.ticks())
-    	.visible(function(d) d >= 0)
     	.left(x)
     	.strokeStyle("#eee")
 	.add(pv.Rule)
@@ -52,7 +56,7 @@ vis.add(pv.Rule)
     	.height(5)
     	.strokeStyle("#000")
     .anchor("bottom").add(pv.Label)
-    	.text(function(d) x.tickFormat(d)+'%');
+    	.text(x.tickFormat);
 
 /* X-axis label */
 vis.add(pv.Label)
@@ -122,8 +126,7 @@ vis.add(pv.Rule)
 vis.render();
 }
 
-exceedancePlot("fig_mp",data_A);
-exceedancePlot("fig_cm",data_B);
+time_series_plot("fig_mp",data_A);
     </script>
 
 </body>
