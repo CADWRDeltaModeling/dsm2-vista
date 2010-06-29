@@ -3238,7 +3238,7 @@ pv.Scale.quantitative = function() {
 
       /* If we'd generate too many ticks, skip some!. */
       var n = span / precision;
-      if (n > 10) {
+      if (n > 15) {
         switch (precision) {
           case 36e5: {
             step = (n > 20) ? 6 : 3;
