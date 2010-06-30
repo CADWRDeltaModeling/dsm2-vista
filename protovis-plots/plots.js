@@ -269,4 +269,4 @@ function exceedancePlot(div_id, data){
 	/* Render */
 	vis.render();
 }
-
+}
