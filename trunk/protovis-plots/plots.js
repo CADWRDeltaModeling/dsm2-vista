@@ -33,6 +33,13 @@ var w = 600,
     	yd = pv.Scale.linear(diff_data).range(0, h);
     }
 
+/* Interaction state. Focus scales will have domain set on-render. */
+	var h2=30;
+    var i = {x:200, dx:100},
+    fx = pv.Scale.linear().range(0, w),
+    fy = pv.Scale.linear().range(0, h);
+
+
 var curves=[{"color":"green", "width":1}
 	,{"color":"blue", "width":1, "dashArray": "10,3"}
 	,{"color":"red", "width":1}
@@ -42,19 +49,12 @@ var curves=[{"color":"green", "width":1}
 var vis = new pv.Panel()
 	.canvas(div_id)
     .width(w)
-    .height(h)
+    .height(h+h2+50)
     .bottom(50)
     .left(70)
     .right(70)
     .top(50);
-/* Add mouse zoom in/pan behavior */
-vis.add(pv.Panel)
-	.events("all")
-    .event("select", function() {return this;});
 
-function mouse_down_start_select(){
-	vis.add(pv.Area).fillStyle("#ddd").bottom(0).height()
-}
 /* Border around plot 
 vis.add(pv.Area)
 	.data([0,1])
@@ -180,6 +180,50 @@ vis.add(pv.Rule)
     .strokeStyle(curves[1].color)
     .dashArray(curves[1].dashArray)
 	.anchor("right").add(pv.Label).text(data.series_names[1]);
+/* Context panel (zoomed out). */
+var context = vis.add(pv.Panel)
+    .bottom(0)
+    .height(h2);
+
+/* X-axis ticks. */
+context.add(pv.Rule)
+    .data(x.ticks())
+    .left(x)
+    .strokeStyle("#eee")
+  .anchor("bottom").add(pv.Label)
+    .text(x.tickFormat);
+
+/* Y-axis ticks. */
+context.add(pv.Rule)
+    .bottom(0);
+
+/* Context area chart. */
+/*
+context.add(pv.Area)
+    .data(data)
+    .left(function(d) x(d.x))
+    .bottom(1)
+    .height(function(d) y(d.y))
+    .fillStyle("lightsteelblue")
+  .anchor("top").add(pv.Line)
+    .strokeStyle("steelblue")
+    .lineWidth(2);
+*/
+/* The selectable, draggable focus region. 
+context.add(pv.Panel)
+    .data([i])
+    .cursor("crosshair")
+    .events("all")
+    .event("mousedown", pv.Behavior.select())
+    .event("select", focus)
+  .add(pv.Bar)
+    .left(function(d) d.x)
+    .width(function(d) d.dx)
+    .fillStyle("rgba(255, 128, 128, .4)")
+    .cursor("move")
+    .event("mousedown", pv.Behavior.drag())
+    .event("drag", focus);
+    */
 /* Render */
 vis.render();
 }
@@ -312,4 +356,146 @@ function exceedance_plot(div_id, data){
 		.anchor("right").add(pv.Label).text(data.series_names[1]);
 	/* Render */
 	vis.render();
+}
+/**
+ * var data = {
+ "title": "Stage vs Flow",
+ "series_names": ["dS","dQ"],
+ "yaxis_names": "dS",
+ "xaxis_names": "dQ",
+ "values": [[],[],[]
+};
+ */
+function time_series_derivative_plot(div_id, data){
+/* Sizing and scales. */
+var w = 600,
+    h = 420,
+    x = pv.Scale.linear(data.values, function(d) {return d.y1}).range(0, w),
+    y = pv.Scale.linear(data.values, 
+			function(d) {return Math.min(d.y2)}, 
+			function(d) {return Math.max(d.y2)})
+    	    .range(0, h);
+
+/* Interaction state. Focus scales will have domain set on-render. */
+ var h2=30;
+ var c = pv.Scale.linear(data.values,function(d){return Math.min(d.y2-d.y1)},function(d){return Math.max(d.y2-d.y1)}).range("red", "green", "blue");
+
+var curves=[{"color":"green", "width":1}
+	,{"color":"blue", "width":1, "dashArray": "10,3"}
+	]
+
+/* The root panel. */
+var vis = new pv.Panel()
+	.canvas(div_id)
+    .width(w)
+    .height(h+h2+50)
+    .bottom(50)
+    .left(70)
+    .right(70)
+    .top(50);
+
+/* X-axis ticks. */
+vis.add(pv.Rule)
+    	.data(x.ticks())
+    	.left(x)
+    	.strokeStyle("#eee")
+	.add(pv.Rule)
+    	.bottom(-10)
+    	.height(5)
+    	.strokeStyle("#000")
+    .anchor("bottom").add(pv.Label)
+    	.text(x.tickFormat);
+
+/* X-axis label */
+vis.add(pv.Label)
+	.left(w/2)
+	.bottom(-40)
+	.text(data.xaxis_name)
+	.font("18px sans-serif")
+	.textAlign("center");
+
+/* Y-axis ticks. */
+  vis.add(pv.Rule)
+    .data(y.ticks(8))
+    .bottom(y)
+    .strokeStyle("#ddd")
+  .anchor("left").add(pv.Label)
+	    .text(y.tickFormat);
+  /* Y-axis line */
+  vis.add(pv.Rule)
+    .bottom(0)
+    .left(x(0))
+    .strokeStyle("#333")
+  /* X-axis line */
+  vis.add(pv.Rule)
+    .bottom(y(0))
+    .left(0)
+    .right(0)
+    .strokeStyle("#333")
+    /* origin label */
+ vis.add(pv.Label)
+    .left(x(0))
+    .bottom(y(0))
+    .text("0,0")
+
+ vis.add(pv.Bar)
+    .data(pv.range(-1, 1, 1/20))
+    .left(function() {return this.index * 4})
+    .width(4)
+    .height(10)
+    .top(50)
+    .fillStyle(c)
+    ;
+/* Y-axis label */
+vis.add(pv.Label)
+	.top(h/2)
+	.left(-45)
+	.text(data.yaxis_name)
+	.font("18px sans-serif")
+	.textAngle(-Math.PI/2)
+	.textAlign("center");
+/* Dots on */
+  vis.add(pv.Dot)
+    .data(data.values)
+    .left(function(d) { return x(d.y1)})
+    .bottom(function(d) { return y(d.y2)})
+    .strokeStyle(function(d){ return c(d.y2-d.y1)})
+    .fillStyle(function(d){ return c(d.y2-d.y1)})
+    .title(function(d) { return "("+d.y1+", "+d.y2+")";});
+
+/* Line 1
+vis.add(pv.Line)
+    .data(data.values)
+    .segmented(true)
+    .visible(function(d) {return isNaN(d.y1)? false: true})
+    .left(function(d) {return x(d.y1)})
+    .bottom(function(d) {return y(d.y2)})
+    .lineWidth(curves[0].width)
+    .strokeStyle(curves[0].color)
+    .dashArray(curves[0].dashArray);
+*/
+/* Title */
+vis.add(pv.Label)
+	.right(function(d) {return w/2})
+	.top(-15)
+	.textAlign("center")
+	.font("28px sans-serif")
+	.text(data.title)
+	
+/* Legend*/
+vis.add(pv.Rule)
+	.left(12).top(20).width(40)
+    .lineWidth(curves[0].width)
+    .strokeStyle(curves[0].color)
+    .dashArray(curves[0].dashArray)
+	.anchor("right").add(pv.Label).text(data.series_names[0]);
+
+vis.add(pv.Rule)
+	.left(12).top(32).width(40)
+    .lineWidth(curves[1].width)
+    .strokeStyle(curves[1].color)
+    .dashArray(curves[1].dashArray)
+	.anchor("right").add(pv.Label).text(data.series_names[1]);
+/* Render */
+vis.render();
 }
