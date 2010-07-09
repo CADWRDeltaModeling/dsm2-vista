@@ -19,17 +19,46 @@ var data_A = {
 		,{x:new Date(2008,10,1),y1:3800,y2:3700}]
 }
  */
-function time_series_plot(div_id, data, diff){
+function time_series_plot(div_id, data, diff, sdate, edate){
+    if (sdate==null){
+    	sdate = data.values[0].x;
+    }
+    if (edate==null){
+    	edate=data.values[data.values.length-1].x;
+    }
 /* Sizing and scales. */
 var w = 600,
     h = 420,
-    x = pv.Scale.linear(data.values, function(d) {return new Date(d.x)}).range(0, w),
+    x = pv.Scale.linear(data.values, 
+    		function(d) {
+    			if (d.x>=sdate && d.x<=edate){
+    				return new Date(d.x);
+    			} else {
+    				return sdate;
+    			}
+    			}).range(0, w),
     y = pv.Scale.linear(data.values, 
-    	    function(d) {return Math.min(isNaN(d.y1)?0:d.y1,isNaN(d.y2)?0:d.y2)*0.95}, 
-    	    function(d) {return Math.max(isNaN(d.y1)?0:d.y1,isNaN(d.y2)?0:d.y2)*1.10})
+    	    function(d) {
+    			if (d.x>=sdate && d.x<=edate) {
+    				return Math.min(isNaN(d.y1)?0:d.y1,isNaN(d.y2)?0:d.y2)*0.95
+    	    	} else { 
+    	    		return null; 
+    	    	}}, 
+    	    function(d) {
+    	    		if (d.x>=sdate && d.x<=edate) {
+    	    			return Math.max(isNaN(d.y1)?0:d.y1,isNaN(d.y2)?0:d.y2)*1.10;
+    	    		} else {
+    	    			return null;
+    	    		}})
     	    .range(0, h);
    	if (diff != null){
-   		diff_data = data.values.map(function(d) {return d.y2-d.y1});
+   		diff_data = data.values.map(function(d) {
+   			if (d.x>=sdate && d.x<=edate) {
+   				return d.y2-d.y1
+   			} else {
+   				return null;
+   			}
+   			});
     	yd = pv.Scale.linear(diff_data).range(0, h);
     }
 
@@ -126,9 +155,9 @@ vis.add(pv.Line)
     .data(data.values)
     .interpolate("step-before")
     .segmented(true)
-    .visible(function(d) {return isNaN(d.y1)? false: true})
-    .left(function(d) {return x(d.x)})
-    .bottom(function(d) {return y(d.y1)})
+    .visible(function(d) { if (d.x>=sdate && d.x<=edate) {return isNaN(d.y1)? false: true}})
+    .left(function(d) { if (d.x>=sdate && d.x<=edate) return x(d.x)})
+    .bottom(function(d) {if (d.x>=sdate && d.x<=edate) return y(d.y1)})
     .lineWidth(curves[0].width)
     .strokeStyle(curves[0].color)
     .dashArray(curves[0].dashArray);
@@ -138,9 +167,9 @@ vis.add(pv.Line)
     .data(data.values)
     .interpolate("step-before")
     .segmented(true)
-    .visible(function(d) {return isNaN(d.y2)? false: true})
-    .left(function(d) {return x(d.x)})
-    .bottom(function(d) {return y(d.y2)})
+    .visible(function(d) {if (d.x>=sdate && d.x<=edate) return isNaN(d.y2)? false: true})
+    .left(function(d) {if (d.x>=sdate && d.x<=edate) return x(d.x)})
+    .bottom(function(d) {if (d.x>=sdate && d.x<=edate) return y(d.y2)})
     .lineWidth(curves[1].width)
     .strokeStyle(curves[1].color)
     .dashArray(curves[1].dashArray);
@@ -151,9 +180,9 @@ vis.add(pv.Line)
     .data(data.values)
     .interpolate("step-before")
     .segmented(true)
-    .visible(function(d) {return isNaN(diff_data[this.index])? false: true})
-    .left(function(d) {return x(d.x)})
-    .bottom(function(d) {return yd(diff_data[this.index]);})
+    .visible(function(d) {if (d.x>=sdate && d.x<=edate) return isNaN(diff_data[this.index])? false: true})
+    .left(function(d) {if (d.x>=sdate && d.x<=edate) return x(d.x)})
+    .bottom(function(d) {if (d.x>=sdate && d.x<=edate) return yd(diff_data[this.index]);})
     .lineWidth(curves[2].width)
     .strokeStyle(curves[2].color)
     .dashArray(curves[2].dashArray);
@@ -180,50 +209,6 @@ vis.add(pv.Rule)
     .strokeStyle(curves[1].color)
     .dashArray(curves[1].dashArray)
 	.anchor("right").add(pv.Label).text(data.series_names[1]);
-/* Context panel (zoomed out). */
-var context = vis.add(pv.Panel)
-    .bottom(0)
-    .height(h2);
-
-/* X-axis ticks. */
-context.add(pv.Rule)
-    .data(x.ticks())
-    .left(x)
-    .strokeStyle("#eee")
-  .anchor("bottom").add(pv.Label)
-    .text(x.tickFormat);
-
-/* Y-axis ticks. */
-context.add(pv.Rule)
-    .bottom(0);
-
-/* Context area chart. */
-/*
-context.add(pv.Area)
-    .data(data)
-    .left(function(d) x(d.x))
-    .bottom(1)
-    .height(function(d) y(d.y))
-    .fillStyle("lightsteelblue")
-  .anchor("top").add(pv.Line)
-    .strokeStyle("steelblue")
-    .lineWidth(2);
-*/
-/* The selectable, draggable focus region. 
-context.add(pv.Panel)
-    .data([i])
-    .cursor("crosshair")
-    .events("all")
-    .event("mousedown", pv.Behavior.select())
-    .event("select", focus)
-  .add(pv.Bar)
-    .left(function(d) d.x)
-    .width(function(d) d.dx)
-    .fillStyle("rgba(255, 128, 128, .4)")
-    .cursor("move")
-    .event("mousedown", pv.Behavior.drag())
-    .event("drag", focus);
-    */
 /* Render */
 vis.render();
 }
@@ -370,15 +355,18 @@ function time_series_derivative_plot(div_id, data){
 /* Sizing and scales. */
 var w = 600,
     h = 420,
-    x = pv.Scale.linear(data.values, function(d) {return d.y1}).range(0, w),
+    x = pv.Scale.linear(data.values,
+    		function(d) {return Math.min(d.y1) - 0.05*Math.abs(d.y1)}, 
+			function(d) {return Math.max(d.y1) + 0.05*Math.abs(d.y1)})
+			.range(0, w),
     y = pv.Scale.linear(data.values, 
-			function(d) {return Math.min(d.y2)}, 
-			function(d) {return Math.max(d.y2)})
+			function(d) {return Math.min(d.y2) - 0.05*Math.abs(d.y2)}, 
+			function(d) {return Math.max(d.y2) + 0.05*Math.abs(d.y2)})
     	    .range(0, h);
 
 /* Interaction state. Focus scales will have domain set on-render. */
  var h2=30;
- var c = pv.Scale.linear(data.values,function(d){return Math.min(d.y2-d.y1)},function(d){return Math.max(d.y2-d.y1)}).range("red", "green", "blue");
+ var c = pv.Scale.linear(data.values,function(d){return d.y3}).range("red", "yellow");
 
 var curves=[{"color":"green", "width":1}
 	,{"color":"blue", "width":1, "dashArray": "10,3"}
@@ -393,7 +381,9 @@ var vis = new pv.Panel()
     .left(70)
     .right(70)
     .top(50);
-
+vis.x=x;
+vis.y=y;
+vis.c=c;
 /* X-axis ticks. */
 vis.add(pv.Rule)
     	.data(x.ticks())
@@ -437,14 +427,28 @@ vis.add(pv.Label)
     .left(x(0))
     .bottom(y(0))
     .text("0,0")
-
+ vis.color_scale = c;
+ dc=c.domain();
  vis.add(pv.Bar)
-    .data(pv.range(-1, 1, 1/20))
+    .data(pv.range(dc[0],dc[1],(dc[1]-dc[0])/30))
     .left(function() {return this.index * 4})
     .width(4)
-    .height(10)
+    .height(20)
     .top(50)
     .fillStyle(c)
+    .anchor("top")
+    .add(pv.Label)
+    .textMargin(20)
+    .visible(function(d){ return this.index==0 || this.index==29;})
+    .text(function(d) { 
+    	if (this.index==0){
+    		return pv.Format.number().format(dc[0]);
+    	} else if (this.index == 29){
+    		return pv.Format.number().format(dc[1]);
+    	} else {
+    		return "";
+    	}
+    	});
     ;
 /* Y-axis label */
 vis.add(pv.Label)
@@ -459,9 +463,9 @@ vis.add(pv.Label)
     .data(data.values)
     .left(function(d) { return x(d.y1)})
     .bottom(function(d) { return y(d.y2)})
-    .strokeStyle(function(d){ return c(d.y2-d.y1)})
-    .fillStyle(function(d){ return c(d.y2-d.y1)})
-    .title(function(d) { return "("+d.y1+", "+d.y2+")";});
+    .strokeStyle(function(d){ return c(d.y3)})
+    .fillStyle(function(d){ return c(d.y3)})
+    .title(function(d) { return "("+d.y1+", "+d.y2+", "+d.y3+")";});
 
 /* Line 1
 vis.add(pv.Line)
@@ -482,20 +486,8 @@ vis.add(pv.Label)
 	.font("28px sans-serif")
 	.text(data.title)
 	
-/* Legend*/
-vis.add(pv.Rule)
-	.left(12).top(20).width(40)
-    .lineWidth(curves[0].width)
-    .strokeStyle(curves[0].color)
-    .dashArray(curves[0].dashArray)
-	.anchor("right").add(pv.Label).text(data.series_names[0]);
-
-vis.add(pv.Rule)
-	.left(12).top(32).width(40)
-    .lineWidth(curves[1].width)
-    .strokeStyle(curves[1].color)
-    .dashArray(curves[1].dashArray)
-	.anchor("right").add(pv.Label).text(data.series_names[1]);
 /* Render */
 vis.render();
+
+return vis;
 }
