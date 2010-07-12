@@ -211,6 +211,7 @@ vis.add(pv.Rule)
 	.anchor("right").add(pv.Label).text(data.series_names[1]);
 /* Render */
 vis.render();
+return vis;
 }
 /**
  * Exceedance plot with reversed axis from 100% to 0%
@@ -243,7 +244,7 @@ function exceedance_plot(div_id, data){
 	    x = pv.Scale.linear(100,0).range(0, w),
 	    y = pv.Scale.linear(data.values, function(d) {return Math.min(d.y1,d.y2)}, function(d) {return Math.max(d.y1,d.y2)}).range(0, h);
 
-	var curves=[{"color":"red", "width":3},{"color":"blue", "width":3, "dashArray": "10,3"}]
+	var curves=[{"color":"green", "width":3},{"color":"blue", "width":3, "dashArray": "10,3"}]
 
 	/* The root panel. */
 	var vis = new pv.Panel()
@@ -341,6 +342,7 @@ function exceedance_plot(div_id, data){
 		.anchor("right").add(pv.Label).text(data.series_names[1]);
 	/* Render */
 	vis.render();
+	return vis;
 }
 /**
  * var data = {
