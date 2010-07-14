@@ -18,3 +18,11 @@ using default settings. Gap is filled by missing values (-901.0 per HEC-DSS conv
 >>> from vdisplay import *
 >>> tabulate(rts1,rts2,mrts)
 }}}
+
+==Moving Average, Period Average of Time Series==
+
+The functions for math operation are available in [http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/pydocs/vmath.html vmath]. To do a moving average simply call vmath.mov_avg with the desired back length and forward length
+{{{
+>>> import vmath
+>>> time_series_weekly_avg = vmath.mov_avg(time_series,7,7)
+}}} 
