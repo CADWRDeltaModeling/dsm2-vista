@@ -4,8 +4,7 @@ from vista.set import Constants, DefaultReference,\
      FlagUtils, FlaggedDataSetElement, \
      Pathname, \
      RegularTimeSeries, IrregularTimeSeries, \
-     SetUtils
-from vista.set import PathnamePredicate, \
+     SetUtils, PathnamePredicate, \
      PartNamePredicate, PathPartPredicate, \
      PartSort, SortMechanism
 from vista.db.dss import DSSUtil
@@ -115,7 +114,7 @@ def sort(group,part_name="B", increasing=1):
     else:
         dir = SortMechanism.DECREASING
     pId = get_part_id(part_name)
-    g.sortBy(PartSort(PartNamePredicate(pId,dir,None)))
+    group.sortBy(PartSort(PartNamePredicate(pId,dir,None)))
 #
 def opendss(filename, server='local'):
     """
@@ -133,9 +132,9 @@ def writedss(filename, pathname, ds) :
     """
     DSSUtil.writeData(filename,pathname,ds)
 #
-def writeascii(filename,ds,outputFlags=0) :
+def writeascii(filename,ds,outputFlags=False) :
     """
-    writeascii(filename,ds,outputFlags=0)
+    writeascii(filename,ds,outputFlags=False)
     writes the given data set to the given filename.
     """
     SetUtils.write(ds,filename,outputFlags)
