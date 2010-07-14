@@ -183,29 +183,71 @@ def do_processing(scalars, pathname_maps):
     print >> fh, """ 
 <html>
 <head>
-<title>Time Series Chart</title>
+<title>Calsim Report: %s vs %s</title>
 <script type="text/javascript" src="%s"></script>
 <script type="text/javascript" src="protovis-d3.3.js"></script>
 <script type="text/javascript" src="plots.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.js"></script> 
+<link rel="stylesheet" type="text/css" media="print" href="print.css" /> 
+<link rel="stylesheet" type="text/css" media="screen" href="screen.css" /> 
 </head>
-"""%data_output_file
+"""%(scalars['NAME1'],scalars['NAME2'],data_output_file)
     write_water_balance_table(fh,dss_group1, dss_group2, scalars, pathname_maps)
-    for index in range(len(pathname_maps)):
-        print >> fh, """<div id="fig%d"></div>"""%index
-    print >> fh, """<script type="text/javascript">
-    n=data.length
-    for(i=0; i < n; i++){
-        if (data[i]==null) continue;
-        if (data[i].plot_type=="timeseries"){
-            time_series_plot("fig"+(i+1),data[i]);
-        }else if (data[i].plot_type=="exceedance"){
-            exceedance_plot("fig"+(i+1),data[i]);
+    print >> fh, """<script type="text/javascript"> 
+    function clear_and_draw(sdate, edate){
+        $('.plot').empty();
+        n=data.length
+        for(i=0; i < n; i++){
+            var div_id = "fig"+(i+1);
+            if (data[i]==null) continue;
+            if ($("#"+div_id).length==0){
+                $("body").append('<a href="#'+div_id+'"><div class="plot" id="'+div_id+'"></div></a>');
+            }
+            if (data[i].plot_type=="timeseries"){
+                plots.time_series_plot(div_id,data[i],null,sdate,edate);
+            }else if (data[i].plot_type=="exceedance"){
+                plots.exceedance_plot(div_id,data[i],null,sdate,edate);
+            }
         }
+        // update links
+    };
+    $(document).ready(clear_and_draw(null,null));
+    $('#system-water-balance-table tr').click(function(){
+        var_name = $($(this).find('td')[0]).text();
+        var svg_element = $('div').filter(function(){ return $(this).text().indexOf(var_name)>=0;})
+        if (svg_element && svg_element.length > 0){
+            anchor_name = $($(svg_element[0]).parent()).attr("href");
+            window.location.href=window.location.href.split('#')[0]+anchor_name;
+        }
+    });
+</script> 
+<script type="text/javascript"> 
+    function extract_date(date_str){
+        date_fields=date_str.split(",");
+        return new Date(date_fields[0],date_fields[1],date_fields[2]);
     }
-</script>
-
-</body>
-
+    $('#time-window-select').change(function(){
+        var changed_val = $('#time-window-select option:selected').val().split("-");
+        clear_and_draw(extract_date(changed_val[0]),extract_date(changed_val[1]));
+    });
+    $('#threshold').change(function(){
+        set_diff_threshold($('#threshold').val());
+    });
+    function set_diff_threshold(threshold){
+        $('td').each(function(){ 
+            if ($(this).text().search('%')>=0){
+                if(Math.abs(parseFloat($(this).text().split('%')[0])) >= threshold){
+                    $(this).addClass('large-diff');
+                }else{
+                    $(this).removeClass('large-diff');
+                } 
+            }
+        });
+    }
+</script> 
+ 
+</body> 
+ 
 </html>"""
     fh.close()    
     logging.debug('Closed out data file')
@@ -216,7 +258,10 @@ def cfs2taf(data):
     return data_taf
 def sum(data, tw):
     import vmath
-    return vmath.total(data.createSlice(tw))
+    try:
+        return vmath.total(data.createSlice(tw))
+    except:
+        return float('nan')
 def format_timewindow(tw):
     from vista.time import SubTimeFormat
     year_format = SubTimeFormat('yyyy')
@@ -225,15 +270,29 @@ def format_timewindow(tw):
 def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps):
     import vtimeseries
     print >> fh, "<h1>System Water Balance Comparison: %s vs %s</h1>"%(scalars['NAME1'], scalars['NAME2'])
-    print >> fh, "Note: %s"%(scalars['NOTE'])
-    print >> fh, "Assumptions: %s"%scalars['ASSUMPTIONS']
+    print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
+    print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))
+    print >> fh, """<div id="control-panel"> 
+<select name="tw" id="time-window-select"> 
+    <option value="1921,9,1-2003,8,30" selected="selected">1922-2003</option> 
+    <option value="1921,9,1-1934,8,30">1922-1934</option> 
+    <option value="1986,9,1-1992,8,30">1987-1992</option> 
+</select> 
+<div> 
+    Threshold value to highlight differences
+    <input type="text" id="threshold" value="50"/> 
+</div> 
+</div> 
+    """
     time_windows = ["01OCT1922 0100 - 30SEP2003 2400", "01OCT1929 0100 - 30SEP1934 2400", "01OCT1987 0100 - 30SEP1992 2400"]
-    print >> fh, '<table>'
+    print >> fh, '<table id="system-water-balance-table" class="alt-highlight">'
+    print >> fh, '<caption>System Water Balance Table</caption>'
     print >> fh, '<tr><td colspan="4"></td>'
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     for tw in tws:
-        print >> fh, '<td colspan="4">%s</td>'%format_timewindow(tw)
+        print >> fh, '<td colspan="4" class="timewindow">%s</td>'%format_timewindow(tw)
     print >> fh, "</tr>"
+    index=0
     for path_map in pathname_maps:
         var_name = path_map.var_name
         calculate_dts=0
@@ -241,22 +300,32 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps):
             calculate_dts=1
         ref1 = get_ref(dss_group1, path_map.path1,calculate_dts)
         ref2 = get_ref(dss_group2, path_map.path2,calculate_dts)
+        print >> fh, '<tr class="%s">'%("d"+str(index%2))
         if (ref1==None or ref2==None):
             logging.debug("No data for %s"%path_map.var_name)
-            print "No data found for %s"%(path_map.var_name) 
-            continue
-        data1=cfs2taf(ref1.data)
-        data2=cfs2taf(ref2.data)
-        print >> fh, "<tr>"
+        if ref1 != None:
+            logging.debug("No data for %s"%ref1)
+            data1=cfs2taf(ref1.data)
+        else:
+            data1=None
+        if ref2 != None:
+            logging.debug("No data for %s"%ref2)
+            data2=cfs2taf(ref2.data)
+        else:
+            data2=None
         if path_map.var_category in ("RF", "DI", "DO", "DE", "SWPSOD", "CVPSOD"):
             print >> fh, '<td colspan="4">%s</td>'%(path_map.var_name.replace('"',''))
             for tw in tws:
                 s1=sum(data1, tw)
                 s2=sum(data2, tw)
                 diff=s2-s1
-                pct_diff=diff/s1*100.0
+                if s1!=0:
+                    pct_diff=diff/s1*100.0
+                else:
+                    pct_diff=float('nan')
                 print >> fh, "<td>%0.1f</td><td>%0.1f</td><td>%0.1f</td><td>%0.1f %%</td>"%(s1,s2,diff,pct_diff)
         print >> fh, "</tr>"
+        index=index+1
     print >> fh, '</table>'
 #
 def show_gui():
@@ -265,16 +334,18 @@ def show_gui():
     """
     from javax.swing import JPanel, JFrame, JButton, SpringLayout, JTextBox
     from javax.swing.border import LineBorder
-    textBox1 = new JTextBox();
-    textBox2 = new JTextBox();
-    contentPane = new JPanel(new SpringLayout())
-    contentPane.setBorder(new LineBorder(Color.blue))
-    contentPane.add(new JLabel("Alternative DSS File"))
+    textBox1 = JTextBox()
+    textBox2 = JTextBox()
+    file1ChooseButton = JButton("Choose File")
+    file2ChooseButton = JButton("Choose File")
+    contentPane = JPanel(SpringLayout())
+    contentPane.setBorder(LineBorder(Color.blue))
+    contentPane.add(JLabel("Alternative DSS File"))
     contentPane.add(textBox1)
-    contentPane.add(new JLabel("Base DSS File"))
+    contentPane.add(file1ChooseButton)
+    contentPane.add(JLabel("Base DSS File"))
     contentPane.add(textBox2)
-    SpringUtilities.makeCompactGrid(contentPane, 3, 3, 3, 3, 3, 3);
-    //
+    contentPane.add(file2ChooseButton)
     fr = JFrame("Calsim Report Generator")
     fr.contentPane().add(contentPane)
     fr.pack();fr.show();
