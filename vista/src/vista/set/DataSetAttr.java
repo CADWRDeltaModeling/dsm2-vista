@@ -234,6 +234,20 @@ public class DataSetAttr implements java.io.Serializable {
 	public void setType(int type) {
 		_type = type;
 	}
+	
+	/**
+	 * A string representation
+	 */
+	public String toString(){
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(this.getTypeName()+ " @ " + this.getLocationName()+"\n");
+		buffer.append("Source: "+ this.getSourceName()+"\n");
+		buffer.append("Group: "+this.getGroupName()+"\n");
+		buffer.append("Type: "+ this.getType()+"\n");
+		buffer.append("X (type,units): "+ this.getXType()+","+this.getXUnits()+"\n");
+		buffer.append("Y (type,units): "+ this.getYType()+","+this.getYUnits()+"\n");
+		return buffer.toString();
+	}
 
 	/**
    *
