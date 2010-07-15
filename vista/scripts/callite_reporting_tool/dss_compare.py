@@ -130,8 +130,11 @@ def parse_template_file(template_file):
         if path_map.path2 == None:
             path_map.path2 = path_map.path1
         pathname_maps.append(path_map)
-    return scalars, pathname_maps
-def do_processing(scalars, pathname_maps):
+    timewindows = []
+    timewindow_table = tables.getTableNamed("TIME_PERIODS")
+    tw_values = timewindow_table.getValues();
+    return scalars, pathname_maps, tw_values
+def do_processing(scalars, pathname_maps, tw_values):
     # open files 1 and file 2 and loop over to plot
     from java.util import Date
     dss_group1 = vutils.opendss(scalars['FILE1'])
@@ -187,16 +190,17 @@ def do_processing(scalars, pathname_maps):
 <script type="text/javascript" src="%s"></script>
 <script type="text/javascript" src="protovis-d3.3.js"></script>
 <script type="text/javascript" src="plots.js"></script>
-<script type="text/javascript" src="jquery-1.4.2.js"></script> 
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script> 
 <link rel="stylesheet" type="text/css" media="print" href="print.css" /> 
 <link rel="stylesheet" type="text/css" media="screen" href="screen.css" /> 
 </head>
 """%(scalars['NAME1'],scalars['NAME2'],data_output_file)
-    write_water_balance_table(fh,dss_group1, dss_group2, scalars, pathname_maps)
+    write_water_balance_table(fh,dss_group1, dss_group2, scalars, pathname_maps,tw_values)
     print >> fh, """<script type="text/javascript"> 
     function clear_and_draw(sdate, edate){
         $('.plot').empty();
         n=data.length
+        plot_diff = $('input[name=diff_plot]').is(':checked') ? 1 : 0 ;
         for(i=0; i < n; i++){
             var div_id = "fig"+(i+1);
             if (data[i]==null) continue;
@@ -204,7 +208,7 @@ def do_processing(scalars, pathname_maps):
                 $("body").append('<a href="#'+div_id+'"><div class="plot" id="'+div_id+'"></div></a>');
             }
             if (data[i].plot_type=="timeseries"){
-                plots.time_series_plot(div_id,data[i],null,sdate,edate);
+                plots.time_series_plot(div_id,data[i],plot_diff,sdate,edate);
             }else if (data[i].plot_type=="exceedance"){
                 plots.exceedance_plot(div_id,data[i],null,sdate,edate);
             }
@@ -233,6 +237,11 @@ def do_processing(scalars, pathname_maps):
     $('#threshold').change(function(){
         set_diff_threshold($('#threshold').val());
     });
+    $('input[name=diff_plot]').change(function(){
+        var changed_val = $('#time-window-select option:selected').val().split("-");
+        clear_and_draw(extract_date(changed_val[0]),extract_date(changed_val[1]));
+    });
+
     function set_diff_threshold(threshold){
         $('td').each(function(){ 
             if ($(this).text().search('%')>=0){
@@ -244,6 +253,7 @@ def do_processing(scalars, pathname_maps):
             }
         });
     }
+    set_diff_threshold($('#threshold').val());
 </script> 
  
 </body> 
@@ -266,29 +276,49 @@ def format_timewindow(tw):
     from vista.time import SubTimeFormat
     year_format = SubTimeFormat('yyyy')
     return tw.startTime.format(year_format) + "-" + tw.endTime.format(year_format)
+def format_time_as_year_month_day(t):
+    from java.util import Calendar, TimeZone
+    gmtCal = Calendar.getInstance(TimeZone.getTimeZone('GMT'))
+    gmtCal.setTime(t.date)
+    return "%d,%d,%d"%(gmtCal.get(Calendar.YEAR),gmtCal.get(Calendar.MONTH),gmtCal.get(Calendar.DATE))
+def timewindow_option_value(tw):
+    return format_time_as_year_month_day(tw.startTime)+"-"+format_time_as_year_month_day(tw.endTime)
 #
-def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps):
+def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw_values):
     import vtimeseries
     print >> fh, "<h1>System Water Balance Comparison: %s vs %s</h1>"%(scalars['NAME1'], scalars['NAME2'])
     print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
     print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))
+    
     print >> fh, """<div id="control-panel"> 
 <select name="tw" id="time-window-select"> 
-    <option value="1921,9,1-2003,8,30" selected="selected">1922-2003</option> 
-    <option value="1921,9,1-1934,8,30">1922-1934</option> 
-    <option value="1986,9,1-1992,8,30">1987-1992</option> 
+"""
+    for i in range(len(tw_values)):
+        if i==0:
+            selected = 'selected="selected"'
+        else:
+            selected = ""
+        print >> fh, '<option value="%s" %s>%s</option>'%(timewindow_option_value(vtimeseries.timewindow(tw_values[i][1].replace('"',''))), selected,tw_values[i][0].replace('"','')) 
+    print >> fh, """ 
 </select> 
+<div>
+    Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/>
+</div>
 <div> 
     Threshold value to highlight differences
     <input type="text" id="threshold" value="50"/> 
 </div> 
 </div> 
     """
-    time_windows = ["01OCT1922 0100 - 30SEP2003 2400", "01OCT1929 0100 - 30SEP1934 2400", "01OCT1987 0100 - 30SEP1992 2400"]
+    time_windows = map(lambda val: val[1].replace('"',''), tw_values)
+    tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     print >> fh, '<table id="system-water-balance-table" class="alt-highlight">'
     print >> fh, '<caption>System Water Balance Table</caption>'
     print >> fh, '<tr><td colspan="4"></td>'
-    tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
+    for i in range(len(tws)):
+        print >> fh, '<td colspan="4" class="timewindow">%s</td>'%tw_values[i][0].replace('"','')
+    print >> fh, "</tr>"
+    print >> fh, '<tr><td colspan="4"></td>'
     for tw in tws:
         print >> fh, '<td colspan="4" class="timewindow">%s</td>'%format_timewindow(tw)
     print >> fh, "</tr>"
@@ -361,8 +391,8 @@ if __name__ == '__main__':
     template_file = sys.argv[1]
     logging.debug('Parsing input template file %s'%template_file)
     #parse template file
-    scalars, pathname_maps = parse_template_file(template_file)
+    scalars, pathname_maps, tw_values = parse_template_file(template_file)
     # do processing
-    do_processing(scalars, pathname_maps)
+    do_processing(scalars, pathname_maps, tw_values)
     logging.debug('Done processing. The end!')
     sys.exit(0)
