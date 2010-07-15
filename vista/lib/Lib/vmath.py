@@ -345,7 +345,7 @@ def sdev(ts):
     The standard deviation of a time series
     """
     data = None
-    if isinstance(dsref, DataReference):
+    if isinstance(ts, DataReference):
         data = ts.getData()
     else:   # dataset
         data = ts
@@ -356,7 +356,7 @@ def total(ts):
     The total of a time series
     """
     data = None
-    if isinstance(dsref, DataReference):
+    if isinstance(ts, DataReference):
         data = ts.getData()
     else:   # dataset
         data = ts
