@@ -70,7 +70,7 @@ import java.util.TimeZone;
  * @author Nicky Sandhu
  * @version $Id: DefaultTimeFormat.java,v 1.1 2003/10/02 20:49:35 redwood Exp $
  */
-class DefaultTimeFormat extends TimeFormat {
+public class DefaultTimeFormat extends TimeFormat {
 	/**
 	 * creates a time format for the given pattern
 	 */
