@@ -323,3 +323,23 @@ def rename(oldfile,oldpart,newfile,newpart,part_name="f"):
     refs[index] = None
     index=index+1
 #
+def make_dss_path(pathname, a_part='', b_part='', FPart=''):
+    """
+    makeDSSPath(pathname,a_part='',b_part='',f_part='')
+    Adds additional A, B and F part text to an input pathname, and
+    checks for max length of each part and the pathname. Returns
+    a either a pathname object or string which is the new pathname,
+    depending on the type of the input pathname.
+    """
+    pnp = string.split(str(pathname), '/')
+    pnp[1] += a_part
+    pnp[2] += b_part
+    pnp[6] += f_part
+    pnp[4] = '' # remove D part for now
+    # strictly trim to 32 chars each part
+    for ndx in range(1, 7):
+        if len(pnp[ndx]) > 32: pnp[ndx] = pnp[ndx][:32]
+    pn = string.join(pnp, '/')
+    if len(pn) > 80: pn = pn[:80]
+    if isinstance(pathname, Pathname): return Pathname.createPathname(pn)
+    else: return pn
