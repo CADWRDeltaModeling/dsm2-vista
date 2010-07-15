@@ -19,7 +19,12 @@ var data_A = {
 		,{x:new Date(2008,10,1),y1:3800,y2:3700}]
 }
  */
-function time_series_plot(div_id, data, diff, sdate, edate){
+function Plots(){
+	this.PLOT_WIDTH=720;
+	this.PLOT_HEIGHT=480;
+	
+}
+Plots.prototype.time_series_plot = function (div_id, data, diff, sdate, edate){
     if (sdate==null){
     	sdate = data.values[0].x;
     }
@@ -27,8 +32,9 @@ function time_series_plot(div_id, data, diff, sdate, edate){
     	edate=data.values[data.values.length-1].x;
     }
 /* Sizing and scales. */
-var w = 600,
-    h = 420,
+var w = this.PLOT_WIDTH,
+    h = this.PLOT_HEIGHT,
+    h2= diff ? 150 :0 ,
     x = pv.Scale.linear(data.values, 
     		function(d) {
     			if (d.x>=sdate && d.x<=edate){
@@ -50,24 +56,21 @@ var w = 600,
     	    		} else {
     	    			return null;
     	    		}})
-    	    .range(0, h);
-   	if (diff != null){
+    	    .range(h2, h+h2);
+   	if (diff){
    		diff_data = data.values.map(function(d) {
    			if (d.x>=sdate && d.x<=edate) {
-   				return d.y2-d.y1
+   				if (isNaN(d.y1) || isNaN(d.y2)){
+   					return 0;
+   				}else{
+   					return d.y2-d.y1;
+   				}
    			} else {
    				return null;
    			}
    			});
-    	yd = pv.Scale.linear(diff_data).range(0, h);
+    	yd = pv.Scale.linear(diff_data).range(0, h2-50);
     }
-
-/* Interaction state. Focus scales will have domain set on-render. */
-	var h2=30;
-    var i = {x:200, dx:100},
-    fx = pv.Scale.linear().range(0, w),
-    fy = pv.Scale.linear().range(0, h);
-
 
 var curves=[{"color":"green", "width":1}
 	,{"color":"blue", "width":1, "dashArray": "10,3"}
@@ -100,7 +103,7 @@ vis.add(pv.Rule)
     	.left(x)
     	.strokeStyle("#eee")
 	.add(pv.Rule)
-    	.bottom(-10)
+    	.bottom(-10+h2)
     	.height(5)
     	.strokeStyle("#000")
     .anchor("bottom").add(pv.Label)
@@ -131,24 +134,24 @@ vis.add(pv.Label)
 	.textAngle(-Math.PI/2)
 	.textAlign("center");
 
-if (diff != null){
+if (diff){
 	/* Y-axis for diff ticks. */
 	  vis.add(pv.Rule)
 	    .data(yd.ticks(8))
 	    .bottom(yd)
 	    .strokeStyle(function(d) {return d==0 ? "LightCoral" : "#eee"})
-	  .anchor("right").add(pv.Label)
+	  .anchor("left").add(pv.Label)
 		    .text(yd.tickFormat)
 		    .textStyle("red");
 	 
 	/* Y-axis for diff label */
 	vis.add(pv.Label)
-		.top(h/2)
-		.right(-30)
+		.bottom(h2-50)
+		.right(w/2)
 		.text("Difference")
-		.font("18px sans-serif")
-		.textAngle(Math.PI/2)
-		.textAlign("center");
+		.font("12px sans-serif")
+		.textAlign("center")
+		.textStyle("red");
 }
 /* Line 1 */
 vis.add(pv.Line)
@@ -175,7 +178,7 @@ vis.add(pv.Line)
     .dashArray(curves[1].dashArray);
 
 /* Line for diff */
-if (diff!=null){
+if (diff){
 vis.add(pv.Line)
     .data(data.values)
     .interpolate("step-before")
@@ -237,14 +240,25 @@ return vis;
  * @param data
  * @return
  */
-function exceedance_plot(div_id, data){
+Plots.prototype.exceedance_plot = function(div_id, data){
 	/* Sizing and scales. */
-	var w = 600,
-	    h = 420,
+	var w = this.PLOT_WIDTH,
+	    h = this.PLOT_HEIGHT,
 	    x = pv.Scale.linear(100,0).range(0, w),
 	    y = pv.Scale.linear(data.values, function(d) {return Math.min(d.y1,d.y2)}, function(d) {return Math.max(d.y1,d.y2)}).range(0, h);
 
-	var curves=[{"color":"green", "width":3},{"color":"blue", "width":3, "dashArray": "10,3"}]
+	var curves=[{"color":"red", "width":3},{"color":"blue", "width":3, "dashArray": "10,3"}]
+	            var curves = [ {
+		"color" : "green",
+		"width" : 2
+	}, {
+		"color" : "blue",
+		"width" : 2,
+		"dashArray" : "10,3"
+	}, {
+		"color" : "red",
+		"width" : 2
+	} ]
 
 	/* The root panel. */
 	var vis = new pv.Panel()
@@ -353,10 +367,10 @@ function exceedance_plot(div_id, data){
  "values": [[],[],[]
 };
  */
-function time_series_derivative_plot(div_id, data){
+Plots.prototype.time_series_derivative_plot = function(div_id, data){
 /* Sizing and scales. */
-var w = 600,
-    h = 420,
+var w = this.PLOT_WIDTH,
+    h = this.PLOT_HEIGHT,
     x = pv.Scale.linear(data.values,
     		function(d) {return Math.min(d.y1) - 0.05*Math.abs(d.y1)}, 
 			function(d) {return Math.max(d.y1) + 0.05*Math.abs(d.y1)})
@@ -493,3 +507,5 @@ vis.render();
 
 return vis;
 }
+
+var plots = new Plots();
