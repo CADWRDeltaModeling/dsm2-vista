@@ -68,7 +68,7 @@ import java.util.StringTokenizer;
  * @version $Id: DefaultTimeInterval.java,v 1.1 2003/10/02 20:49:35 redwood Exp
  *          $
  */
-class DefaultTimeInterval implements TimeInterval, Serializable {
+public class DefaultTimeInterval implements TimeInterval, Serializable {
 	/**
 	 * The delimiter in the sequence of string containing more than one interval
 	 * string. E.g. 1day_5hours_3mins.

@@ -72,7 +72,7 @@ import org.python.core.Py;
  * @author Nicky Sandhu
  * @version $Id: DefaultTime.java,v 1.1 2003/10/02 20:49:35 redwood Exp $
  */
-class DefaultTime implements Time, Serializable {
+public class DefaultTime implements Time, Serializable {
 	/**
 	 * Initializes the start time as 1899, Dec, 31.
 	 */
@@ -849,7 +849,7 @@ class DefaultTime implements Time, Serializable {
 		TimeZone tz = TimeZone.getTimeZone("GMT");
 		_calendar = Calendar.getInstance(tz);
 		// _calendar.set(1900,0,1, 0, 0, 0);
-		_calendar.set(1900, 1, 1, 0, 0, 0);
+		_calendar.set(1899, 11, 31, 0, 0, 0);
 		Date date0 = _calendar.getTime();
 		_time0 = date0.getTime();
 	}

@@ -61,7 +61,7 @@ import java.io.Serializable;
  * Defines a range of time. This is used to specify the range for which the data
  * may be retrieved.
  */
-class DefaultTimeWindow implements TimeWindow, Serializable {
+public class DefaultTimeWindow implements TimeWindow, Serializable {
 	/**
 	 * private constructor
 	 */
