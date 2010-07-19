@@ -948,14 +948,20 @@ public class RegularTimeSeries extends TimeSeries {
 	/**
    *
    */
-	public RegularTimeSeries __eq__(Object obj) {
+	public Object __eq__(Object obj) {
+		if (obj==null){
+			return Boolean.FALSE;
+		}
 		return this.compare(obj, EQ_OP);
 	}
 
 	/**
    *
    */
-	public RegularTimeSeries __ne__(Object obj) {
+	public Object __ne__(Object obj) {
+		if (obj == null){
+			return Boolean.TRUE;
+		}
 		return this.compare(obj, NE_OP);
 	}
 
