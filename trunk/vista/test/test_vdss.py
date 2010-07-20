@@ -20,9 +20,26 @@ class TestVDSS(unittest.TestCase):
         self.assertEquals('/VISTA-EX1/COS/FLOW/01JAN1982/5MIN/COS-WAVE/', str(path0))
         tw0=ref0.timeWindow
         self.assertTrue(tw0 != None)
-        print tw0
-        self.assertTrue('01JAN1982 0500' == tw0.startTime.toString())
+        self.assertTrue('01JAN1982 0005' == tw0.startTime.toString())
         self.assertTrue('01JAN1982 2400' == str(tw0.endTime))
         self.assertTrue(ref0.filename != None)
         ds0=ref0.data
         self.assertTrue(ds0 != None)
+    def test_findparts(self):
+        g=vdss.opendss(self.file1)
+        gx=vdss.findparts(g, a='EX1')
+        self.assertTrue(gx==None)
+        gx=vdss.findparts(g, a='VISTA-EX1')
+        self.assertTrue(len(gx)>0)
+        gx=vdss.findparts(g, a='EX1',exact=False)
+        self.assertTrue(len(gx)>0)
+    def test_findpath(self):
+        g=vdss.opendss(self.file1)
+        gx=vdss.findpath(g, '/VISTA-EX1/////')
+        self.assertTrue(len(gx) > 1)
+        gx=vdss.findpath(g,'/EX1/////COS/',False)
+        self.assertTrue(len(gx)==1)
+        gx=vdss.findpath(g,'//////COS/',False)
+        self.assertTrue(len(gx)==1)
+        gx=vdss.findpath(g,'//////COS/',True)
+        self.assertTrue(gx==None)
