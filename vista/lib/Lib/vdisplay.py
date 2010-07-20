@@ -8,7 +8,7 @@ from vista.graph import GECanvas, GraphUtils, SymbolFactory, \
      LegendItemAttr, MultiPlot, CurveAttr
 from vista.set import ProxyFactory, DefaultDataSet
 from java.awt import Color
-from vdss import gen_ref
+from vdss import wrap_data
 #
 cmap = {"red":Color.red,
         "green":Color.green,
@@ -39,7 +39,7 @@ def tabulate(*ref) :
     separated by commas
     """
     if ( ref == None ) : print 'Empty reference list'; return;
-    ref=map(gen_ref,ref)
+    ref=map(wrap_data,ref)
     if len(ref) == 1:
 	if hasattr(ref[0],'__len__'):
 	    MultiDataTable(ref[0])
@@ -55,7 +55,7 @@ def plot(*reflist) :
     separated by commas
     """
     if ( reflist == None ) : print 'Empty reference list'; return;
-    reflist=map(gen_ref,reflist)
+    reflist=map(wrap_data,reflist)
     gb = DefaultGraphBuilder()
     for ref in reflist:
 	if hasattr(ref,'__len__'):
@@ -73,8 +73,8 @@ def scatterplot(refx, refy) :
     scatterplot(refx,refy):
     creates a scatter plot with refx along the x axis and refy along the y axis
     """
-    refx = gen_ref(refx)
-    refy = gen_ref(refy)
+    refx = wrap_data(refx)
+    refy = wrap_data(refy)
     refxy = ProxyFactory.createPairedTimeSeriesProxy(refx,refy)
     gb = DefaultGraphBuilder(); gb.addData(refxy);
     graphs = gb.createGraphs();
