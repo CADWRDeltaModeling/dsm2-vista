@@ -2,7 +2,6 @@ from vista.set import ProxyFactory, TimeSeriesMath, \
      MovingAverageProxy, Constants, Stats, DataReference, \
      RegularTimeSeries, IrregularTimeSeries, FlagUtils
 from vdss import wrap_data
-from vtimeseries import *
 from datetime import *
 import jarray,string,re
 from java.lang import Math

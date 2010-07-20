@@ -1,4 +1,5 @@
-import re,string
+import re
+import string
 from vista.set import Constants, DefaultReference,\
      DataReference, DataSetAttr, DataType, \
      FlagUtils, FlaggedDataSetElement, \
@@ -17,16 +18,7 @@ def wrap_data(ds, filename='', server='',pathname=''):
     wrap_data(dataset, filename='', server='', pathname=''
     wraps data set in a filename, servername and pathname
     """
-    return gen_ref(ds,filename,server,pathname)
-#
-def gen_ref(ds, filename='', server='', pathname=''):
-    "generates a DataReference given a dataset"
-    if isinstance(ds, DataReference): return ds
-    if (filename == '' and server == '' and pathname == ''):
-        return DefaultReference(ds)
-    else :
-        return DefaultReference(server, filename, pathname, ds)
-
+    return wrap_data(ds,filename,server,pathname)
 #
 def get_part_id(part):
     part = string.upper(part)
