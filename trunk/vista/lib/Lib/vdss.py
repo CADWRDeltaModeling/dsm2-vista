@@ -101,14 +101,13 @@ def find(group,filter,part="",selecting=1):
         g.filterBy(selecting, PathPartPredicate(filter,pId))
     return g
 #
-def sort(group,part_name="B", increasing=1):
+def sort(group,part_name="B", increasing=True):
     """
-    sort(group , part_name = 'B',increasing=1):
-    sorts given group by pathname part which is one of A,B,C,E or F
-    with increasing=1 for increasing and increasing=0 for decreasing
+    sort(group , part_name = 'B',increasing=True):
+    Sorts given group by pathname part which is one of A,B,C,E or F
+    with increasing=True for increasing and increasing=False for decreasing.
+    Sort done in place; no value returned.
     """
-    dir = SortMechanism.INCREASING
-    pId = Pathname.B_PART
     if increasing:
         dir = SortMechanism.INCREASING
     else:
@@ -323,9 +322,9 @@ def rename(oldfile,oldpart,newfile,newpart,part_name="f"):
     refs[index] = None
     index=index+1
 #
-def make_dss_path(pathname, a_part='', b_part='', FPart=''):
+def make_dss_path(pathname, a_part='', b_part='', f_part=''):
     """
-    makeDSSPath(pathname,a_part='',b_part='',f_part='')
+    make_dss_path(pathname, a_part='', b_part='', f_part='')
     Adds additional A, B and F part text to an input pathname, and
     checks for max length of each part and the pathname. Returns
     a either a pathname object or string which is the new pathname,
