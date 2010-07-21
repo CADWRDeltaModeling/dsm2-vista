@@ -124,7 +124,7 @@ def flag_data(ftype, dataset, valArray, log = 'flag.log',Special = False):
     logfile.write('\n' + 'Units: ' + dataset.getAttributes().getYUnits())
     logfile.write('\n' + rej_head)
     if dataset.isFlagged(): ds = dataset
-    else: ds = dsAddFlags(dataset)
+    else: ds = ds_add_flags(dataset)
     # get user id for setting flags
     uId = DSSUtil.getUserId('datachecker')
     # create a missing data element
