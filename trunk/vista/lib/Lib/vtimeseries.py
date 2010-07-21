@@ -367,9 +367,9 @@ def nearest_index(ds,timeinst,ndxHint=0):
         return None
 #
 TF = TimeFactory.getInstance()
-def mergeWithFlags(ds1, ds2):
+def merge_with_flags(ds1, ds2):
     """
-    mergeWithFlags(ds1,ds2)
+    merge_with_flags(ds1,ds2)
     Merge dataset1 into dataset2 using flags.  Priority:
     FlagUtils.OK_FLAG, QUESTIONABLE_FLAG, MISSING_FLAG, REJECT_FLAG, UNSCREENED_FLAG
     If ds1Flag priority >= ds2Flag priority, use ds1 value;
@@ -382,7 +382,7 @@ def mergeWithFlags(ds1, ds2):
     ds1_rts = isinstance(ds1, RegularTimeSeries)
     ds2_rts = isinstance(ds2, RegularTimeSeries)
     if ds1_rts != ds2_rts:
-        raise "Datasets must both be RTS or ITS timeseries for mergeWithFlags."
+        raise "Datasets must both be RTS or ITS timeseries for merge_with_flags."
     if ds1_rts and ds2_rts:
         if ds1.getTimeInterval().compare(ds2.getTimeInterval()) != 0 :
             raise "Incompatible time intervals for %s and %s" % (ds1.getName(), ds2.getName())
@@ -435,9 +435,9 @@ def mergeWithFlags(ds1, ds2):
         return IrregularTimeSeries('', mX, mY, mF)
 #
 #
-def dsAddFlags(dataset):
+def ds_add_flags(dataset):
     """
-    dsAddFlags(dataset)
+    ds_add_flags(dataset)
     Add UNSCREENED_FLAG to dataset that does not have any flags
     """
     if dataset.isFlagged(): return dataset
@@ -458,9 +458,9 @@ def dsAddFlags(dataset):
     return datasetFlagged
 #
 #
-def findTidalPT(dsref, dsrefSm=None):
+def find_tidal_pt(dsref, dsrefSm=None):
     """
-    findTidalPT(dataset-or-reference, [dsrefSm], [dsSmOffset]):
+    find_tidal_pt(dataset-or-reference, [dsrefSm], [dsSmOffset]):
     Find tidal Peaks and Troughs within a dataset or reference (either RTS or ITS).
     Return a list of two irregular time series of the computed values;
     for each element the time is the time of the peak or trough;
@@ -581,9 +581,9 @@ def findTidalPT(dsref, dsrefSm=None):
         return [dsp, dst]
 #
 #
-def calcTidalAmp(dsAr):
+def calc_tidal_amplitude(dsAr):
     """
-    calcTidalAmp(dsAr)
+    calc_tidal_amplitude(dsAr)
     Calculate the tidal amplitude of the Peak and Trough datasets
     in the dsAr array.  Amplitude is defined as the difference between
     a Peak Y value and the immediate next Trough Y value.
