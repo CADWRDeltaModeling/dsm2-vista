@@ -18,7 +18,16 @@ def wrap_data(ds, filename='', server='',pathname=''):
     wrap_data(dataset, filename='', server='', pathname=''
     wraps data set in a filename, servername and pathname
     """
-    return wrap_data(ds,filename,server,pathname)
+    return gen_ref(ds,filename,server,pathname)
+#
+def gen_ref(ds, filename='', server='', pathname=''):
+    "generates a DataReference given a dataset"
+    if isinstance(ds, DataReference): return ds
+    if (filename == '' and server == '' and pathname == ''):
+        return DefaultReference(ds)
+    else :
+        return DefaultReference(server, filename, pathname, ds)
+
 #
 def get_part_id(part):
     part = string.upper(part)
