@@ -726,7 +726,7 @@ class DSM2GeomViewer:
     chan_list =['441','6','100']
     for chan in chan_list:
       ig.plot(chan)
-  def _test2():
+  def _test2(self):
     ip = IrregPlot('../dsm2-input-files/irregular_xsects/6_0.62089.txt')
     pl = ip.getPlot()
     from vista.graph import Graph, MultiPlot, AxisAttr

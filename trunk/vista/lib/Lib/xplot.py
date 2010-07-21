@@ -1,4 +1,4 @@
-import vutils, re, string, os, posixpath
+import vutils, re, string, os, posixpathimport vdss
 from vutils import *
 from vista.app import GroupFrame
 from vista.set import Group
@@ -1299,7 +1299,7 @@ class PlotData(DefaultTableModel):
 		    type = ds.getAttributes().getYType()
 		attr = DataSetAttr(DataType.REGULAR_TIME_SERIES,'',unit,'TIME',type)
 		ds.setAttributes(attr)
-	    refs[i] = vutils.wrap_data(ds, 'calc.dss', \
+	    refs[i] = vdss.wrap_data(ds, 'calc.dss', \
 				       'local', str(ds.getName()))
 	    #refs[i] = DataReference.create(refs[i],tw)
 	return refs,tw,locals()
