@@ -1,0 +1,189 @@
+ 
+<html>
+<head>
+<title>DSM2 Report: SC_ELT_SLR15_ROA25 vs SC_LLT_SLR45_ROA65</title>
+<script type="text/javascript" src="DSM2_compare_spec.js"></script>
+<script type="text/javascript" src="data_list.js"></script>
+<script type="text/javascript" src="protovis-d3.3.js"></script>
+<script type="text/javascript" src="plots.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="calendar.js"></script>
+<link rel="stylesheet" type="text/css" media="print" href="print.css" /> 
+<link rel="stylesheet" type="text/css" media="screen" href="screen.css" />
+<link rel="stylesheet" type="text/css"  href="calendar.css" />
+<script type="text/javascript" src="tabber.js"></script>
+<link rel="stylesheet" href="example.css" TYPE="text/css" MEDIA="screen">
+<link rel="stylesheet" href="example-print.css" TYPE="text/css" MEDIA="print">
+<script type="text/javascript">
+document.write('<style type="text/css">.tabber{display:none;}<\/style>');
+</script>
+</head>
+
+<h1>DSM2 Output Comparison: SC_ELT_SLR15_ROA25 vs SC_LLT_SLR45_ROA65</h1>
+<div id="note">Note: A long funny note</div>
+<div id="assumptions">Assumptions: I am assuming this is defined</div>
+<div id="control-panel"> 
+<form>
+Use Defined Time Window: <select name="tw" id="time-window-select"> 
+
+<option value="1974,9,1-1991,9,1" selected="selected">Long Term</option>
+<option value="1974,9,1-1980,9,1" >Dry Period 1</option>
+<option value="1986,9,1-1992,9,1" >Dry Period 2</option>
+ 
+</select> 
+<div>
+Customize the Time Window:
+
+Start Date: <input name="SDate" id="SDate" value="9/1/1986" onclick="displayDatePicker('SDate');" size=10>
+End Date: <input name="EDate" id="EDate" value="9/1/1992" onclick="displayDatePicker('EDate');" size=10>
+
+  <input type=button id="calendar" value="Re-draw">
+</div>
+<div>
+    Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/>
+</div>
+<div> 
+    Threshold value to highlight differences
+    <input type="text" id="threshold" value="50"/> 
+</div>
+</form> 
+</div> 
+    
+<div class="tabber">
+<div class="tabbertab" id="INSTALL"><h2>INSTALL</h2><p>
+</p></div>
+<div class="tabbertab" id="FLOW"><h2>FLOW</h2><p>
+</p></div>
+<div class="tabbertab" id="VEL"><h2>VEL</h2><p>
+</p></div>
+<div class="tabbertab" id="ELEV"><h2>ELEV</h2><p>
+</p></div>
+<div class="tabbertab" id="STAGE"><h2>STAGE</h2><p>
+</p></div>
+<div class="tabbertab" id="OP-TO-NODE"><h2>OP-TO-NODE</h2><p>
+</p></div>
+<div class="tabbertab" id="OP-FROM-NODE"><h2>OP-FROM-NODE</h2><p>
+</p></div>
+<div class="tabbertab" id="DEVICE-FLOW"><h2>DEVICE-FLOW</h2><p>
+</p></div>
+<div class="tabbertab" id="EC"><h2>EC</h2><p>
+</p></div>
+</div>
+<script type="text/javascript">dt_arr=['INSTALL','FLOW','VEL','ELEV','STAGE','OP-TO-NODE','OP-FROM-NODE','DEVICE-FLOW','EC',];
+period_name=["Long Term","Dry Period 1","Dry Period 2",];
+period_range=["1974-1991","1974-1980","1986-1992",]; </script>
+<script type="text/javascript"> 
+    function clear_and_draw(sdate, edate){
+        $('.plot').empty();
+        n=data.length
+        plot_diff = $('input[name=diff_plot]').is(':checked') ? 1 : 0 ;
+        for(i=0; i < n; i++){
+            var div_id = "fig"+"_"+data[i].data_type+"_"+data[i].title;
+            if (data[i]==null) continue;
+            if ($("#"+div_id).length==0){
+                $("#"+data[i].data_type).append('<a href="#'+div_id+'"><div class="plot" id="'+div_id+'"></div></a>');
+            }
+            if (data[i].plot_type=="timeseries"){
+                plots.time_series_plot(div_id,data[i],plot_diff,sdate,edate);
+            }else if (data[i].plot_type=="exceedance"){
+                plots.exceedance_plot(div_id,data[i],null,sdate,edate);
+            }
+        }
+    };
+    function hideDiv(div_name) {
+     if ($("#img").attr("src")=="images/open.JPG") {
+       $("#"+div_name).show("slow");
+       $("#img").attr("src","images/close.JPG");
+     }else{ 
+       $("#"+div_name).hide("slow"); 
+       $("#img").attr("src","images/open.JPG");
+     }
+    }
+    function location_list(){
+       ns=data_list.length;
+       for(i=0;i<dt_arr.length;i++){
+        tbl_sel='<table class="alt-highlight" id="tbl_sel'+i+'"><tr><th colspan=13>DSM2 Output Comparison</th></tr>'; k1=0;
+        tbl_sel+='<tr><td></td>';
+        for(k=0;k<(data_list[0].diff).length;k++) tbl_sel+='<td colspan=4 class="timewindow">'+period_name[k]+'</td>';
+        tbl_sel+='</tr>';
+        tbl_unsel='<div id="all'+i+'" style="display:none"><table class="alt-highlight" id="tbl_unsel'+i+'"><tr><td colspan=13></td></tr>';k2=0;
+        for(j=0;j<ns;j++){
+         if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='1'){ k1++;
+           tbl_sel+='<tr class="d'+k1%2+'"><td width="20%"><input type=checkbox checked><a href="#fig_'+ data_list[j].data_type+'_'+data_list[j].name+'">'+data_list[j].name+'</a></td>'
+           for(k=0;k<(data_list[j].diff).length;k++){
+              tbl_sel+='<td>'+data_list[j].diff[k].avg1+'</td><td>'+data_list[j].diff[k].avg2+'</td><td>'+data_list[j].diff[k].diff+'</td><td>'+data_list[j].diff[k].perc+'%</td>';
+           }
+           tbl_sel+='</tr>';
+         }
+         if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='0'){ k2++;
+           tbl_unsel+='<tr class="d'+k2%2+'"><td width="20%"><input type=checkbox>'+data_list[j].name+'</td>'
+           for(k=0;k<(data_list[j].diff).length;k++){
+              tbl_unsel+='<td>'+data_list[j].diff[k].avg1+'</td><td>'+data_list[j].diff[k].avg2+'</td><td>'+data_list[j].diff[k].diff+'</td><td>'+data_list[j].diff[k].perc+'%</td>';
+           }
+           tbl_unsel+='</tr>';             
+         }
+        }
+        tbl_sel+='</table>';      
+        tbl_sel+='<img id="img" src="images/open.JPG" onClick=hideDiv("all'+i+'")> Open all stations<br>';
+        tbl_unsel+='</table></div>';           
+        $("#"+dt_arr[i]).append(tbl_sel);
+        $("#"+dt_arr[i]).append(tbl_unsel);
+       }
+    };
+    $(document).ready(location_list());
+    $(document).ready(clear_and_draw(null,null));
+    $('#system-water-balance-table tr').click(function(){
+        var_name = $($(this).find('td')[0]).text();
+        var svg_element = $('div').filter(function(){ return $(this).text().indexOf(var_name)>=0;})
+        if (svg_element && svg_element.length > 0){
+            anchor_name = $($(svg_element[0]).parent()).attr("href");
+            window.location.href=window.location.href.split('#')[0]+anchor_name;
+        }
+    });
+</script> 
+<script type="text/javascript"> 
+    function extract_date(date_str){
+        date_fields=date_str.split(",");
+        return new Date(date_fields[0],date_fields[1],date_fields[2]);
+    }
+    function to_date_comma(calendar_date){
+        fi = calendar_date.split("/");
+        return fi[2]+","+fi[0]+","+fi[1];
+    }
+    function to_date_str(comma_date){
+        fi = comma_date.split(",");
+        return fi[1]+"/"+fi[2]+"/"+fi[0];    
+    }
+    $('#time-window-select').change(function(){
+        var changed_val = $('#time-window-select option:selected').val().split("-");
+        $('#SDate').val(to_date_str(changed_val[0]));
+        $('#EDate').val(to_date_str(changed_val[1]));
+        clear_and_draw(extract_date(changed_val[0]),extract_date(changed_val[1]));
+    });
+    $('#threshold').change(function(){
+        set_diff_threshold($('#threshold').val());
+    });
+    $('input[name=diff_plot]').change(function(){
+        var changed_val = $('#time-window-select option:selected').val().split("-");
+        clear_and_draw(extract_date(changed_val[0]),extract_date(changed_val[1]));
+    });
+    $('#calendar').click(function(){
+        clear_and_draw(extract_date(to_date_comma($('#SDate').val())),extract_date(to_date_comma($('#EDate').val())));
+    });
+    function set_diff_threshold(threshold){
+        $('td').each(function(){ 
+            if ($(this).text().search('%')>=0){
+                if(Math.abs(parseFloat($(this).text().split('%')[0])) >= threshold){
+                    $(this).addClass('large-diff');
+                }else{
+                    $(this).removeClass('large-diff');
+                } 
+            }
+        });
+    }
+    set_diff_threshold($('#threshold').val());
+</script> 
+ 
+</body> 
+ 
+</html>
