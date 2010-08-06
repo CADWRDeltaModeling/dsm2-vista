@@ -21,11 +21,15 @@ def open_dss(dssfile):
 def get_ref(group, path, calculate_dts=0):
     if calculate_dts==1:
         return None # TBD:
-    refs = vdss.findpath(group, path)
-    if refs == None:
-        print "No data found for %s and %s" % (group, path)
-    else:
-        return refs[0]
+    try:
+        refs = vdss.findpath(group, path)
+        if refs == None:
+            print "No data found for %s and %s" % (group, path)
+        else:
+            return refs[0]
+    except:
+        print "Exception while trying to retrieve %s from %s"%(path, group)
+        return None
 def get_units_of_ref(ref):
     if ref != None:
         d=ref.data
@@ -52,6 +56,11 @@ def get_type(ref1,ref2):
             return get_type_of_ref(ref2)
     else:
         return get_type_of_ref(ref1)
+def get_exceedance_plot_title(path_map):
+    title = "Exceedance %s" %path_map.var_name.replace('"','')
+    if path_map.var_category == 'S_SEPT':
+        title = title + " (Sept)";
+    return title
 def convert_to_date(time_val):
     from java.util import TimeZone, Date
     return Date(time_val.date.time - TimeZone.getDefault().getRawOffset())
@@ -81,20 +90,24 @@ def build_data_array(ref1, ref2):
         darray.append((date.time, e.getY(0), e.getY(1)))
         iterator.advance();
     return darray
-def sort(ref):
+def sort(ref, end_of_sept=True):
     from vista.set import Constants
     from vista.set import ElementFilterIterator
     dx=[]
     iter=ElementFilterIterator(ref.data.iterator, Constants.DEFAULT_FLAG_FILTER)
     while not iter.atEnd():
-        dx.append(iter.element.y)
+        if (end_of_sept) :
+            if (iter.element.XString.find('30SEP')>=0):
+                dx.append(iter.element.y)
+        else:
+            dx.append(iter.element.y)
         iter.advance()
     dx.sort()
     return dx
-def build_exceedance_array(ref1, ref2):
+def build_exceedance_array(ref1, ref2, end_of_sept=True):
     from java.lang import Math
-    x1=sort(ref1)
-    x2=sort(ref2)
+    x1=sort(ref1, end_of_sept)
+    x2=sort(ref2, end_of_sept)
     darray=[]
     i=0
     n=int(Math.min(len(x1),len(x2)))
@@ -102,6 +115,8 @@ def build_exceedance_array(ref1, ref2):
         darray.append((100.0-100.0*float(i)/(n+1),x1[i],x2[i]))
         i=i+1
     return darray
+def build_wy_array(ref):
+    pass
 def parse_template_file(template_file):
     from gov.ca.dsm2.input.parser import Parser
     p = Parser()                                 
@@ -158,6 +173,9 @@ def do_processing(scalars, pathname_maps, tw_values):
         #path_map = pathname_mapping[var_name]
         var_name = path_map.var_name
         calculate_dts=0
+        if path_map.var_category == 'HEADER':
+            logging.debug('Inserting header')
+            continue;
         if path_map.report_type == 'Exceedance_Post':
             calculate_dts=1
         ref1 = get_ref(dss_group1, path_map.path1,calculate_dts)
@@ -170,10 +188,11 @@ def do_processing(scalars, pathname_maps, tw_values):
         if path_map.report_type == 'Average':
             write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
         elif path_map.report_type == 'Exceedance':
-            write_plot_data(fh, build_exceedance_array(ref1,ref2), dataIndex, "Exceedance %s" %path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
+            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT'), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
         elif path_map.report_type == 'Avg_Excd':
             write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
-            write_plot_data(fh, build_exceedance_array(ref1,ref2), dataIndex, "Exceedance %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
+            fh.write(",")
+            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT'), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
         elif path_map.report_type == 'Timeseries':
             write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
         elif path_map.report_type == 'Exceedance_Post':
@@ -266,10 +285,10 @@ def cfs2taf(data):
     data_taf = TSMath.createCopy(data)
     TSMath.cfs2taf(data_taf)
     return data_taf
-def sum(data, tw):
-    import vmath
+def avg(data, tw):
+    import vtimeseries
     try:
-        return vmath.total(data.createSlice(tw))
+        return vtimeseries.avg(data.createSlice(tw))*12
     except:
         return float('nan')
 def format_timewindow(tw):
@@ -283,13 +302,7 @@ def format_time_as_year_month_day(t):
     return "%d,%d,%d"%(gmtCal.get(Calendar.YEAR),gmtCal.get(Calendar.MONTH),gmtCal.get(Calendar.DATE))
 def timewindow_option_value(tw):
     return format_time_as_year_month_day(tw.startTime)+"-"+format_time_as_year_month_day(tw.endTime)
-#
-def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw_values):
-    import vtimeseries
-    print >> fh, "<h1>System Water Balance Comparison: %s vs %s</h1>"%(scalars['NAME1'], scalars['NAME2'])
-    print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
-    print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))
-    
+def write_control_panel(fh, scalars, pathname_maps, tw_values):
     print >> fh, """<div id="control-panel"> 
 <select name="tw" id="time-window-select"> 
 """
@@ -302,6 +315,12 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
     print >> fh, """ 
 </select> 
 <div>
+Customize the Time Window:
+Start Date: <input name="SDate" id="SDate" value="9/1/1986" onclick="displayDatePicker('SDate');" size=10>
+End Date: <input name="EDate" id="EDate" value="9/1/1992" onclick="displayDatePicker('EDate');" size=10>
+  <input type=button id="calendar" value="Re-draw">
+</div>
+<div>
     Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/>
 </div>
 <div> 
@@ -310,6 +329,13 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
 </div> 
 </div> 
     """
+#
+def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw_values):
+    import vtimeseries
+    print >> fh, "<h1>System Water Balance Comparison: %s vs %s</h1>"%(scalars['NAME1'], scalars['NAME2'])
+    print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
+    print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))
+    
     time_windows = map(lambda val: val[1].replace('"',''), tw_values)
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     print >> fh, '<table id="system-water-balance-table" class="alt-highlight">'
@@ -321,6 +347,11 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
     print >> fh, '<tr><td colspan="4"></td>'
     for tw in tws:
         print >> fh, '<td colspan="4" class="timewindow">%s</td>'%format_timewindow(tw)
+    print >> fh, "</tr>"
+    print >> fh, "<tr>"
+    print >> fh, '<tr><td colspan="4">Output Name</td>'
+    for tw in tws:
+        print >> fh, '<td>%s</td><td>%s</td><td>Diff</td><td>%% Diff</td>'%((scalars['NAME2']+"\nAlt", scalars['NAME1']+"\nBase"))
     print >> fh, "</tr>"
     index=0
     for path_map in pathname_maps:
@@ -334,26 +365,24 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
         if (ref1==None or ref2==None):
             logging.debug("No data for %s"%path_map.var_name)
         if ref1 != None:
-            logging.debug("No data for %s"%ref1)
             data1=cfs2taf(ref1.data)
         else:
             data1=None
         if ref2 != None:
-            logging.debug("No data for %s"%ref2)
             data2=cfs2taf(ref2.data)
         else:
             data2=None
         if path_map.var_category in ("RF", "DI", "DO", "DE", "SWPSOD", "CVPSOD"):
             print >> fh, '<td colspan="4">%s</td>'%(path_map.var_name.replace('"',''))
             for tw in tws:
-                s1=sum(data1, tw)
-                s2=sum(data2, tw)
+                s1=avg(data1, tw)
+                s2=avg(data2, tw)
                 diff=s2-s1
                 if s1!=0:
                     pct_diff=diff/s1*100.0
                 else:
                     pct_diff=float('nan')
-                print >> fh, "<td>%0.1f</td><td>%0.1f</td><td>%0.1f</td><td>%0.1f %%</td>"%(s1,s2,diff,pct_diff)
+                print >> fh, "<td>%0.1f</td><td>%0.1f</td><td>%0.1f</td><td>%0.1f %%</td>"%(s2,s1,diff,pct_diff)
         print >> fh, "</tr>"
         index=index+1
     print >> fh, '</table>'
