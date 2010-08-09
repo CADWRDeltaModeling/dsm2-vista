@@ -46,10 +46,8 @@ from vista.app import MainProperties
 DSSUtil.setAccessProperties(MainProperties.getProperties())
 #
 from vdss import *
-from vmath import *
 from vtimeseries import *
 from vdisplay import *
-from vchecker import *
 
 #
 def exit():
