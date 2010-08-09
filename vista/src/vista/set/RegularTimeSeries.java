@@ -438,7 +438,7 @@ public class RegularTimeSeries extends TimeSeries {
 	/**
 	 * positions iterator at index
 	 */
-	private void positionAtTime(Time tm) {
+	public void positionAtTime(Time tm) {
 		if (tm.compare(_etime) > 0) {
 			while (!_dsi.atEnd()) {
 				_dsi.advance();
