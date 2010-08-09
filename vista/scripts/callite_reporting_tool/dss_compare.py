@@ -207,13 +207,14 @@ def do_processing(scalars, pathname_maps, tw_values):
 <head>
 <title>Calsim Report: %s vs %s</title>
 <script type="text/javascript" src="%s"></script>
-<script type="text/javascript" src="protovis-d3.3.js"></script>
-<script type="text/javascript" src="plots.js"></script>
-<script type="text/javascript" src="jquery-1.4.2.min.js"></script> 
-<link rel="stylesheet" type="text/css" media="print" href="print.css" /> 
-<link rel="stylesheet" type="text/css" media="screen" href="screen.css" /> 
+<script type="text/javascript" src="report-common/protovis-d3.3.js"></script>
+<script type="text/javascript" src="report-common/plots.js"></script>
+<script type="text/javascript" src="report-common/jquery-1.4.2.min.js"></script> 
+<link rel="stylesheet" type="text/css" media="print" href="report-common/print.css" /> 
+<link rel="stylesheet" type="text/css" media="screen" href="report-common/screen.css" /> 
 </head>
 """%(scalars['NAME1'],scalars['NAME2'],data_output_file)
+    write_control_panel(fh,scalars, pathname_maps,tw_values)
     write_water_balance_table(fh,dss_group1, dss_group2, scalars, pathname_maps,tw_values)
     print >> fh, """<script type="text/javascript"> 
     function clear_and_draw(sdate, edate){
@@ -262,16 +263,17 @@ def do_processing(scalars, pathname_maps, tw_values):
     });
 
     function set_diff_threshold(threshold){
-        $('td').each(function(){ 
-            if ($(this).text().search('%')>=0){
-                if(Math.abs(parseFloat($(this).text().split('%')[0])) >= threshold){
-                    $(this).addClass('large-diff');
-                }else{
-                    $(this).removeClass('large-diff');
-                } 
-            }
-        });
-    }
+      var diff_marker = function(){
+        if(Math.abs(parseFloat($(this).text())) >= threshold){
+           $(this).addClass('large-diff');
+        }else{
+           $(this).removeClass('large-diff');
+        };
+      };
+      $('tr td:nth-child(5)').each(diff_marker);
+      $('tr td:nth-child(9)').each(diff_marker);
+      $('tr td:nth-child(13)').each(diff_marker);
+    };
     set_diff_threshold($('#threshold').val());
 </script> 
  
@@ -303,6 +305,7 @@ def format_time_as_year_month_day(t):
 def timewindow_option_value(tw):
     return format_time_as_year_month_day(tw.startTime)+"-"+format_time_as_year_month_day(tw.endTime)
 def write_control_panel(fh, scalars, pathname_maps, tw_values):
+    import vtimeseries
     print >> fh, """<div id="control-panel"> 
 <select name="tw" id="time-window-select"> 
 """
@@ -314,12 +317,6 @@ def write_control_panel(fh, scalars, pathname_maps, tw_values):
         print >> fh, '<option value="%s" %s>%s</option>'%(timewindow_option_value(vtimeseries.timewindow(tw_values[i][1].replace('"',''))), selected,tw_values[i][0].replace('"','')) 
     print >> fh, """ 
 </select> 
-<div>
-Customize the Time Window:
-Start Date: <input name="SDate" id="SDate" value="9/1/1986" onclick="displayDatePicker('SDate');" size=10>
-End Date: <input name="EDate" id="EDate" value="9/1/1992" onclick="displayDatePicker('EDate');" size=10>
-  <input type=button id="calendar" value="Re-draw">
-</div>
 <div>
     Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/>
 </div>
@@ -349,9 +346,9 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
         print >> fh, '<td colspan="4" class="timewindow">%s</td>'%format_timewindow(tw)
     print >> fh, "</tr>"
     print >> fh, "<tr>"
-    print >> fh, '<tr><td colspan="4">Output Name</td>'
+    print >> fh, '<tr class="header"><td colspan="4">Output Name</td>'
     for tw in tws:
-        print >> fh, '<td>%s</td><td>%s</td><td>Diff</td><td>%% Diff</td>'%((scalars['NAME2']+"\nAlt", scalars['NAME1']+"\nBase"))
+        print >> fh, '<td>%s</td><td>%s</td><td>Diff</td><td>%% Diff</td>'%((scalars['NAME2']+"<br/>Alt", scalars['NAME1']+"<br/>Base"))
     print >> fh, "</tr>"
     index=0
     for path_map in pathname_maps:
@@ -361,18 +358,20 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
             calculate_dts=1
         ref1 = get_ref(dss_group1, path_map.path1,calculate_dts)
         ref2 = get_ref(dss_group2, path_map.path2,calculate_dts)
-        print >> fh, '<tr class="%s">'%("d"+str(index%2))
-        if (ref1==None or ref2==None):
-            logging.debug("No data for %s"%path_map.var_name)
-        if ref1 != None:
-            data1=cfs2taf(ref1.data)
-        else:
-            data1=None
-        if ref2 != None:
-            data2=cfs2taf(ref2.data)
-        else:
-            data2=None
         if path_map.var_category in ("RF", "DI", "DO", "DE", "SWPSOD", "CVPSOD"):
+            print >> fh, '<tr class="%s">'%("d"+str(index%2))
+            if (ref1==None or ref2==None):
+                logging.debug("No data for %s"%path_map.var_name)
+            if ref1 != None:
+                data1=cfs2taf(ref1.data)
+            else:
+                data1=None
+                logging.debug("No data for %s: %s in %s"%path_map.var_name, path_map.path1, path_map.dss_group1)
+            if ref2 != None:
+                data2=cfs2taf(ref2.data)
+            else:
+                data2=None
+                logging.debug("No data for %s: %s in %s"%path_map.var_name, path_map.path2, path_map.dss_group2)
             print >> fh, '<td colspan="4">%s</td>'%(path_map.var_name.replace('"',''))
             for tw in tws:
                 s1=avg(data1, tw)
@@ -382,9 +381,9 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
                     pct_diff=diff/s1*100.0
                 else:
                     pct_diff=float('nan')
-                print >> fh, "<td>%0.1f</td><td>%0.1f</td><td>%0.1f</td><td>%0.1f %%</td>"%(s2,s1,diff,pct_diff)
-        print >> fh, "</tr>"
-        index=index+1
+                print >> fh, "<td>%0.1f</td><td>%0.1f</td><td>%0.1f</td><td>%0.1f</td>"%(s2,s1,diff,pct_diff)
+            print >> fh, "</tr>"
+            index=index+1
     print >> fh, '</table>'
 #
 def show_gui():
