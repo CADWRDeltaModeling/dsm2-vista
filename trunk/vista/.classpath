@@ -5,7 +5,6 @@
 	<classpathentry kind="lib" path="lib/jhall.jar"/>
 	<classpathentry kind="lib" path="lib/jnios.jar"/>
 	<classpathentry kind="lib" path="lib/jpy.jar"/>
-	<classpathentry kind="lib" path="lib/Lib/Numeric/JNumeric/jnumeric-0.1a9.jar"/>
 	<classpathentry kind="lib" path="lib/misc.jar"/>
 	<classpathentry kind="lib" path="lib/pd.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>

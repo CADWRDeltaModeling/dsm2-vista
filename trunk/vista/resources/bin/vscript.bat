@@ -2,6 +2,7 @@
 rem ##############################
 rem Batch file for running vscript
 rem ##############################
+set vista_home=%~dp0/..
 
 if exist %vista_home%/jython/jython.jar goto :valid
 

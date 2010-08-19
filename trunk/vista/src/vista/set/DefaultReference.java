@@ -55,8 +55,8 @@
  */
 package vista.set;
 
-import vista.time.*;
-import java.io.Serializable;
+import vista.time.TimeFactory;
+import vista.time.TimeWindow;
 
 /**
  * 

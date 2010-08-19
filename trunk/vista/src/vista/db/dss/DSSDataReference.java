@@ -56,7 +56,6 @@
 package vista.db.dss;
 
 import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 
 import vista.set.DataReference;
 import vista.set.DataRetrievalException;
