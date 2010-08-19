@@ -2,7 +2,6 @@ package vista.app;
 
 import java.io.File;
 
-import vista.db.dss.DSSUtil;
 import vista.db.hdf5.HDF5Group;
 import vista.gui.Command;
 import vista.gui.ExecutionException;

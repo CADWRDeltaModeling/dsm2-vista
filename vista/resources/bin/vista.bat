@@ -26,7 +26,7 @@ goto :end
 rem ###############
 rem Set path to location of dll
 rem ###############
-set path=%path%;%vista_home%/lib;
+set path=%vista_home%/lib;%path%
 
 rem ###############
 rem starting vista

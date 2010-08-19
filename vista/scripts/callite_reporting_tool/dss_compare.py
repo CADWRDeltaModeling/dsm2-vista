@@ -1,7 +1,8 @@
 import sys
-import vdss, vutils, vdisplay
+import vdss, vutils, vdisplay, vtimeseries
 import js_data
 import logging
+from java.util import Date
 class PlotType:
     TIME_SERIES="timeseries"
     EXCEEDANCE="exceedance"
@@ -18,9 +19,28 @@ def open_dss(dssfile):
         print "No dss file named: %s found!" % (dssfile)
     return group
 #
-def get_ref(group, path, calculate_dts=0):
+def get_pathmap_for_varname(varname, pathname_maps):
+    for x in pathname_maps:
+        if x.var_name==varname:
+            return x
+    return None
+#
+def get_ref(group, path, calculate_dts, pathname_maps, group_no):
     if calculate_dts==1:
-        return None # TBD:
+        #FIXME: add expression parser to enable any expression
+        vars = path.split('+')
+        ref=None
+        for varname in vars:
+            pmap = get_pathmap_for_varname(varname, pathname_maps)
+            if group_no==1:
+                xref=get_ref(group, pmap.path1, 0, pathname_maps, group_no)
+            elif group_no==2:
+                xref=get_ref(group, pmap.path2, 0, pathname_maps, group_no)                
+            if ref==None:
+                ref=xref
+            else:
+                ref=ref+xref
+        return ref
     try:
         refs = vdss.findpath(group, path)
         if refs == None:
@@ -74,13 +94,16 @@ def multi_iterator(dsarray, filter=None):
 def extract_name_from_ref(ref):
     p = ref.pathname
     return "%s @ %s" % (p.getPart(p.C_PART), p.getPart(p.B_PART))
-def build_data_array(ref1, ref2):
+def build_data_array(ref1, ref2, tw=None):
     from vista.set import Constants
     from vtimeseries import time
     import math
     if (ref1==None and ref2==None):
         return []
-    iterator = multi_iterator([ref1.data, ref2.data], Constants.DEFAULT_FLAG_FILTER)
+    if tw != None:
+        data1=ref1.data.createSlice(tw)
+        data2=ref2.data.createSlice(tw)
+    iterator = multi_iterator([data1, data2], Constants.DEFAULT_FLAG_FILTER)
     darray=[]
     time_str = None
     while not iterator.atEnd():
@@ -90,11 +113,13 @@ def build_data_array(ref1, ref2):
         darray.append((date.time, e.getY(0), e.getY(1)))
         iterator.advance();
     return darray
-def sort(ref, end_of_sept=True):
+def sort(ref, end_of_sept=True, tw=None):
     from vista.set import Constants
     from vista.set import ElementFilterIterator
+    if tw != None:
+        data=ref.data.createSlice(tw)
     dx=[]
-    iter=ElementFilterIterator(ref.data.iterator, Constants.DEFAULT_FLAG_FILTER)
+    iter=ElementFilterIterator(data.iterator, Constants.DEFAULT_FLAG_FILTER)
     while not iter.atEnd():
         if (end_of_sept) :
             if (iter.element.XString.find('30SEP')>=0):
@@ -104,10 +129,10 @@ def sort(ref, end_of_sept=True):
         iter.advance()
     dx.sort()
     return dx
-def build_exceedance_array(ref1, ref2, end_of_sept=True):
+def build_exceedance_array(ref1, ref2, end_of_sept=True, tw=None):
     from java.lang import Math
-    x1=sort(ref1, end_of_sept)
-    x2=sort(ref2, end_of_sept)
+    x1=sort(ref1, end_of_sept, tw)
+    x2=sort(ref2, end_of_sept, tw)
     darray=[]
     i=0
     n=int(Math.min(len(x1),len(x2)))
@@ -142,7 +167,7 @@ def parse_template_file(template_file):
         path_map.path1 = pathname_mapping_table.getValue(i, "PATH1")
         path_map.path2 = pathname_mapping_table.getValue(i, "PATH2")
         path_map.var_category = pathname_mapping_table.getValue(i, "VAR_CATEGORY")
-        if path_map.path2 == None:
+        if path_map.path2 == None or len(path_map.path2)==0:
             path_map.path2 = path_map.path1
         pathname_maps.append(path_map)
     timewindows = []
@@ -151,9 +176,14 @@ def parse_template_file(template_file):
     return scalars, pathname_maps, tw_values
 def do_processing(scalars, pathname_maps, tw_values):
     # open files 1 and file 2 and loop over to plot
-    from java.util import Date
     dss_group1 = vutils.opendss(scalars['FILE1'])
     dss_group2 = vutils.opendss(scalars['FILE2'])
+    time_windows = map(lambda val: val[1].replace('"',''), tw_values)
+    tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
+    if len(tws) > 0:
+        tw=tws[0]
+    else:
+        tw=None
     output_file=scalars['OUTFILE']
     data_output_file = output_file.split(".")[0]+".js"
     fh=open(data_output_file,'w')
@@ -171,6 +201,8 @@ def do_processing(scalars, pathname_maps, tw_values):
         if dataIndex>1:
             fh.write(",")
         #path_map = pathname_mapping[var_name]
+        if path_map.path2==None or path_map.path2 == "":
+            path_map.path2=path_map.path1
         var_name = path_map.var_name
         calculate_dts=0
         if path_map.var_category == 'HEADER':
@@ -178,25 +210,25 @@ def do_processing(scalars, pathname_maps, tw_values):
             continue;
         if path_map.report_type == 'Exceedance_Post':
             calculate_dts=1
-        ref1 = get_ref(dss_group1, path_map.path1,calculate_dts)
-        ref2 = get_ref(dss_group2, path_map.path2,calculate_dts)
+        ref1 = get_ref(dss_group1, path_map.path1,calculate_dts, pathname_maps, 1)
+        ref2 = get_ref(dss_group2, path_map.path2,calculate_dts, pathname_maps, 2)
         if (ref1==None or ref2==None): 
             continue
         series_name = [scalars['NAME1'],scalars['NAME2']]
         data_units=get_units(ref1,ref2)
         data_type=get_type(ref1,ref2)
         if path_map.report_type == 'Average':
-            write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
+            write_plot_data(fh, build_data_array(ref1,ref2,tw), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
         elif path_map.report_type == 'Exceedance':
-            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT'), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
+            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT',tw), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
         elif path_map.report_type == 'Avg_Excd':
-            write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
+            write_plot_data(fh, build_data_array(ref1,ref2,tw), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
             fh.write(",")
-            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT'), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
+            write_plot_data(fh, build_exceedance_array(ref1,ref2,path_map.var_category=='S_SEPT',tw), dataIndex, get_exceedance_plot_title(path_map), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
         elif path_map.report_type == 'Timeseries':
-            write_plot_data(fh, build_data_array(ref1,ref2), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
+            write_plot_data(fh, build_data_array(ref1,ref2,tw), dataIndex, "Average %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES)
         elif path_map.report_type == 'Exceedance_Post':
-            write_plot_data(fh, build_exceedance_array(ref1,ref2), dataIndex, "Exceedance %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
+            write_plot_data(fh, build_exceedance_array(ref1,ref2,tw), dataIndex, "Exceedance %s"%path_map.var_name.replace('"',''), series_name, "%s(%s)"%(data_type,data_units), "Percent at or above", PlotType.EXCEEDANCE)
     js_data.write_end_data_array(fh);
     logging.debug('Writing end of data array')
     fh.close()
@@ -332,7 +364,6 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
     print >> fh, "<h1>System Water Balance Comparison: %s vs %s</h1>"%(scalars['NAME1'], scalars['NAME2'])
     print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
     print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))
-    
     time_windows = map(lambda val: val[1].replace('"',''), tw_values)
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     print >> fh, '<table id="system-water-balance-table" class="alt-highlight">'
@@ -356,8 +387,8 @@ def write_water_balance_table(fh, dss_group1,dss_group2,scalars,pathname_maps,tw
         calculate_dts=0
         if path_map.report_type == 'Exceedance_Post':
             calculate_dts=1
-        ref1 = get_ref(dss_group1, path_map.path1,calculate_dts)
-        ref2 = get_ref(dss_group2, path_map.path2,calculate_dts)
+        ref1 = get_ref(dss_group1, path_map.path1,calculate_dts, pathname_maps, 1)
+        ref2 = get_ref(dss_group2, path_map.path2,calculate_dts, pathname_maps, 2)
         if path_map.var_category in ("RF", "DI", "DO", "DE", "SWPSOD", "CVPSOD"):
             print >> fh, '<tr class="%s">'%("d"+str(index%2))
             if (ref1==None or ref2==None):
