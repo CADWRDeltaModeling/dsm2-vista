@@ -53,6 +53,9 @@
 		<copy todir="${dist.dir}/lib">
 			<fileset dir="lib"/>
 		</copy>
+		<copy todir="${dist.dir}/scripts">
+			<fileset dir="scripts"/>
+		</copy>
 		<copy todir="${dist.dir}/jython/">
 			<fileset dir="${jython.installdir}">
 				<include name="Lib/**"/>
