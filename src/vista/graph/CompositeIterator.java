@@ -57,6 +57,8 @@ package vista.graph;
 
 import java.util.Enumeration;
 
+import javax.media.j3d.Leaf;
+
 /**
  * An interface for iterating over the leaves of the Composite interface
  * 
@@ -76,7 +78,7 @@ public interface CompositeIterator extends Enumeration {
 	 * 
 	 * @see Leaf
 	 */
-	public Leaf getNext();
+	public GraphicElement getNext();
 
 	/**
 	 * Advance by one.

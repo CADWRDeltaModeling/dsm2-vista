@@ -90,7 +90,6 @@ import vista.graph.GraphProperties;
 import vista.graph.GraphicElement;
 import vista.graph.ImageSerializer;
 import vista.graph.InfoDialog;
-import vista.graph.Leaf;
 import vista.graph.ZoomInteractor;
 import vista.gui.VistaUtils;
 
@@ -676,7 +675,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 		public void actionPerformed(ActionEvent evt) {
 			Graph graph = (Graph) _gC.getGraphicElement();
 			GEContainer curveContainer = graph.getPlot().getCurveContainer();
-			Leaf[] curves = curveContainer.getElements(Curve.class);
+			GraphicElement[] curves = curveContainer.getElements(Curve.class);
 			Curve curve = (Curve) curves[0];
 			new vista.app.FlagEditor(_gC, curve);
 		}

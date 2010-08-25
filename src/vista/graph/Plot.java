@@ -128,10 +128,10 @@ public class Plot extends GEContainer implements FontResizable {
 			dr = new DoubleRect(0.65, 1.0, 0.25, -0.15);
 		}
 		legend._ignoreBounds = true; // let the legend decide what size it wants
-										// to be
+		// to be
 		((LegendAttr) legend.getAttributes())._boundariesMarked = true; // draw
-																		// the
-																		// border
+		// the
+		// border
 		// set the foreground coloar same as plot
 		legend.getAttributes()._foregroundColor = getAttributes()._foregroundColor;
 		_legendContainer.add(dr, legend);
@@ -178,8 +178,8 @@ public class Plot extends GEContainer implements FontResizable {
 	public void setLayout(GELayoutManager m) {
 		super.setLayout(m);
 		getLayout().addLayoutElement(GEBorderLayout.CENTER, _curveContainer); // adds
-																				// to
-																				// center
+		// to
+		// center
 	}
 
 	/**
@@ -308,7 +308,7 @@ public class Plot extends GEContainer implements FontResizable {
 	/**
 	 * adds a graphic element to the plot
 	 */
-	public void add(Leaf ge) {
+	public void add(GraphicElement ge) {
 		if (ge instanceof Curve) {
 			addCurve((Curve) ge);
 		} else if (ge instanceof Axis) {

@@ -153,46 +153,47 @@ public class ZoomInteractor extends ElementInteractor {
 				InputMap inputMap = mainPanel
 						.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-						KeyEvent.VK_LEFT+"");
+						KeyEvent.VK_LEFT + "");
 				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-						KeyEvent.VK_RIGHT+"");
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KeyEvent.VK_UP+"");
+						KeyEvent.VK_RIGHT + "");
+				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+						KeyEvent.VK_UP + "");
 				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-						KeyEvent.VK_DOWN+"");
+						KeyEvent.VK_DOWN + "");
 				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-						KeyEvent.VK_HOME+"");
+						KeyEvent.VK_HOME + "");
 				//
 				ActionMap actionMap = mainPanel.getActionMap();
 
-				actionMap.put(KeyEvent.VK_LEFT+"", new AbstractAction() {
+				actionMap.put(KeyEvent.VK_LEFT + "", new AbstractAction() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pageToPosition(AxisAttr.LEFT);
 					}
 				});
-				actionMap.put(KeyEvent.VK_RIGHT+"", new AbstractAction() {
+				actionMap.put(KeyEvent.VK_RIGHT + "", new AbstractAction() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pageToPosition(AxisAttr.RIGHT);
 					}
 				});
-				actionMap.put(KeyEvent.VK_UP+"", new AbstractAction() {
+				actionMap.put(KeyEvent.VK_UP + "", new AbstractAction() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pageToPosition(AxisAttr.TOP);
 					}
 				});
-				actionMap.put(KeyEvent.VK_DOWN+"", new AbstractAction() {
+				actionMap.put(KeyEvent.VK_DOWN + "", new AbstractAction() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pageToPosition(AxisAttr.BOTTOM);
 					}
 				});
-				actionMap.put(KeyEvent.VK_HOME+"", new AbstractAction() {
+				actionMap.put(KeyEvent.VK_HOME + "", new AbstractAction() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -218,7 +219,7 @@ public class ZoomInteractor extends ElementInteractor {
 	private Plot getPlot(int x, int y) {
 		Graph graph = (Graph) _gC.getGraphicElement();
 		Plot plot = graph.getPlot();
-		Leaf[] leafs = graph.getElements(MultiPlot.class);
+		GraphicElement[] leafs = graph.getElements(MultiPlot.class);
 		if (leafs == null) {
 			return plot;
 		}
@@ -407,7 +408,7 @@ public class ZoomInteractor extends ElementInteractor {
 		}
 	}
 
-	public void pageToPosition(int nPos){
+	public void pageToPosition(int nPos) {
 		if (!_isPageMode)
 			return;
 		if (nPos == -1)
@@ -415,7 +416,7 @@ public class ZoomInteractor extends ElementInteractor {
 		else
 			_zoom.nextPage(nPos);
 		_gC.redoNextPaint();
-		_gC.repaint();		
+		_gC.repaint();
 	}
 
 	/**

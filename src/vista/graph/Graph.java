@@ -108,7 +108,7 @@ public class Graph extends GEContainer implements FontResizable {
 	/**
    *
    */
-	public void add(Leaf ge) {
+	public void add(GraphicElement ge) {
 		if (ge instanceof Plot) {
 			addPlot((Plot) ge);
 		} else {
