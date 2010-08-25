@@ -1,0 +1,684 @@
+/*
+    Copyright (C) 1996, 1997, 1998 State of California, Department of 
+    Water Resources.
+
+    VISTA : A VISualization Tool and Analyzer. 
+	Version 1.0beta
+	by Nicky Sandhu
+    California Dept. of Water Resources
+    Division of Planning, Delta Modeling Section
+    1416 Ninth Street
+    Sacramento, CA 95814
+    (916)-653-7552
+    nsandhu@water.ca.gov
+
+    Send bug reports to nsandhu@water.ca.gov
+
+    This program is licensed to you under the terms of the GNU General
+    Public License, version 2, as published by the Free Software
+    Foundation.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, contact Dr. Francis Chung, below,
+    or the Free Software Foundation, 675 Mass Ave, Cambridge, MA
+    02139, USA.
+
+    THIS SOFTWARE AND DOCUMENTATION ARE PROVIDED BY THE CALIFORNIA
+    DEPARTMENT OF WATER RESOURCES AND CONTRIBUTORS "AS IS" AND ANY
+    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE CALIFORNIA
+    DEPARTMENT OF WATER RESOURCES OR ITS CONTRIBUTORS BE LIABLE FOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+    OR SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA OR PROFITS; OR
+    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+    USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+    DAMAGE.
+
+    For more information about VISTA, contact:
+
+    Dr. Francis Chung
+    California Dept. of Water Resources
+    Division of Planning, Delta Modeling Section
+    1416 Ninth Street
+    Sacramento, CA  95814
+    916-653-5601
+    chung@water.ca.gov
+
+    or see our home page: http://wwwdelmod.water.ca.gov/
+
+    Send bug reports to nsandhu@water.ca.gov or call (916)-653-7552
+
+ */
+package vista.app;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.FileDialog;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.PrintJob;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.InputStream;
+
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+
+import vista.graph.AttributeSerializer;
+import vista.graph.CoordinateDisplayInteractor;
+import vista.graph.Curve;
+import vista.graph.ElementInteractor;
+import vista.graph.FontResizeInteractor;
+import vista.graph.GECanvas;
+import vista.graph.GEContainer;
+import vista.graph.GETreeDialog;
+import vista.graph.Graph;
+import vista.graph.GraphFrameInterface;
+import vista.graph.GraphProperties;
+import vista.graph.GraphicElement;
+import vista.graph.ImageSerializer;
+import vista.graph.InfoDialog;
+import vista.graph.Leaf;
+import vista.graph.ZoomInteractor;
+import vista.gui.VistaUtils;
+
+/**
+ * This class constructs a frame and provides the context with which to interact
+ * with the Graph object. The Graph object itself is contained with the
+ * GraphCanvas object
+ * 
+ * @see Graph
+ * @see HEC.DSS.GraphCanvas
+ * @author Nicky Sandhu
+ * @version $Id: GraphFrame.java,v 1.5 2001/03/05 21:48:08 eli2 Exp $
+ */
+public class GraphFrame extends JFrame implements GraphFrameInterface {
+	/**
+	 * for debuggin'
+	 */
+	public boolean DEBUG = false;
+	/**
+	 * The component on which the graph is drawn.
+	 */
+	public GECanvas _gC = null;
+
+	/**
+	 * Constructor
+	 */
+	public GraphFrame(Graph graph, String frameTitle) {
+		super(frameTitle);
+		setIconImage(Toolkit.getDefaultToolkit().createImage(
+				VistaUtils.getImageAsBytes("/vista/planning.gif")));
+
+		addGECanvas(graph);
+
+		ActionListener bl = new ButtonListener(this);
+
+		JMenuBar mb = new JMenuBar();
+
+		JMenu mainMenu = new JMenu(GraphProperties.properties
+				.getProperty("GraphFrame.MAIN_MENU"));
+		JMenuItem printItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.PRINT"));
+		printItem.addActionListener(bl);
+		// JMenuItem save2GifItem = new
+		// JMenuItem(GraphProperties.properties.getProperty("GraphFrame.SAVE2GIF"));
+		// save2GifItem.addActionListener(bl);
+		JMenuItem save2PSItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.SAVE2PS"));
+		save2PSItem.addActionListener(bl);
+		JMenuItem save2PPMItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.SAVE2PPM"));
+		save2PPMItem.addActionListener(bl);
+		JMenuItem save2JpegItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.SAVE2JPEG"));
+		save2JpegItem.addActionListener(bl);
+		JMenuItem quitItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.QUIT"));
+		quitItem.addActionListener(new QuitListener());
+
+		JMenuItem loadAttrItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.LOAD_ATTR"));
+		loadAttrItem.addActionListener(new AttrListener());
+		JMenuItem saveAttrItem = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.SAVE_ATTR"));
+		saveAttrItem.addActionListener(new AttrListener());
+
+		mainMenu.add(printItem);
+		mainMenu.addSeparator();
+		// mainMenu.add(save2GifItem);
+		mainMenu.add(save2PSItem);
+		mainMenu.add(save2PPMItem);
+		mainMenu.add(save2JpegItem);
+		mainMenu.addSeparator();
+		mainMenu.add(loadAttrItem);
+		mainMenu.add(saveAttrItem);
+		mainMenu.addSeparator();
+		mainMenu.add(quitItem);
+
+		JMenu editorMenu = new JMenu(GraphProperties.properties
+				.getProperty("GraphFrame.EDIT_MENU"));
+		JMenuItem graphEdit = new JMenuItem(GraphProperties.properties
+				.getProperty("GraphFrame.EDIT_GRAPH"));
+		graphEdit.addActionListener(new EditListener(this));
+		JMenuItem flagEdit = new JMenuItem("Edit Flags");
+		flagEdit.addActionListener(new FlagEditorListener());
+		//
+		JMenuItem displayLocationItem = new JMenuItem("Display Co-ordinates");
+		displayLocationItem.addActionListener(new DisplayCoordinateListener());
+		//
+		JMenuItem pagingModeItem = new JMenuItem("Set Paging On");
+		pagingModeItem.addActionListener(new PagingModeListener());
+		//
+		editorMenu.add(graphEdit);
+		editorMenu.add(flagEdit);
+		editorMenu.add(displayLocationItem);
+		editorMenu.add(pagingModeItem);
+		//
+		DisplayFlagListener fdl = new DisplayFlagListener();
+		JCheckBoxMenuItem goodItem = new JCheckBoxMenuItem("Display Good");
+		JCheckBoxMenuItem questionableItem = new JCheckBoxMenuItem(
+				"Display Questionable");
+		JCheckBoxMenuItem rejectItem = new JCheckBoxMenuItem("Display Reject");
+		JCheckBoxMenuItem unscreenedItem = new JCheckBoxMenuItem(
+				"Display Unscreened");
+		if (GraphProperties.properties.get("displayGood").equals("true"))
+			goodItem.setSelected(true);
+		if (GraphProperties.properties.get("displayQuestionable")
+				.equals("true"))
+			questionableItem.setSelected(true);
+		if (GraphProperties.properties.get("displayReject").equals("true"))
+			rejectItem.setSelected(true);
+		if (GraphProperties.properties.get("displayUnscreened").equals("true"))
+			unscreenedItem.setSelected(true);
+		//
+		AppUtils.setCurveFilter(graph, AppUtils.getCurrentCurveFilter());
+		//
+		fdl.addGoodMenuItem(goodItem);
+		fdl.addQuestionableMenuItem(questionableItem);
+		fdl.addRejectMenuItem(rejectItem);
+		fdl.addUnscreenedMenuItem(unscreenedItem);
+		JMenu displayMenu = new JMenu("Display Options");
+		displayMenu.add(goodItem);
+		displayMenu.add(questionableItem);
+		displayMenu.add(rejectItem);
+		displayMenu.add(unscreenedItem);
+		//
+		mb.add(mainMenu);
+		mb.add(editorMenu);
+		mb.add(displayMenu);
+		this.setJMenuBar(mb);
+
+		String propertiesFile = GraphProperties.properties
+				.getProperty("GraphFrame.graphPropertiesFile");
+		InputStream is = VistaUtils.getFileAsStream(propertiesFile);
+		if (is == null)
+			is = VistaUtils.getResourceAsStream(propertiesFile);
+		if (is == null)
+			is = VistaUtils.getPropertyFileAsStream("demo1.properties");
+		if (is == null)
+			is = VistaUtils
+					.getResourceAsStream("/vista.graph/demo1.properties");
+		new AttributeSerializer(graph).load(is);
+
+		this.pack();
+		Toolkit tk = getToolkit();
+		Dimension screenSize = tk.getScreenSize();
+		Dimension frameSize = getSize();
+		this.setLocation(screenSize.width - frameSize.width, screenSize.height
+				- frameSize.height);
+		this.show();
+
+	}
+
+	/**
+	 * adds GraphicElement canvas
+	 */
+	private void addGECanvas(Graph graph) {
+		_gC = new GECanvas(graph);
+
+		// add graph canvas to frame and set its listeners
+		this.getContentPane().setLayout(new BorderLayout());
+		this.getContentPane().add(_gC, BorderLayout.CENTER);
+		//
+		addInteractors(graph);
+	}
+
+	public void addToolBar(JToolBar tb) {
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.add(_gC, BorderLayout.CENTER);
+		this.getContentPane().removeAll();
+		this.getContentPane().add(tb, BorderLayout.NORTH);
+		this.getContentPane().add(mainPanel);
+	}
+
+	/**
+	 * sets graph in canvas
+	 */
+	public void setGraph(Graph graph) {
+		new AttributeSerializer(graph).load(GraphProperties.properties
+				.getProperty("GraphFrame.graphPropertiesFile"));
+		_gC.setGraphicElement(graph);
+		addInteractors(graph);
+		_gC.redoNextPaint();
+		_gC.paint(_gC.getGraphics());
+	}
+
+	/**
+   *
+   */
+	private void addInteractors(Graph graph) {
+		if (_zi != null) {
+			_gC.removeMouseListener(_zi);
+			_gC.removeMouseMotionListener(_zi);
+			_gC.removeKeyListener(_zi);
+		}
+		if (_ri != null) {
+			_gC.removeComponentListener(_ri);
+		}
+		//
+		_zi = new ZoomInteractor(_gC);
+		if (graph.getAttributes()._backgroundColor == Color.black)
+			((ZoomInteractor) _zi).setZoomRectangleColor(Color.white);
+		_gC.addMouseListener(_zi);
+		_gC.addMouseMotionListener(_zi);
+		_ri = new FontResizeInteractor(_gC);
+		_gC.addComponentListener(_ri);
+	}
+
+	private ElementInteractor _zi, _ri;
+
+	/**
+	 * does printing to file or printer using java core classes.
+	 */
+	public void doPrint(Frame f) {
+		// set size to 8.5 X 11 inches == 21.25 cm X 27.5 cm
+		Dimension pSize = f.getSize();
+		int resolution = 72; // in pixels per inch
+		// f.setSize((int) 8.5*resolution, 11*resolution);
+		// landscape
+		f.setSize(11 * resolution, (int) 8.5 * resolution);
+		PrintJob pj = Toolkit.getDefaultToolkit().getPrintJob(f,
+				"GraphCanvas Print Job", null);
+		boolean bufferStatus = _gC.getDoubleBuffered();
+		if (pj != null) {
+			Graphics pg = pj.getGraphics();
+			try {
+				_gC.setDoubleBuffered(false);
+				_gC.paintAll(pg);
+			} finally {
+				pg.dispose();
+				_gC.setDoubleBuffered(bufferStatus);
+			}
+			pj.end();
+		}
+		this.setSize(pSize.width, pSize.height);
+		this.repaint();
+	}
+
+	/**
+	 * Outputs plot to gif file.
+	 */
+	/*
+	 * public void outputGif(){
+	 * 
+	 * FileDialog dialog = new FileDialog(this,
+	 * GraphProperties.properties.getProperty("GraphFrame.gifSelectionMsg"),
+	 * FileDialog.SAVE);
+	 * dialog.setFile(GraphProperties.properties.getProperty("GraphFrame.GIF_FILE"
+	 * )); dialog.pack(); dialog.show(); if (dialog.getFile() != null){ Thread
+	 * serializerThread = new Thread (new ImageSerializer(dialog.getFile(), _gC,
+	 * ImageSerializer.GIF), "Gif serializer");
+	 * serializerThread.setPriority(Thread.MIN_PRIORITY);
+	 * serializerThread.run(); } }
+	 */
+	/**
+	 * Outputs plot to ps file.
+	 */
+	public void outputPS() {
+
+		FileDialog dialog = new FileDialog(this, GraphProperties.properties
+				.getProperty("GraphFrame.psSelectionMsg"), FileDialog.SAVE);
+		dialog.setFile(GraphProperties.properties
+				.getProperty("GraphFrame.PS_FILE"));
+		dialog.pack();
+		dialog.show();
+		if (dialog.getFile() != null) {
+			String filename = dialog.getFile();
+			boolean bufferStatus = _gC.getDoubleBuffered();
+			_gC.setDoubleBuffered(false);
+			Thread serializerThread = new Thread(new ImageSerializer(filename,
+					_gC, ImageSerializer.PS), "Post-script serializer");
+			serializerThread.setPriority(Thread.MIN_PRIORITY);
+			serializerThread.run();
+			_gC.setDoubleBuffered(bufferStatus);
+		}
+	}
+
+	/**
+	 * Outputs plot to jpeg file.
+	 */
+	public void outputJpeg() {
+		Dialog dialog = new InfoDialog(this, "Information Dialog", true,
+				"Sorry no jpeg output available yet");
+
+		// Thread serializerThread = new Thread
+		// (new ImageSerializer("junk.jpg", _gC, ImageSerializer.JPEG),
+		// "Jpeg serializer");
+		// serializerThread.setPriority(Thread.MIN_PRIORITY);
+		// serializerThread.run();
+	}
+
+	/**
+	 * Outputs plot to PPM file.
+	 */
+	public void outputPPM() {
+		FileDialog dialog = new FileDialog(this, GraphProperties.properties
+				.getProperty("GraphFrame.PPMSelectionMsg"), FileDialog.SAVE);
+		dialog.setFile(GraphProperties.properties
+				.getProperty("GraphFrame.PPM_FILE"));
+		dialog.pack();
+		dialog.show();
+
+		if (dialog.getFile() != null) {
+			Thread serializerThread = new Thread(new ImageSerializer(
+					GraphProperties.properties
+							.getProperty("GraphFrame.PPM_FILE"), _gC,
+					ImageSerializer.PPM), "PPM serializer");
+			serializerThread.setPriority(Thread.MIN_PRIORITY);
+			serializerThread.run();
+		}
+	}
+
+	/**
+	 * gets the reference to the graph canvas
+	 */
+	public GECanvas getCanvas() {
+		return _gC;
+	}
+
+	/**
+   *
+   */
+	protected class EditListener implements ActionListener {
+		/**
+   *
+   */
+		protected GraphFrame _tg;
+
+		/**
+   *
+   */
+		public EditListener(GraphFrame tg) {
+			_tg = tg;
+		}
+
+		/**
+   *
+   */
+		public void actionPerformed(ActionEvent e) {
+			new GETreeDialog(GraphFrame.this, getCanvas());
+			// System.out.println("Graph attribute editing capabilities are under development...");
+			// Dialog dialog = new DWR.Graph.InfoDialog(_tg,
+			// "Information Dialog", true,
+			// "Graph attribute editing capabilities are under development...");
+			// if (editor == null) editor = new
+			// GraphEditor(_tg.getGraphCanvas());
+			// else editor.setVisible(true);
+		}
+		/**
+   *
+   */
+		// protected GraphEditor editor;
+	}
+
+	/**
+	 * Loads/saves attributes
+	 */
+	private class AttrListener implements ActionListener {
+		/**
+   *
+   */
+		public void actionPerformed(ActionEvent e) {
+			Object s = e.getSource();
+			if (s instanceof JMenuItem) {
+				JMenuItem mi = (JMenuItem) s;
+				String label = mi.getText();
+				if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.LOAD_ATTR"))) {
+					loadAttributes();
+				} else if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.SAVE_ATTR"))) {
+					saveAttributes();
+				} else {
+
+				}
+			}
+		}
+
+		/**
+		 * loads attributes
+		 */
+		private void loadAttributes() {
+			if (_attrS == null)
+				_attrS = new AttributeSerializer((Graph) _gC
+						.getGraphicElement());
+			if (_attrS.loadAttributes()) {
+				_gC.redoNextPaint();
+				_gC.repaint();
+			}
+		}
+
+		/**
+   *
+   */
+		private void saveAttributes() {
+			if (_attrS == null)
+				_attrS = new AttributeSerializer((Graph) _gC
+						.getGraphicElement());
+			_attrS.saveAttributes();
+		}
+
+		/**
+   *
+   */
+		private AttributeSerializer _attrS = null;
+	}
+
+	/**
+   *
+   */
+	protected class QuitListener implements ActionListener {
+		/**
+   *
+   */
+		public void actionPerformed(ActionEvent e) {
+			// System.exit(0);
+			dispose();
+		}
+	}
+
+	/**
+   *
+   */
+	protected class ButtonListener implements ActionListener {
+		/**
+   *
+   */
+		protected GraphFrame _tg;
+
+		/**
+   *
+   */
+		public ButtonListener(GraphFrame tg) {
+			_tg = tg;
+		}
+
+		/**
+		 * Handles button events for
+		 */
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() instanceof JMenuItem) {
+				JMenuItem mItem = (JMenuItem) e.getSource();
+				String label = mItem.getText();
+				if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.PRINT"))) {
+					doPrint(_tg);
+				} else if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.QUIT"))) {
+					System.exit(0);
+					/*
+					 * }else if
+					 * (label.equals(GraphProperties.properties.getProperty
+					 * ("GraphFrame.SAVE2GIF"))){ _tg.outputGif();
+					 */
+				} else if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.SAVE2PS"))) {
+					_tg.outputPS();
+				} else if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.SAVE2PPM"))) {
+					_tg.outputPPM();
+				} else if (label.equals(GraphProperties.properties
+						.getProperty("GraphFrame.SAVE2JPEG"))) {
+					_tg.outputJpeg();
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * 
+	 * @author Nicky Sandhu
+	 * @version $Id: GraphFrame.java,v 1.5 2001/03/05 21:48:08 eli2 Exp $
+	 */
+	private class DisplayCoordinateListener implements ActionListener {
+		private CoordinateDisplayInteractor _cdi;
+
+		public void actionPerformed(ActionEvent evt) {
+			JMenuItem mi = (JMenuItem) evt.getSource();
+			String label = mi.getText();
+			if (label.indexOf("Don't") >= 0) {
+				if (_cdi != null)
+					getCanvas().removeMouseMotionListener(_cdi);
+				_cdi.doneDisplaying();
+				mi.setText("Display Co-ordinates");
+			} else {
+				_cdi = new CoordinateDisplayInteractor(getCanvas());
+				getCanvas().addMouseMotionListener(_cdi);
+				mi.setText("Don't Display Co-ordinates");
+			}
+		}
+	} // end of Displa....
+
+	/**
+	 * 
+	 * 
+	 * @author Nicky Sandhu
+	 * @version $Id: GraphFrame.java,v 1.5 2001/03/05 21:48:08 eli2 Exp $
+	 */
+	private class PagingModeListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			JMenuItem mi = (JMenuItem) evt.getSource();
+			String label = mi.getText();
+			ZoomInteractor zi = (ZoomInteractor) _zi;
+			if (label.indexOf("On") >= 0) {
+				if (zi != null)
+					zi.setPagingMode(true);
+				mi.setText("Set Paging Off");
+			} else {
+				if (zi != null)
+					zi.setPagingMode(false);
+				mi.setText("Set Paging On");
+			}
+		}
+	} // end of Paging..
+
+	/**
+	 * 
+	 * 
+	 * @author Nicky Sandhu
+	 * @version $Id: GraphFrame.java,v 1.5 2001/03/05 21:48:08 eli2 Exp $
+	 */
+	class DisplayFlagListener implements ActionListener {
+		JMenuItem qItem, gItem, rItem, sItem, uItem;
+
+		/**
+      *
+      */
+		public void addQuestionableMenuItem(JMenuItem q) {
+			qItem = q;
+			qItem.addActionListener(this);
+		}
+
+		public void addGoodMenuItem(JMenuItem g) {
+			gItem = g;
+			gItem.addActionListener(this);
+		}
+
+		public void addRejectMenuItem(JMenuItem r) {
+			rItem = r;
+			rItem.addActionListener(this);
+		}
+
+		public void addUnscreenedMenuItem(JMenuItem us) {
+			uItem = us;
+			uItem.addActionListener(this);
+		}
+
+		/**
+      *
+      */
+		public void actionPerformed(ActionEvent evt) {
+			GraphicElement ge = _gC.getGraphicElement();
+			if (!(ge instanceof Graph))
+				return;
+			Graph graph = (Graph) ge;
+			if (qItem.isSelected())
+				GraphProperties.properties.put("displayQuestionable", "true");
+			else
+				GraphProperties.properties.put("displayQuestionable", "false");
+			if (gItem.isSelected())
+				GraphProperties.properties.put("displayGood", "true");
+			else
+				GraphProperties.properties.put("displayGood", "false");
+			if (rItem.isSelected())
+				GraphProperties.properties.put("displayReject", "true");
+			else
+				GraphProperties.properties.put("displayReject", "false");
+			if (uItem.isSelected())
+				GraphProperties.properties.put("displayUnscreened", "true");
+			else
+				GraphProperties.properties.put("displayUnscreened", "false");
+			AppUtils.setCurveFilter(graph, AppUtils.getCurrentCurveFilter());
+			_gC.redoNextPaint();
+			_gC.paint(_gC.getGraphics());
+		}
+	}
+
+	/**
+    *
+    */
+	class FlagEditorListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			Graph graph = (Graph) _gC.getGraphicElement();
+			GEContainer curveContainer = graph.getPlot().getCurveContainer();
+			Leaf[] curves = curveContainer.getElements(Curve.class);
+			Curve curve = (Curve) curves[0];
+			new vista.app.FlagEditor(_gC, curve);
+		}
+	}
+}

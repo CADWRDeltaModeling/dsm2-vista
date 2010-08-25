@@ -1,0 +1,35 @@
+# A template file to compare two DSM2 outputs
+SCALAR
+NAME		VALUE
+FILE1		SC_ELT_SLR15_ROA25_out.dss #input file 1
+NAME1		SC_ELT_SLR15_ROA25
+FILE2		SC_LLT_SLR45_ROA65_out.dss # input file 2
+NAME2		SC_LLT_SLR45_ROA65
+OUTFILE		DSM2_compare.html
+NOTE		"A long funny note"
+ASSUMPTIONS "I am assuming this is defined"
+MODELER 	Nazrul
+END
+
+OUTPUT
+LOCATION				TYPE
+SNODGRASS           	INSTALL
+SAC	                    FLOW
+SAC_EMMATON	            FLOW
+RSAC123	                VEL
+RSAN063	                VEL
+SNODGRASS      	        ELEV
+CHANNEL_124_0	        STAGE
+CHANNEL_559_0       	STAGE
+SNODGRASS	            OP-TO-NODE
+SNODGRASS 	            OP-FROM-NODE
+SNODGRASS	            DEVICE-FLOW
+CHANNEL_132_0	        EC
+END
+
+TIME_PERIODS
+NAME			TIMEWINDOW
+"Long Term"		"01OCT1974 0100 - 30SEP1991 2400"
+"Dry Period 1"	"01OCT1974 0100 - 30SEP1980 2400"
+"Dry Period 2"	"01OCT1986 0100 - 30SEP1992 2400"
+END

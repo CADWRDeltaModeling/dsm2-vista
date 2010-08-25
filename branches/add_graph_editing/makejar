@@ -1,0 +1,8 @@
+#!c:/bin/tcsh
+rm -rf classes; mkdir classes; mkdir classes/vista
+cp .vista classes/vista;
+cp -P `find . -name \*.class -print` classes/vista;
+cp -P `find . -name \*.properties -print` classes/vista;
+cp -P `find . -name \*.data -print` classes/vista;
+cp *.gif classes/vista;
+cd classes; jar -cf vista.jar vista; cp vista.jar ../lib; cd ../
