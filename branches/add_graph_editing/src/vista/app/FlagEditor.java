@@ -87,7 +87,7 @@ import vista.time.TimeInterval;
 public class FlagEditor {
 	private Curve curve;
 	private GECanvas gC;
-	private RangeSelector rs;
+	private XRangeSelector rs;
 	private FlagChoiceFrame fcf;
 
 	/**
@@ -96,7 +96,7 @@ public class FlagEditor {
 	public FlagEditor(GECanvas gC, Curve curve) {
 		this.gC = gC;
 		this.curve = curve;
-		rs = new RangeSelector(this, gC, curve);
+		rs = new XRangeSelector(this, gC, curve);
 	}
 
 	/**

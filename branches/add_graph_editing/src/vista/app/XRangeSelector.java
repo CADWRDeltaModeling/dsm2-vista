@@ -55,7 +55,6 @@
  */
 package vista.app;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -69,27 +68,22 @@ import vista.graph.GECanvas;
 import vista.graph.Scale;
 
 /**
- * Selects a range over the x and y axes of a graph. User interaction consists
- * of starting by an first click to select one corner of the range. A rectangle
- * is drawn from the point of first click and the current mouse location. When
- * the user clicks on the second location, the range selected is availble. A
- * clear selection method clears the range
+ * Selects a range on the x axis of the curve in the graph canvas.
  * 
- * @author Nicky Sandhu $Author$
- * @version $Rev$ $Date$
+ * @author Nicky Sandhu
+ * @version $Id: RangeSelector.java,v 1.1 2003/10/02 20:48:39 redwood Exp $
  */
-public class RangeSelector {
-	private GECanvas _gC;
+public class XRangeSelector {
 	private Curve _curve;
 	private RangeListener rl;
-	private double xmin, xmax;
-	private double ymin, ymax;
+	private GECanvas _gC;
+	private double _rmin, _rmax;
 	private FlagEditor fe;
 
 	/**
 	 * selects a range on the x axis of the curve in the graph canvas.
 	 */
-	public RangeSelector(GECanvas gC, Curve curve, FlagEditor fe) {
+	public XRangeSelector(FlagEditor fe, GECanvas gC, Curve curve) {
 		_curve = curve;
 		_gC = gC;
 		this.fe = fe;
@@ -106,19 +100,19 @@ public class RangeSelector {
 	/**
 	 * gets the minimum of range
 	 */
-	public double getRangeXMin() {
+	public double getRangeMin() {
 		Scale sc = _curve.getXAxis().getScale();
-		xmin = sc.scaleToDC(rl.getRangeMin());
-		return xmin;
+		_rmin = sc.scaleToDC(rl.getRangeMin());
+		return _rmin;
 	}
 
 	/**
 	 * gets maximum of range
 	 */
-	public double getRangeXMax() {
+	public double getRangeMax() {
 		Scale sc = _curve.getXAxis().getScale();
-		xmax = sc.scaleToDC(rl.getRangeMax());
-		return xmax;
+		_rmax = sc.scaleToDC(rl.getRangeMax());
+		return _rmax;
 	}
 
 	/**
@@ -140,14 +134,12 @@ public class RangeSelector {
 		private int x1, x2;
 		private Image _gCImage;
 		private CoordinateDisplayInteractor _cdi;
-		private int y1;
-		private int y2;
 
 		/**
       *
       */
-		public RangeListener(GECanvas gC, Curve curve) {
-			_curve = curve;
+		public RangeListener(GECanvas gC, Curve c) {
+			_curve = c;
 			_gC = gC;
 			_gC.addMouseMotionListener(_cdi = new CoordinateDisplayInteractor(
 					_gC));
@@ -174,20 +166,25 @@ public class RangeSelector {
 		 * Invoked when the mouse has been clicked on a component.
 		 */
 		public void mouseClicked(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Clicked at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 			Rectangle r = _curve.getBounds();
 			if (!click1) {
 				click1 = true;
 				x1 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				y1 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
+				if (DEBUG)
+					System.out.println("x1 = " + x1);
 			} else if (!click2) {
 				click2 = true;
 				x2 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				y2 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
+				if (DEBUG)
+					System.out.println("x2 = " + x2);
 				_gC.removeMouseMotionListener(this);
 				_gC.addMouseListener(this);
 				_gC.removeMouseMotionListener(_cdi);
 				_cdi.doneDisplaying();
-				RangeSelector.this.doneSelecting();
+				XRangeSelector.this.doneSelecting();
 			}
 		}
 
@@ -196,42 +193,57 @@ public class RangeSelector {
 		 * buttons no down).
 		 */
 		public void mouseMoved(MouseEvent e) {
-			drawSelectedRegion(e.getX(), e.getY());
+			if (DEBUG)
+				System.out.println("Mouse Moved at ( " + e.getX() + ", "
+						+ e.getY() + " )");
+			moveVerticalLineTo(e.getX());
 		}
 
-		private void drawSelectedRegion(int x, int y) {
+		private void moveVerticalLineTo(int x) {
 			Graphics g = _gCImage.getGraphics();
 			g.drawImage(_gC.getGraphicElementImage(), 0, 0, null);
+			Rectangle r = _curve.getBounds();
 			// g.setClip(r);
 			if (click1 && click2) {
-				Color fillColor = new Color(100, 100, 100, 125);
-				Color oldColor = g.getColor();
-				g.setColor(fillColor);
-				g.fillRect(x1, y1, x1 - x2, y1 - y2);
-				g.setColor(oldColor);
-			} else if (click1) { // draw a rectangle
-				g.drawRect(x1, y1, x1 - x, y1 - y);
-			} else { // draw a cross hair at current position
-				int w = 4;// half of cross hair width
-				g.drawLine(x - w, y, x + w, y);
-				g.drawLine(x, y - w, x, y + w);
+				g.drawLine(x1, r.y, x1, r.y + r.height);
+				g.drawLine(x2, r.y, x2, r.y + r.height);
+			} else if (click1) {
+				g.drawLine(x1, r.y, x1, r.y + r.height);
+				g.drawLine(x, r.y, x, r.y + r.height);
+			} else {
+				g.drawLine(x, r.y, x, r.y + r.height);
 			}
 			_gC.getGraphics().drawImage(_gCImage, 0, 0, null);
 		}
 
 		public void mousePressed(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Pressed at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 		}
 
 		public void mouseReleased(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Released at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 		}
 
 		public void mouseEntered(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Entered at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 		}
 
 		public void mouseExited(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Exited at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 		}
 
 		public void mouseDragged(MouseEvent e) {
+			if (DEBUG)
+				System.out.println("Mouse Dragged at ( " + e.getX() + ", "
+						+ e.getY() + " )");
 		}
 	} // end of Range Listener
 }

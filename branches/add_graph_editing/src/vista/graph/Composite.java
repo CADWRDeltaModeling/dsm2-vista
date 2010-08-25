@@ -63,26 +63,26 @@ package vista.graph;
  * @author Nicky Sandhu (DWR).
  * @version $Id: Composite.java,v 1.1 2003/10/02 20:48:51 redwood Exp $
  */
-public interface Composite extends Parent {
+public interface Composite {
 	/**
 	 * adds a graphic element to the composite
 	 */
-	public void add(Leaf leaf);
+	public void add(GraphicElement leaf);
 
 	/**
 	 * adds a graphic element to the composite with information
 	 */
-	public void add(String name, Leaf leaf);
+	public void add(String name, GraphicElement leaf);
 
 	/**
 	 * inserts an element at the desired index
 	 */
-	public void insertAt(int index, Leaf leaf);
+	public void insertAt(int index, GraphicElement leaf);
 
 	/**
 	 * removes the particular object from the container
 	 */
-	public int remove(Leaf leaf);
+	public int remove(GraphicElement leaf);
 
 	/**
 	 * removes all elements from the composite.
@@ -92,7 +92,7 @@ public interface Composite extends Parent {
 	/**
 	 * searches for the first element that matches and returns its index
 	 */
-	public int indexOf(Leaf leaf);
+	public int indexOf(GraphicElement leaf);
 
 	/**
 	 * gets the child element count
@@ -107,13 +107,13 @@ public interface Composite extends Parent {
 	 * 
 	 * @returns the element.
 	 */
-	public Leaf getElement(int n);
+	public GraphicElement getElement(int n);
 
 	/**
 	 * returns a copy of the array of graphic elements contained in this
 	 * composite.
 	 */
-	public Leaf[] getElements();
+	public GraphicElement[] getElements();
 
 	/**
 	 * gets a iterator object to iterate over the leaves or composites contained

@@ -92,7 +92,6 @@ import vista.graph.GraphProperties;
 import vista.graph.GraphUtils;
 import vista.graph.GraphicElement;
 import vista.graph.ImageSerializer;
-import vista.graph.Leaf;
 import vista.graph.Plot;
 import vista.graph.PrintPreviewer;
 import vista.graph.ZoomInteractor;
@@ -645,7 +644,7 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		public void actionPerformed(ActionEvent evt) {
 			Graph graph = (Graph) _gC.getGraphicElement();
 			GEContainer curveContainer = graph.getPlot().getCurveContainer();
-			Leaf[] curves = curveContainer.getElements(Curve.class);
+			GraphicElement[] curves = curveContainer.getElements(Curve.class);
 			if (curves == null || curves[0] == null)
 				throw new RuntimeException("No curves in selection");
 			Curve curve = (Curve) curves[0];

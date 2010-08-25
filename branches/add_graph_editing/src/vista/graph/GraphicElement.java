@@ -103,8 +103,8 @@ import java.util.StringTokenizer;
  * @author Nicky Sandhu
  * @version $Id: GraphicElement.java,v 1.1 2003/10/02 20:49:01 redwood Exp $
  */
-public abstract class GraphicElement implements Drawable, Bounded, Leaf,
-		Cloneable, Animate {
+public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
+		Animate {
 	/**
    *
    */
@@ -330,7 +330,7 @@ public abstract class GraphicElement implements Drawable, Bounded, Leaf,
 	 * 
 	 * @return p the parent of this element
 	 */
-	public Parent getParent() {
+	public GEContainer getParent() {
 		return _parent;
 	}
 
@@ -340,7 +340,7 @@ public abstract class GraphicElement implements Drawable, Bounded, Leaf,
 	 * @param p
 	 *            the parent of this element
 	 */
-	public void setParent(Parent p) {
+	public void setParent(GEContainer p) {
 		_parent = p;
 	}
 
@@ -752,7 +752,7 @@ public abstract class GraphicElement implements Drawable, Bounded, Leaf,
 	/**
 	 * the parent of this element
 	 */
-	private Parent _parent = null;
+	private GEContainer _parent = null;
 	/**
 	 * insets defining borders. The actual drawing area is defined by the bounds
 	 * returned by getInsetedBounds()
