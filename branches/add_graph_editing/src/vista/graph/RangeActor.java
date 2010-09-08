@@ -67,5 +67,5 @@ public interface RangeActor {
 	/**
    *
    */
-	public void selectedRange(int minX, int maxX);
+	public void selectedRange(int minX, int maxX, int minY, int maxY);
 }

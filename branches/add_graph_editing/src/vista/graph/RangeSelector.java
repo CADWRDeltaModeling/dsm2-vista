@@ -66,21 +66,23 @@ import java.awt.event.MouseMotionListener;
  * Selects a range on the x axis.
  * 
  * @author Nicky Sandhu
- * @version $Id: ZoomRangeSelector.java,v 1.3 2001/03/05 21:46:24 eli2 Exp $
+ * @version $Revision$
  */
-public class ZoomRangeSelector {
+public class RangeSelector {
 	private Curve _curve;
 	private RangeListener rl;
 	private GECanvas _gC;
-	private double _rmin, _rmax;
-	private RangeActor ra;
+	private double _xmin, _xmax;
+	private double _ymin, _ymax;
+	private RangeActor _ra;
 
 	/**
 	 * selects a range on the x axis of the curve in the graph canvas.
 	 */
-	public ZoomRangeSelector(GECanvas gC, Curve curve, RangeActor ra) {
+	public RangeSelector(GECanvas gC, Curve curve, RangeActor ra) {
 		_gC = gC;
 		_curve = curve;
+		_ra = ra;
 		selectRange();
 	}
 
@@ -88,7 +90,8 @@ public class ZoomRangeSelector {
    *
    */
 	void doneSelecting() {
-		ra.selectedRange(rl.getRangeMin(), rl.getRangeMax());
+		_ra.selectedRange(rl.getXRangeMin(), rl.getXRangeMax(), rl
+				.getYRangeMin(), rl.getYRangeMax());
 	}
 
 	/**
@@ -96,8 +99,8 @@ public class ZoomRangeSelector {
 	 */
 	public double getRangeMin() {
 		Scale sc = _curve.getXAxis().getScale();
-		_rmin = sc.scaleToDC(rl.getRangeMin());
-		return _rmin;
+		_xmin = sc.scaleToDC(rl.getXRangeMin());
+		return _xmin;
 	}
 
 	/**
@@ -105,8 +108,26 @@ public class ZoomRangeSelector {
 	 */
 	public double getRangeMax() {
 		Scale sc = _curve.getXAxis().getScale();
-		_rmax = sc.scaleToDC(rl.getRangeMax());
-		return _rmax;
+		_xmax = sc.scaleToDC(rl.getXRangeMax());
+		return _xmax;
+	}
+
+	/**
+	 * gets the minimum of range along Y axis
+	 */
+	public double getYRangeMin() {
+		Scale sc = _curve.getYAxis().getScale();
+		_ymin = sc.scaleToDC(rl.getYRangeMin());
+		return _ymin;
+	}
+
+	/**
+	 * gets maximum of range along Y axis
+	 */
+	public double getYRangeMax() {
+		Scale sc = _curve.getYAxis().getScale();
+		_ymax = sc.scaleToDC(rl.getYRangeMax());
+		return _ymax;
 	}
 
 	/**
@@ -126,6 +147,7 @@ public class ZoomRangeSelector {
 		private Curve _curve;
 		private GECanvas _gC;
 		private int x1, x2;
+		private int y1, y2;
 		private Image _gCImage;
 		private CoordinateDisplayInteractor _cdi;
 
@@ -143,43 +165,51 @@ public class ZoomRangeSelector {
 		}
 
 		/**
-   *
-   */
-		public int getRangeMax() {
+		 *
+		 */
+		public int getXRangeMax() {
 			return Math.max(x1, x2);
 		}
 
 		/**
-   *
-   */
-		public int getRangeMin() {
+		 *
+		 */
+		public int getXRangeMin() {
 			return Math.min(x1, x2);
+		}
+
+		/**
+		 *
+		 */
+		public int getYRangeMax() {
+			return Math.max(y1, y2);
+		}
+
+		/**
+		 *
+		 */
+		public int getYRangeMin() {
+			return Math.min(y1, y2);
 		}
 
 		/**
 		 * Invoked when the mouse has been clicked on a component.
 		 */
 		public void mouseClicked(MouseEvent e) {
-			if (DEBUG)
-				System.out.println("Mouse Clicked at ( " + e.getX() + ", "
-						+ e.getY() + " )");
-			GraphicElement ge = _gC.getGraphicElement();
 			Rectangle r = _curve.getBounds();
 			if (!click1) {
 				click1 = true;
 				x1 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				if (DEBUG)
-					System.out.println("x1 = " + x1);
+				y1 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
 			} else if (!click2) {
 				click2 = true;
 				x2 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				if (DEBUG)
-					System.out.println("x2 = " + x2);
+				y2 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
 				_gC.removeMouseMotionListener(this);
 				_gC.addMouseListener(this);
 				_gC.removeMouseMotionListener(_cdi);
 				_cdi.doneDisplaying();
-				ZoomRangeSelector.this.doneSelecting();
+				RangeSelector.this.doneSelecting();
 			}
 		}
 
@@ -188,28 +218,27 @@ public class ZoomRangeSelector {
 		 * buttons no down).
 		 */
 		public void mouseMoved(MouseEvent e) {
-			if (DEBUG)
-				System.out.println("Mouse Moved at ( " + e.getX() + ", "
-						+ e.getY() + " )");
-			moveVerticalLineTo(e.getX());
+			drawBox(e.getX(), e.getY());
 		}
 
 		/**
-   *
-   */
-		private void moveVerticalLineTo(int x) {
+         *
+         */
+		private void drawBox(int x, int y) {
+			if (_gCImage == null) {
+				Rectangle r = _gC.getBounds();
+				_gCImage = _gC.createImage(r.width, r.height);
+			}
 			Graphics g = _gCImage.getGraphics();
 			g.drawImage(_gC.getGraphicElementImage(), 0, 0, null);
-			Rectangle r = _curve.getBounds();
-			// g.setClip(r);
 			if (click1 && click2) {
-				g.drawLine(x1, r.y, x1, r.y + r.height);
-				g.drawLine(x2, r.y, x2, r.y + r.height);
+				g.drawLine(0, 0, 100, 100);
 			} else if (click1) {
-				g.drawLine(x1, r.y, x1, r.y + r.height);
-				g.drawLine(x, r.y, x, r.y + r.height);
+				g.drawRect(Math.min(x1,x), Math.min(y1,y), Math.abs(x - x1), Math.abs(y - y1));
 			} else {
-				g.drawLine(x, r.y, x, r.y + r.height);
+				int size=8;
+				g.drawLine(x - size, y, x + size, y);
+				g.drawLine(x, y - size, x, y + size);
 			}
 			_gC.getGraphics().drawImage(_gCImage, 0, 0, null);
 		}
