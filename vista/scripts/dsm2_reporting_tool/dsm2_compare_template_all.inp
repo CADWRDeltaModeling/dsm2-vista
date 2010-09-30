@@ -1,0 +1,94 @@
+# A template file to compare two DSM2 outputs
+SCALAR
+NAME		VALUE
+FILE1		SC_ELT_SLR15_ROA25_out.dss #input file 1
+NAME1		SC_ELT_SLR15_ROA25
+FILE2		SC_LLT_SLR45_ROA65_out.dss # input file 2
+NAME2		SC_LLT_SLR45_ROA65
+OUTFILE		DSM2_compare.html
+NOTE		"The DSM2 output has been converted to daily values."
+ASSUMPTIONS "I am assuming this is defined"
+MODELER 	Nazrul
+END
+
+OUTPUT
+LOCATION				TYPE
+SNODGRASS           	INSTALL
+CLIFTON_COURT           FLOW
+DCC                     FLOW
+GEORGIANA_SL            FLOW
+RSAC054	                FLOW
+RSAC075	                FLOW
+RSAC081                 FLOW
+RSAC092                 FLOW
+RSAC101                 FLOW
+RSAC155                 FLOW
+RSAN007                 FLOW
+RSAN018                 FLOW
+RSAN032                 FLOW
+RSAN072                 FLOW
+RSAN112                 FLOW
+ROLD024                 FLOW
+ROLD034                 FLOW
+ROLD059                 FLOW
+ROLD074                 FLOW
+RMID015                 FLOW
+RMID027                 FLOW
+RMID040                 FLOW
+CLIFTON_COURT           STAGE
+DCC                     STAGE
+GEORGIANA_SL            STAGE
+RSAC054	                STAGE
+RSAC075	                STAGE
+RSAC081                 STAGE
+RSAC092                 STAGE
+RSAC101                 STAGE
+RSAC155                 STAGE
+RSAN007                 STAGE
+RSAN018                 STAGE
+RSAN032                 STAGE
+RSAN072                 STAGE
+RSAN112                 STAGE
+ROLD024                 STAGE
+ROLD034                 STAGE
+ROLD059                 STAGE
+ROLD074                 STAGE
+RMID015                 STAGE
+RMID027                 STAGE
+RMID040                 STAGE
+CLIFTON_COURT           EC
+DCC                     EC
+GEORGIANA_SL            EC
+RSAC054	                EC
+RSAC075	                EC
+RSAC081                 EC
+RSAC092                 EC
+RSAC101                 EC
+RSAC155                 EC
+RSAN007                 EC
+RSAN018                 EC
+RSAN032                 EC
+RSAN072                 EC
+RSAN112                 EC
+ROLD024                 EC
+ROLD034                 EC
+ROLD059                 EC
+ROLD074                 EC
+RMID015                 EC
+RMID027                 EC
+RMID040                 EC
+CVP_TRACY               EC
+ROLD034                 VEL
+ROLD059                 VEL
+SNODGRASS      	        ELEV
+SNODGRASS	            OP-TO-NODE
+SNODGRASS 	            OP-FROM-NODE
+SNODGRASS	            DEVICE-FLOW
+END
+
+TIME_PERIODS
+NAME			TIMEWINDOW
+"Long Term"		"01OCT1974 0100 - 30SEP1991 2400"
+"Dry Period 1"	"01OCT1974 0100 - 30SEP1980 2400"
+"Dry Period 2"	"01OCT1986 0100 - 30SEP1992 2400"
+END
