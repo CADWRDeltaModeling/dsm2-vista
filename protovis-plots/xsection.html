@@ -2,6 +2,7 @@
   <head>
     <title>Spline Editor</title>
     <script type="text/javascript" src="protovis-d3.3.js"></script>
+    <script type="text/javascript" src="plots.js"></script>
     <style type="text/css">
 
 #fig {
@@ -16,141 +17,18 @@
 
     </style>
   </head>
-  <body><div id="center"><div id="fig">
+  <body><div id="center"><div id="fig"></div>
     <script type="text/javascript">
-
-var w = 896,
-	w2 = 50,
-    h = 586,
-    h2 = 50,
-    i = 3,
-    interpolate = "linear";
-var data = {
-		xaxis_name: "Length(ft)",
-		yaxis_name: "Elevation(ft)"
-};
-var points = pv.range(1,100).map(function(i) { return (
-	{x: Math.random()*w-w/2, y: Math.random()*400, z:50+Math.random()*(h-100)}
-	);
-});
-var x = pv.Scale.linear(points,function(d){ return d.x; }).range(0,w);
-var y = pv.Scale.linear(points,function(d){ return d.z; }).range(0,h);
-var ds = pv.Scale.linear(0,100,200,300,400).range("darkblue","dodgerblue","cyan","aquamarine","azure");
-var xsection = [];
-var vis = new pv.Panel()
-    .width(w+w2)
-    .height(h+h2)
-    .fillStyle("#fff")
-    .strokeStyle("#ccc")
-    .lineWidth(4)
-    .antialias(false)
-    .margin(70)
-    .right(100)
-    .event("mousedown", function() {
-        var m = this.mouse();
-        return (i = xsection.push(m) - 1, this)}
-    );
-
-/* X-axis ticks. */
-vis.add(pv.Rule)
-    	.data(x.ticks())
-    	.left(x)
-    	.strokeStyle("#eee")
-	.add(pv.Rule)
-    	.bottom(-10+h2)
-    	.height(5)
-    	.strokeStyle("#000")
-    .anchor("bottom").add(pv.Label)
-    	.text(x.tickFormat);
-
-/* X-axis label */
-vis.add(pv.Label)
-	.left(w/2)
-	.bottom(-40)
-	.text(data.xaxis_name)
-	.font("18px sans-serif")
-	.textAlign("center");
-
-/* Y-axis ticks. */
-  vis.add(pv.Rule)
-    .data(y.ticks(8))
-    .bottom(y)
-    .strokeStyle("#ddd")
-  .anchor("left").add(pv.Label)
-	    .text(y.tickFormat);
- 
-/* Y-axis label */
-vis.add(pv.Label)
-	.top(h/2)
-	.left(-45)
-	.text(data.yaxis_name)
-	.font("18px sans-serif")
-	.textAngle(-Math.PI/2)
-	.textAlign("center");
-/* add color legend */
-vis.add(pv.Panel)
-	.add(pv.Label)
-	.text("Distance from X Section")
-	.textAngle(-Math.PI/2)
-	.right(30)
-	.top(150)
-	.add(pv.Bar)
-	.data(pv.range(0,400,5))
-	.right(5)
-	.top(function() { return this.index * 2 })
-	.height(2)
-	.width(20)
-	.fillStyle(function(d) {return ds(d)})
-/* data points */
-vis.add(pv.Dot)
-	.data(function() {return points})
-	.left(function(d) {return x(d.x)})
-	.top(function(d) {return y(d.z)})
-	.shapeRadius(function(d) {return 5})
-	.strokeStyle(function(d){return ds(d.y)})
-	.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);})
-
-vis.add(pv.Line)
-    .data(function() {return xsection})
-    .left(function(d) {return d.x})
-    .top(function(d) {return d.y})
-    .interpolate(function() {return interpolate})
-    .segmented(function() { return true})
-    .strokeStyle("blue")
-    .tension(0.5)
-    .lineWidth(2)
-    .cursor("crosshair")
-    .event("mousedown", function(){
-        var m=this.mouse();
-        var p = xsection.splice(this.index+1,0,m);
-    	vis.render();
-    	return this;
-    	})
-
-vis.add(pv.Dot)
-    .data(function() {return xsection})
-    .left(function(d) {return d.x})
-    .top(function(d) {return d.y})
-    .shapeRadius(7)
-    .cursor("move")
-    .strokeStyle(function() {return i == this.index ? "#ff7f0e" : "#1f77b4"})
-    .fillStyle(function() {return this.strokeStyle().alpha(.2)})
-    .event("mousedown", pv.Behavior.drag())
-    .event("dragstart", function() {return (i = this.index, this)})
-    .event("drag", vis);
-
-vis.render();
-
-pv.listen(window, "mousedown", function() {return self.focus()});
-pv.listen(window, "keydown", function(e) {
-  // code 8 is backspace, code 46 is delete
-  if ((e.keyCode == 8 || e.keyCode == 46) && (i >= 0)) {
-    xsection.splice(i--, 1);
-    vis.render();
-    e.preventDefault();
-  }
-});
-
+    var w=800;
+    var h=600;
+	var profile = [{x: -400, y: -4.5}, {x:-100, y: -8.0}, {x:-25, y: -9.7}, {x:155, y:-7.6}, {x: 300, y:-4.3}, {x: 355, y: -3.1}];
+	var points = pv.range(1,100).map(function(i) { return (
+		{x: Math.random()*800-400, y:-10+Math.random()*7, z: Math.random()*400}
+		);
+	});
+	var xsection = profile.map(function(d){ return Object.create(d);});
+    
+	plots.xsection_editor("fig",xsection, profile, points);    
     </script>
-  </div></div></body>
+  </div></body>
 </html>
