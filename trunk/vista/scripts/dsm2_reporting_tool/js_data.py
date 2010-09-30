@@ -3,21 +3,21 @@ def write_begin_data_array(file_handle):
     print >> file_handle, "data=["
 def write_end_data_array(file_handle):
     print >> file_handle, "]"
-def write_file(file_handle, data, dataIndex, title, series_name, yaxis, xaxis, plot_type, data_type):
+def write_file(file_handle, data, dataIndex, title, series_name, yaxis, xaxis, plot_type, data_type, per_opt):
     print >> file_handle, """ {
     "title": "%s",
     "plot_type": "%s",
     "data_type": "%s",
     "series_names": ["%s","%s"],
-    "yaxis_name": "%s",
-    "xaxis_name": "%s", """%(title, plot_type, data_type, series_name[0], series_name[1], yaxis, xaxis)
+    "yaxis_name": "%s %s",
+    "xaxis_name": "%s", """%(title, plot_type, data_type, series_name[0], series_name[1], per_opt, yaxis, xaxis)
     write_chart_data(file_handle,data)
     print >> file_handle, "}"
 def format_for_nan(value):
     if Float.isNaN(value):
         return "NaN"
     else:
-        return "%f"%value 
+        return "%0.2f"%value 
 def write_chart_data(file_handle,data):
     n=len(data)
     i=0
