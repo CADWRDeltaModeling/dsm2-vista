@@ -496,7 +496,7 @@ return vis;
  * points are an array of objects {x: <distance along the xsection>, y: <depth
  * of the point>, z: <distance perpendicular to the xsection>}
  */
-Plots.prototype.xsection_editor = function(div_id,xsection_points,profile,points){
+Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points){
 	
 	var w = 896,
 		w2 = 50,
@@ -508,8 +508,10 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile,points
 			xaxis_name: "Length(ft)",
 			yaxis_name: "Elevation(ft)"
 	};
-	var x = pv.Scale.linear(profile,function(d){ return d.x; }).range(w2,w-w2);
-	var y = pv.Scale.linear(profile,function(d){ return d.y; }).range(h-h2,h2);
+	var xvals = pv.map(profile_points,function(d){ return d.x;});
+	var yvals = pv.map(profile_points, function(d){return d.y;});
+	var x = pv.Scale.linear(pv.min(xvals), pv.max(xvals)).range(w2,w-w2);
+	var y = pv.Scale.linear(pv.min(yvals), pv.max(yvals)).range(h-h2,h2);
 	var xsection = xsection_points.map(function(d){return {x: x(d.x),y: y(d.y)}});
 	var ds = pv.Scale.linear(0,100,200,300,400).range("black","darkblue","dodgerblue","azure","lightgray");
 	var vis = new pv.Panel()
@@ -588,7 +590,7 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile,points
 		.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);});
 	/* add profile points */
 	vis.add(pv.Dot)
-		.data(function() {return profile})
+		.data(function() {return profile_points})
 		.left(function(d) {return x(d.x)})
 		.top(function(d) {return y(d.y)})
 		.shapeRadius(5)
