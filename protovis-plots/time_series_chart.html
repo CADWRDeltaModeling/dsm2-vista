@@ -8,13 +8,18 @@
 <body>
 <div id="fig1"></div>
 <div id="fig2"></div>
+<div id="fig3"></div>
 <script type="text/javascript">
     var sdate = new Date(1940,4,1)
     var edate = new Date(1970,3,1);
 	//sliced_values = data_A.values.slice(pv.search(data_A,sdate),pv.search(data_A.values,edate))
 	//data_A.values = sliced_values;
-	plots.time_series_plot("fig1",data_A,sdate,edate);
+	plots.time_series_plot("fig1",data_A,true,sdate,edate);
 	plots.time_series_plot("fig2",data_A);
+	var bars = [{start:new Date(1925,0,1),end:new Date(1955,0,1),color:"yellow"},
+	        	{start:new Date(1965,0,1), end:new Date(1977,11,1), color:"red"},
+				{start:new Date(1984,0,1), end:new Date(1995,1,1), color:"green"}];
+	plots.time_series_plot("fig3",data_A,false, null, null,bars);
 </script>
 
 </body>
