@@ -24,7 +24,14 @@ function Plots(){
 	this.PLOT_HEIGHT=480;
 	
 }
-Plots.prototype.time_series_plot = function (div_id, data, diff, sdate, edate){
+/**
+ * div_id is the id of the div to place the plot into
+ * data is the time series data structure
+ * diff is the flag to calculate and display difference
+ * sdate and edate are optional date parameters to display a slice of the data
+ * bars is a data structure to draw background bars
+ */
+Plots.prototype.time_series_plot = function (div_id, data, diff, sdate, edate, bars){
     if (sdate==null){
     	sdate = data.values[0].x;
     }
@@ -87,11 +94,13 @@ var vis = new pv.Panel()
     .right(70)
     .top(50);
 
-/*
- * Border around plot vis.add(pv.Area) .data([0,1]) .bottom(0) .height(h)
- * .left(function(d) {return d*w}) .fillStyle(null) .strokeStyle("#000")
- * .lineWidth(0.25);
- */
+if (bars){
+	vis.add(pv.Bar).data(bars)
+		.bottom(h2).height(h)
+		.left(function(d) {console.log(d.start, x(d.start));return x(d.start);})
+		.width(function(d) {console.log(d.end, x(d.end)-x(d.start));return x(d.end)-x(d.start);})
+		.fillStyle(function(d){return d.color}).strokeStyle(function(d){return d.color});
+}
 /* X-axis ticks. */
 vis.add(pv.Rule)
     	.data(x.ticks())
