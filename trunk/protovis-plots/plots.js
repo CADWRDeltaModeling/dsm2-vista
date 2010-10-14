@@ -95,10 +95,16 @@ var vis = new pv.Panel()
     .top(50);
 
 if (bars){
+	function truncate(val, range){
+		var min = range[0];
+		var max = range[range.length-1];
+		var rval = Math.max(min, Math.min(max,val));
+		return rval;
+	}
 	vis.add(pv.Bar).data(bars)
 		.bottom(h2).height(h)
-		.left(function(d) {console.log(d.start, x(d.start));return x(d.start);})
-		.width(function(d) {console.log(d.end, x(d.end)-x(d.start));return x(d.end)-x(d.start);})
+		.left(function(d) {return truncate(x(d.start), x.range());})
+		.width(function(d) {return truncate(x(d.end), x.range())-truncate(x(d.start), x.range());})
 		.fillStyle(function(d){return d.color}).strokeStyle(function(d){return d.color});
 }
 /* X-axis ticks. */
