@@ -27,7 +27,12 @@ table.summary  td.header {
 }
 table.summary td {
 border-collapse: collapse;border-width: 1px; border-style: solid;
-font-family:Courier New;
+font-family:Courier New;border-color: #26466D;
+}
+table.summary td.red {
+   color: #FF6600;
+   font-weight:bold;
+   border-color: #26466D;
 }
 table.sample {
 border-collapse: collapse;border-width: 1px; 
@@ -70,7 +75,7 @@ border-collapse: collapse;border-width: 1px; border-style: solid;
 font-family:Courier New;
 }
 table.sample tr.diff1{
-    background-color: #EBEBEB; 
+    background-color: #FFFACD; 
 }
 table.sample tr.diff0{
     background-color: #F7F7F7; 
@@ -78,6 +83,10 @@ table.sample tr.diff0{
 r {
     color: red;
 	background-color: yellow;
+}
+span{
+    font-size : 80%;
+    font-family:Courier New;
 }
 k{
   //color:  #000080; 

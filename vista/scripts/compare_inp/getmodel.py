@@ -113,19 +113,29 @@ class CompareBlocks:
             ind = 0
         nrows = self.get_max_row()
         ncols = self.get_num_col()
+        dtype = self.get_diff_type()
         diff=""
         all=""
         if ind == 0: # not identical block
             for i in range(nrows):
-                diff += """<tr class="diff%d">"""%(self.remember_diff%2)
+                if dtype==3:
+                    diff += '<tr class="diff1">'
+                else:
+                    diff += '<tr>'
                 for j in range(ncols):
                     try:  
-                        diff += "<td>"+self.block1[i][j].replace(self.modifier1,"${DSM2MODIFIER}")+"</td>"
+                        if dtype==1:
+                            diff += '<td class="add1">'+self.block1[i][j].replace(self.modifier1,"${DSM2MODIFIER}")+"</td>"
+                        else:
+                            diff += '<td>'+self.block1[i][j].replace(self.modifier1,"${DSM2MODIFIER}")+"</td>"
                     except:
                         diff += "<td></td>"
                 for j in range(ncols):
                     try:
-                        diff += "<td>"+self.block2[i][j].replace(self.modifier2,"${DSM2MODIFIER}")+"</td>"
+                        if dtype==2:
+                            diff += '<td class="add2">'+self.block2[i][j].replace(self.modifier2,"${DSM2MODIFIER}")+"</td>"
+                        else:
+                            diff += '<td>'+self.block2[i][j].replace(self.modifier2,"${DSM2MODIFIER}")+"</td>" 
                     except:
                         diff += "<td></td>"
                 diff += "</tr>"
@@ -151,6 +161,15 @@ class CompareBlocks:
             
     def get_max_row(self):
         return max(len(self.block1),len(self.block2))
+    
+    def get_diff_type(self):
+        if len(self.block1)==0:
+            a=1
+        elif len(self.block2)==0:
+            a=2
+        else:
+            a=3
+        return a
             
     def get_num_col(self):
         try:
