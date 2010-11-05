@@ -19,7 +19,10 @@ def open_dss(dssfile):
     if group == None:
         print "No dss file named: %s found!" % (dssfile)
     return group
-#
+
+def column(matrix, i):
+    return [row[i] for row in matrix]
+
 def get_ref(group, path, calculate_dts=0):
     if calculate_dts==1:
         return None # TBD:
@@ -28,24 +31,13 @@ def get_ref(group, path, calculate_dts=0):
         print "No data found for %s and %s" % (group, path)
     else:
         return refs[0]
-def get_units_of_ref(ref):
-    if ref != None:
-        d=ref.data
-        return d.attributes.YUnits
-    return ""
-def get_units(ref1, ref2):
-    if ref1==None:
-        if ref2==None:
-            return ""
-        else:
-            return get_units_of_ref(ref2)
-    else:
-        return get_units_of_ref(ref1)
+
 def get_type_of_ref(ref):
     if ref != None:
         p=ref.pathname
         return p.getPart(p.C_PART)
     return ""
+
 def get_type(ref1,ref2):
     if ref1==None:
         if ref2==None:
@@ -54,10 +46,27 @@ def get_type(ref1,ref2):
             return get_type_of_ref(ref2)
     else:
         return get_type_of_ref(ref1)
+
+def get_units_of_ref(ref):
+    if ref != None:
+        d=ref.data
+        return d.attributes.YUnits
+    return ""
+
+def get_units(ref1, ref2):
+    if ref1==None:
+        if ref2==None:
+            return ""
+        else:
+            return get_units_of_ref(ref2)
+    else:
+        return get_units_of_ref(ref1)
+    
 def get_name_of_ref(ref):
     if ref != None:
         p=ref.pathname
         return p.getPart(p.B_PART)
+
 def get_name(ref1,ref2):
     if ref1==None:
         if ref2==None:
@@ -66,14 +75,7 @@ def get_name(ref1,ref2):
             return get_name_of_ref(ref2)
     else:
         return get_name_of_ref(ref1)
-def column(matrix, i):
-    return [row[i] for row in matrix]    
-def get_cpart_list(group):
-    a = []
-    for ref in group:
-        p = ref.pathname
-        a.append(p.getPart(p.C_PART))
-    return list(set(a))
+    
 def get_bpart_list(group,cpart):
     a = []
     g = vdss.findparts(group,c=cpart)
@@ -81,6 +83,19 @@ def get_bpart_list(group,cpart):
         p = ref.pathname
         a.append(p.getPart(p.B_PART))
     return list(set(a))
+
+def get_cpart_list(group):
+    a = []
+    for ref in group:
+        p = ref.pathname
+        c_part_name=p.getPart(p.C_PART).encode('ascii')
+        if c_part_name not in a:
+            if c_part_name=='FLOW' or c_part_name=='EC' or c_part_name=='STAGE':
+                a.insert(0,c_part_name)
+            else:
+                a.append(c_part_name)
+    return a
+
 def is_match(b_arr,c_arr,search_b,search_c):
     for i in range(len(b_arr)):
         if b_arr[i]==search_b and c_arr[i]==search_c:
@@ -186,6 +201,45 @@ def build_exceedance_array(ref1, ref2):
         i=i+1
     return darray
 
+def cfs2taf(data):
+    from vista.report import TSMath
+    data_taf = TSMath.createCopy(data)
+    TSMath.cfs2taf(data_taf)
+    return data_taf
+def sum(data, tw):
+    try:
+        return vtimeseries.total(data.createSlice(tw))
+    except:
+        return float('nan')
+def format_timewindow(tw):
+    from vista.time import SubTimeFormat
+    year_format = SubTimeFormat('yyyy')
+    return tw.startTime.format(year_format) + "-" + tw.endTime.format(year_format)
+def format_time_as_year_month_day(t):  # t in the format of ddMMMyyyy hhmm
+    d=str(t)
+    return "%d,%d,%d"%(int(d[5:9]),int(get_month(d[2:5])),int(d[0:2]))
+
+def timewindow_option_value(tw):
+    return format_time_as_year_month_day(tw.startTime)+"-"+format_time_as_year_month_day(tw.endTime)
+
+def get_wyt_array(lines,start_yr,end_yr):
+    wyt = {}
+    wyt['W']=[]
+    wyt['AN']=[]
+    wyt['BN']=[]
+    wyt['D']=[]
+    wyt['C']=[]
+    for line in lines:
+        a=line.split(",")
+        if a[0][22:26]>start_yr and a[0][5:9]<end_yr:
+            wy = a[1].replace("\n","")
+            wyt[wy].append(a[0])
+    return wyt
+        
+def get_month(value):
+    valueDic= {"JAN":"01", "FEB":"02", "MAR":"03", "APR":"04", "MAY":"05", "JUN":"06", "JUL":"07", "AUG":"08", "SEP":"09", "OCT":"10", "NOV":"11", "DEC":"12"}
+    return valueDic[value]
+
 def parse_template_file(template_file):
     from gov.ca.dsm2.input.parser import Parser
     p = Parser()                                 
@@ -236,14 +290,30 @@ def do_processing(scalars, output_values, tw_values):
     fs_dmax = {}
     fs_dmin = {}
     fs_mavg = {}
+    #write the water type JavaScript file
+    wyt_f = open(output_dir+"js/wateryr.txt","r")
+    wyt_js = open(output_dir+"js/wateryr.js","w")
+    wyt_lines = wyt_f.readlines()
+    wyt_arr = get_wyt_array(wyt_lines,tw_values[0][1][6:10],tw_values[0][1][23:27])
+    js_data_list.write_begin_wyt_array(wyt_js)
+    js_data_list.write_wyt_file(wyt_js,wyt_lines)
+    js_data_list.write_end_wyt_array(wyt_js)
+    wyt_f.close()
+    wyt_js.close()
+    
     tbl_latlng = lines2table(output_dir+"js/latlng.txt")
     fl = open(output_dir+"data/data_list.js",'w')
     for i in type_arr:
         data_output[i] = output_dir+"data/"+output_file.split(".")[0]+"_"+i+".js"
-        spec_output_davg[i] = output_dir+"data/"+output_file.split(".")[0]+"_spec_davg_"+i+".js"
-        spec_output_dmax[i] = output_dir+"data/"+output_file.split(".")[0]+"_spec_dmax_"+i+".js"
-        spec_output_dmin[i] = output_dir+"data/"+output_file.split(".")[0]+"_spec_dmin_"+i+".js"
-        spec_output_mavg[i] = output_dir+"data/"+output_file.split(".")[0]+"_spec_mavg_"+i+".js"
+        spec_output_davg[i] = output_dir+"data/DSS_compare_spec_davg_"+i+".js"
+        spec_output_dmax[i] = output_dir+"data/DSS_compare_spec_dmax_"+i+".js"
+        spec_output_dmin[i] = output_dir+"data/DSS_compare_spec_dmin_"+i+".js"
+        spec_output_mavg[i] = output_dir+"data/DSS_compare_spec_mavg_"+i+".js"
+        try:
+            initial_js
+        except:
+            initial_js = spec_output_davg[i]
+            initial_pretab = i
         fm[i] = open(data_output[i],'w')
         fs_davg[i] = open(spec_output_davg[i],'w')
         fs_dmax[i] = open(spec_output_dmax[i],'w')
@@ -280,9 +350,15 @@ def do_processing(scalars, output_values, tw_values):
             rmse_val = vdiff.rmse(ref1_tw, ref2_tw)
             perc_rmse_val = vdiff.perc_rmse(ref1_tw,ref2_tw)
             if rmse_val!=0:
-                diff_arr.append([rmse_val, perc_rmse_val])
+                diff_arr.append([perc_rmse_val,rmse_val ])
             else:
-                diff_arr.append([rmse_val, float('nan')])
+                diff_arr.append([float('nan'),rmse_val ])
+        
+        # calculate RMS Diff based on water year types
+        wy_types = ['W','AN','BN','D','C']
+        for w in wy_types:
+            diff_arr.append([vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],1)])
+
         ref1_godin = vtimeseries.godin(ref1)
         ref1_daily = vtimeseries.per_avg(ref1_godin,'1day')
         ref1_dmax = vtimeseries.per_max(ref1,'1day')
@@ -345,6 +421,7 @@ def do_processing(scalars, output_values, tw_values):
 <head>
 <title>DSM2 Report: %s vs %s</title>
 <script type="text/javascript" src="%s"></script>
+<script type="text/javascript" src="js/wateryr.js"></script>
 <script type="text/javascript" src="data/data_list.js"></script>
 <script type="text/javascript" src="js/protovis-d3.3.js"></script>
 <script type="text/javascript" src="js/plots.js"></script>
@@ -360,11 +437,11 @@ def do_processing(scalars, output_values, tw_values):
 <script src="http://maps.google.com/maps?file=js" type="text/javascript"></script>
 <script type="text/javascript">
 document.write('<style type="text/css">.tabber{display:none;}<\/style>');
-var pre_tab="FLOW";
+var pre_tab="%s";
 var pre_period="davg";
 </script>
 </head><body onunload="GUnload()">
-"""%(scalars['NAME1'],scalars['NAME2'],spec_output_davg['FLOW'])
+"""%(scalars['NAME1'],scalars['NAME2'],initial_js,initial_pretab)
     tws = write_summary_table(fh,dss_group1, dss_group2, scalars, tw_values)
     part_c = get_cpart_list(dss_group1)
     dt_arr = "dt_arr=["
@@ -379,35 +456,10 @@ var pre_period="davg";
     print >> fh, '<script type="text/javascript">'+dt_arr+"];"  
     print >> fh, peri_name+"];"
     print >> fh, peri_range+"]; </script>" 
-    write_js_block(fh)
+    write_js_block(fh,scalars)
     fh.close()
     fireup(output_dir+scalars['OUTFILE'])
     logging.debug('Closed out data file')
-def cfs2taf(data):
-    from vista.report import TSMath
-    data_taf = TSMath.createCopy(data)
-    TSMath.cfs2taf(data_taf)
-    return data_taf
-def sum(data, tw):
-    try:
-        return vtimeseries.total(data.createSlice(tw))
-    except:
-        return float('nan')
-def format_timewindow(tw):
-    from vista.time import SubTimeFormat
-    year_format = SubTimeFormat('yyyy')
-    return tw.startTime.format(year_format) + "-" + tw.endTime.format(year_format)
-def format_time_as_year_month_day(t):  # t in the format of ddMMMyyyy hhmm
-    d=str(t)
-    return "%d,%d,%d"%(int(d[5:9]),int(get_month(d[2:5])),int(d[0:2]))
-
-def get_month(value):
-    valueDic= {"JAN":"01", "FEB":"02", "MAR":"03", "APR":"04", "MAY":"05", "JUN":"06", "JUL":"07", "AUG":"08", "SEP":"09", "OCT":"10", "NOV":"11", "DEC":"12"}
-    return valueDic[value]
-    
-def timewindow_option_value(tw):
-    return format_time_as_year_month_day(tw.startTime)+"-"+format_time_as_year_month_day(tw.endTime)
-#
 def write_summary_table(fh, dss_group1,dss_group2,scalars,tw_values):
     import vtimeseries
     print >> fh, "<h1><center>DSM2 Output Comparison Report<br> %s <n>vs</n> %s</center></h1>"%(scalars['NAME1'], scalars['NAME2'])
@@ -444,17 +496,26 @@ Customize the Time Window:
   <input type=button id="calendar" value="Re-draw">
 </div>
 <div>
-    Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/>
+"""
+    print >> fh, 'Show differences on plot:<input type="checkbox" name="diff_plot" value="1"/> &emsp; (Difference = %s - %s)'%(scalars['NAME2'],scalars['NAME1'])
+    print >> fh, """    
+</div>
+<div>
+    Show water year types on plot: <input type="checkbox" name="wyt" value="1"/> &emsp;(<span style="font-size:100%"><span style="background-color:#D9F7CC"> &emsp;&emsp; Wet &emsp;&emsp;</span><span style="background-color:#EBF7E6"> &emsp; Above Normal &emsp;</span><span style="background-color:#F7F8F7">&emsp; Below Normal &emsp;</span><span style="background-color:#FBEEF3"> &emsp;&emsp; Dry &emsp;&emsp; </span><span style="background-color:#FFDFEC"> &emsp; Critical &emsp; </span></span>)
 </div>
 <div> 
-    Threshold value to highlight differences
+    Threshold value to highlight percentage differences
     <input type="text" id="threshold" value="50"/> 
 </div>
-<div id="warning" style="color:red;font-weight:bold"></div> 
+<div id="warning" style="color:red;font-weight:bold"></div>
+<div>
+Table Statistics: <select name="stat" id="stat" onChange="">
+<option value=0>Percentage RMS Diff</option><option value=1>RMS Diff</option>
+</select>
+</div>
 <input type="hidden" name="ta" id="ta" value=""> 
 </form> 
-</div> 
-    """
+</div>"""
     time_windows = map(lambda val: val[1].replace('"',''), tw_values)
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     print >> fh, '<div class="tabber">'
@@ -466,7 +527,6 @@ Customize the Time Window:
     print >> fh, '</div>'
     return tws 
         
-#
 def show_gui():
     """
     Shows a GUI to select dss files to compare and select an input file
@@ -493,14 +553,13 @@ def write_plot_data(fh, data, dataIndex,  title, series_name, yaxis, xaxis, plot
     js_data.write_file(fh, data, dataIndex, title, series_name, yaxis, xaxis, plot_type, data_type,per_opt);
 def write_list_data(fh, name, data_type, checked, diff,latlng):
     js_data_list.write_file(fh, name, data_type, checked, diff,latlng);
-#
 
-def write_js_block(fh):
+def write_js_block(fh,scalars):
     print >> fh, """<script type="text/javascript">
     function reload_js(){
         tab_name = document.getElementById('ta').value; 
         per_name = document.getElementById('data-conversion').value;
-        replacejscssfile("data/DSM2_compare_spec_"+pre_period+"_"+pre_tab+".js", "data/DSM2_compare_spec_"+per_name+"_"+tab_name+".js", "js");
+        replacejscssfile("data/DSS_compare_spec_"+pre_period+"_"+pre_tab+".js", "data/DSS_compare_spec_"+per_name+"_"+tab_name+".js", "js");
         if (document.getElementById('ta').value=='STAGE' && document.getElementById('data-conversion').value=='davg')
            {document.getElementById('warning').innerHTML='Daily Average Stage is meaningless! Please select daily max/min for plotting.';}
         else {document.getElementById('warning').innerHTML=''; }
@@ -510,8 +569,9 @@ def write_js_block(fh):
     function clear_and_draw(sdate, edate){
         $('.plot').empty();
         tab_name = document.getElementById('ta').value; 
-        n=data.length
+        n=data.length; 
         plot_diff = $('input[name=diff_plot]').is(':checked') ? 1 : 0 ;
+        plot_wyt = $('input[name=wyt]').is(':checked') ? 1 : 0 ;
         for(i=0; i < n; i++){
           if (data[i].data_type==tab_name){
             var div_id = "fig"+"_"+data[i].data_type+"_"+data[i].title;
@@ -519,8 +579,12 @@ def write_js_block(fh):
             if ($("#"+div_id).length==0){
                 $("#"+data[i].data_type).append('<a href="#'+div_id+'"><div class="plot" id="'+div_id+'"></div></a>');
             }
-            if (data[i].plot_type=="timeseries"){
-                plots.time_series_plot(div_id,data[i],plot_diff,sdate,edate);
+            if (data[i].plot_type=="timeseries"){ 
+               if (plot_wyt==1){ 
+                 plots.time_series_plot(div_id,data[i],plot_diff,sdate,edate,wyt);
+               }else {
+                 plots.time_series_plot(div_id,data[i],plot_diff,sdate,edate);
+               }
             }else if (data[i].plot_type=="exceedance"){
                 plots.exceedance_plot(div_id,data[i],null,sdate,edate);
             }
@@ -536,47 +600,79 @@ def write_js_block(fh):
        $("#img").attr("src","js/open.JPG");
      }
     }
+    
     function location_list(){
+       var tbl_sel=new Array();
+       var tbl_unsel=new Array();
        ns=data_list.length;
        tab_name = document.getElementById('ta').value;
        $("#"+tab_name+"_p").empty();
        i = dt_arr.indexOf(tab_name);
        sd=extract_date(to_date_comma($("#SDate").val()));
        ed=extract_date(to_date_comma($("#EDate").val()));
-       tbl_sel='<a href="#" onClick="clear_and_draw(extract_date(to_date_comma($(\\'#SDate\\').val())),extract_date(to_date_comma($(\\'#EDate\\').val())));" onMouseover="this.style.background=\\'#C8F526\\'" onMouseout="this.style.background=\\'\\'"><img src="js/chart.JPG" width="20px" height="19px"> Show the time series plots</a>';       
-       tbl_sel+='<table class="alt-highlight" id="tbl_sel'+i+'"><tr><th colspan=7>DSM2 Output Comparison - RMSE Statistics (<a href="#" onClick="initialize(this)"> View Map </a>)<br>This is calculated from the original time series in dss file based on its output time interval.'
-       tbl_sel+='<br><center><div id="map_canvas'+tab_name+'" style="width: 500px; height: 450px;display:none"></div></center></th></tr>'; k1=0;
-       tbl_sel+='<tr><td></td>';
-       for(k=0;k<(data_list[0].diff).length;k++) tbl_sel+='<td colspan=2 class="timewindow">'+period_name[k]+'</td>';
-       tbl_sel+='</tr>';
-       tbl_sel+='<tr><td></td>';
-       for(k=0;k<(data_list[0].diff).length;k++) tbl_sel+='<td colspan=2 class="timewindow">'+period_range[k]+'</td>';
-       tbl_sel+='</tr><tr><td></td>';
-       for(k=0;k<(data_list[0].diff).length;k++) tbl_sel+='<td class="timewindow" width=80>RMSE</td><td class="timewindow" width=80>Percentage RMSE</td>';
-       tbl_sel+='</tr>';
-       tbl_unsel='<div id="all'+i+'" style="display:none"><table class="alt-highlight" id="tbl_unsel'+i+'"><tr><td colspan=7></td></tr>';k2=0;
-       for(j=0;j<ns;j++){
-        if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='1'){ k1++;
-          tbl_sel+='<tr class="d'+k1%2+'"><td width="20%"><input type=checkbox checked><a href="#fig_'+ data_list[j].data_type+'_'+data_list[j].name+'">'+data_list[j].name+'</a></td>'
-          for(k=0;k<(data_list[j].diff).length;k++){
-             tbl_sel+='<td>'+data_list[j].diff[k].rmse+'</td><td>'+data_list[j].diff[k].perc_rmse+'%</td>';
+       // write the header
+       tbl_head='<a href="#" onClick="clear_and_draw(extract_date(to_date_comma($(\\'#SDate\\').val())),extract_date(to_date_comma($(\\'#EDate\\').val())));" onMouseover="this.style.background=\\'#C8F526\\'" onMouseout="this.style.background=\\'\\'"><img src="js/chart.JPG" width="20px" height="19px"> Show the time series plots</a>';       
+       tbl_head+='<table class="alt-highlight" id="tbl_sel'+i+'" style="border-bottom-style: hidden;"><tr><th colspan=9>DSM2 Output Comparison - RMSE Statistics (<a href="#" onClick="initialize(this)"> View Map </a>)<br>This is calculated from the original time series in dss file based on its output time interval.'
+"""
+    print >> fh, """
+       tbl_head+='<br><img src="js/up.png" align=middle> : %s is higher than %s; <img src="js/down.png" align=middle> : %s is lower than %s';
+"""%(scalars['NAME2'],scalars['NAME1'],scalars['NAME2'],scalars['NAME1'])
+    print >> fh,"""    
+       wyt_txt=["Wet","Above Normal","Below Normal","Dry","Critical"]; 
+       legend='<img src="js/icon16.png" width="33%">: > 100% <br><img src="js/icon16.png" width="27%">: 80% - 100% <br><img src="js/icon16.png" width="23%">: 60% - 80% <br><img src="js/icon16.png" width="19%">: 40% - 60% <br><img src="js/icon16.png" width="16%">: 20% - 40% <br><img src="js/icon16.png" width="11%">: 10% - 20% <br><img src="js/icon16.png" width="7%">: 0% - 10% <br>';
+       legend+='<img src="js/icon49.png" width="7%">: 0% - -10% <br><img src="js/icon49.png" width="11%">: -10% - -20% <br> <img src="js/icon49.png" width="16%">: -20% - -40% <br> <img src="js/icon49.png" width="19%">: -40% - -60% <br><img src="js/icon49.png" width="23%">: -60% - -80% <br><img src="js/icon49.png" width="27%">: -80% - -100% <br><img src="js/icon49.png" width="33%">: < -100% <br>';
+       tbl_head+='<br><center><table class="list"><tr><td><div id="map_canvas'+tab_name+'" style="width: 500px; height: 450px;display:none"></div></td><td valign=top><div id="map_'+tab_name+'" style="display:none">'+legend+'</div></td></tr></table></center></th></tr></table>'; k1=0;
+       $("#"+dt_arr[i]+"_p").append(tbl_head);
+       // write the table
+       num_stat=get_obj_size(data_list[0].diff[0]);
+       for(z=0;z<num_stat;z++){
+         if(z==0) tbl_sel[z]='<div id="block_'+i+'_'+z+'" style="display:\\'\\'">';
+         else tbl_sel[z]='<div id="block_'+i+'_'+z+'" style="display:none">';
+         tbl_sel[z]+='<table class="alt-highlight" id="tbl_sel'+i+z+'" style="border-top-style: hidden;"><tr><td></td>';
+         if(z==0) tbl_sel[z]+='<td colspan=8 class="timewindow">Percentage Root Mean Square Difference</td></tr>';
+         if(z==1) tbl_sel[z]+='<td colspan=8 class="timewindow">Root Mean Square Difference</td></tr>';
+         tbl_sel[z]+='<tr><td></td>';
+         for(k=0;k<period_name.length;k++) tbl_sel[z]+='<td class="timewindow">'+period_name[k]+'</td>';
+         tbl_sel[z]+='<td class="timewindow" colspan=5>Water Year Type</td></tr><tr><td></td>';
+         for(k=0;k<period_name.length;k++) tbl_sel[z]+='<td class="timewindow">'+period_range[k]+'</td>';
+         for(k=0;k<5;k++) tbl_sel[z]+='<td class="timewindow" width=80>'+wyt_txt[k]+'</td>';
+         tbl_sel[z]+='</tr>';
+         tbl_unsel[z]='<div id="all_perc'+i+z+'" style="display:none"><table class="alt-highlight" id="tbl_unsel'+i+z+'"><tr><td colspan=7></td></tr>';k2=0;
+         for(j=0;j<ns;j++){
+          if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='1'){ k1++;
+            tbl_sel[z]+='<tr class="d'+k1%2+'"><td width=120><a href="#fig_'+ data_list[j].data_type+'_'+data_list[j].name+'">'+data_list[j].name+'</a></td>'
+            for(k=0;k<(data_list[j].diff).length;k++){           
+               if(z==0) va=data_list[j].diff[k].perc_rmse;               
+               if(z==1) va=data_list[j].diff[k].rmse;
+               tbl_sel[z]+='</td><td>'+Math.abs(va);
+               if(z==0) tbl_sel[z]+='%';
+               if (va<0) tbl_sel[z]+='<img src="js/down.png"></td>';
+               if (va>0) tbl_sel[z]+='<img src="js/up.png"></td>';
+               if (va==0) tbl_sel[z]+='</td>';
+            }
+            tbl_sel[z]+='</tr>';
           }
-          tbl_sel+='</tr>';
-        }
-        if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='0'){ k2++;
-          tbl_unsel+='<tr class="d'+k2%2+'"><td width="20%"><input type=checkbox>'+data_list[j].name+'</td>'
-          for(k=0;k<(data_list[j].diff).length;k++){
-             tbl_unsel+='<td width=80>'+data_list[j].diff[k].rmse+'</td><td width=80>'+data_list[j].diff[k].perc_rmse+'%</td>';
+          if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='0'){ k2++;
+            tbl_unsel[z]+='<tr class="d'+k2%2+'"><td width=120>'+data_list[j].name+'</td>';
+            for(k=0;k<(data_list[j].diff).length;k++){
+               if(z==0) va=data_list[j].diff[k].perc_rmse;               
+               if(z==1) va=data_list[j].diff[k].rmse;               
+               tbl_unsel[z]+='</td><td width=80>'+Math.abs(va);
+               if(z==0) tbl_unsel[z]+='%';
+               if (va<0) tbl_unsel[z]+='<img src="js/down.png"></td>';
+               if (va>0) tbl_unsel[z]+='<img src="js/up.png"></td>';
+               if (va==0) tbl_unsel[z]+='</td>';
+            }
+            tbl_unsel[z]+='</tr>';             
           }
-          tbl_unsel+='</tr>';             
-        }
+         }
+         tbl_sel[z]+='</table>';      
+         tbl_sel[z]+='<img id="img" src="js/open.JPG" onClick=hideDiv("all_perc'+i+z+'")> Open all stations<br>';
+         tbl_unsel[z]+='</table></div></div>';           
+         $("#"+dt_arr[i]+"_p").append(tbl_sel[z]);
+         $("#"+dt_arr[i]+"_p").append(tbl_unsel[z]);         
        }
-       tbl_sel+='</table>';      
-       tbl_sel+='<img id="img" src="js/open.JPG" onClick=hideDiv("all'+i+'")> Open all stations<br>';
-       tbl_unsel+='</table></div>';           
-       $("#"+dt_arr[i]+"_p").append(tbl_sel);
-       $("#"+dt_arr[i]+"_p").append(tbl_unsel);
-    };
+    };    
     $('#system-water-balance-table tr').click(function(){
         var_name = $($(this).find('td')[0]).text();
         var svg_element = $('div').filter(function(){ return $(this).text().indexOf(var_name)>=0;})
@@ -601,8 +697,20 @@ def write_js_block(fh):
         edate = extract_date(to_date_comma($("#EDate").val()));
         clear_and_draw(sdate,edate);
     });
+    $('input[name=wyt]').change(function(){
+        clear_and_draw(extract_date(to_date_comma($('#SDate').val())),extract_date(to_date_comma($('#EDate').val())));        
+    });
     $('#calendar').click(function(){
         clear_and_draw(extract_date(to_date_comma($('#SDate').val())),extract_date(to_date_comma($('#EDate').val())));
+    });
+    $('#stat').change(function(){
+      a=$('#stat').val();
+      tab_name = document.getElementById('ta').value;
+      i = dt_arr.indexOf(tab_name);
+      for(z=0;z<get_obj_size(data_list[0].diff[0]);z++){   
+        if(z==a) $("#block_"+i+"_"+z).show();
+        else $("#block_"+i+"_"+z).hide();
+      }
     });
     function set_diff_threshold(threshold){
         $('td').each(function(){ 
@@ -618,7 +726,7 @@ def write_js_block(fh):
     set_diff_threshold($('#threshold').val());
 </script> 
 </body> 
-</html>"""    
+</html>"""
 
 def fireup(html):
     if os.path.exists("C:/Program Files/Google/Chrome/Application/chrome.exe"):

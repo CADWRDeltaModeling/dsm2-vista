@@ -44,12 +44,24 @@
 	 else
 	   document.getElementById('warning').innerHTML='';
     }
+	function change_period(){ 
+	   reload_js();
+       setTimeout("clear_and_draw(extract_date(to_date_comma($('#SDate').val())),extract_date(to_date_comma($('#EDate').val())))",1000);
+    }
+    function get_obj_size(obj){
+       var size = 0, key;
+       for (key in obj) {
+         if (obj.hasOwnProperty(key)) size++;
+       }
+       return size;
+	}
 	
 	/* for Google Map */
     function initialize(e) {
       tab_name = document.getElementById('ta').value; 
       e.innerHTML=document.getElementById("map_canvas"+tab_name).style.display==''?'View Map':'Hide Map';
       document.getElementById("map_canvas"+tab_name).style.display=document.getElementById("map_canvas"+tab_name).style.display==''?'none':'';
+	  document.getElementById("map_"+tab_name).style.display=document.getElementById("map_"+tab_name).style.display==''?'none':'';
       var map = new GMap2(document.getElementById("map_canvas"+tab_name));
       map.setCenter(new GLatLng(38.17, -121.6), 9);
       map.setUIToDefault();
@@ -59,22 +71,24 @@
       var lngSpan = northEast.lng() - southWest.lng();
       var latSpan = northEast.lat() - southWest.lat();
       var baseIcon = new GIcon(G_DEFAULT_ICON);
-      baseIcon.shadow = "http://www.google.com/mapfiles/shadow50.png";
+	  baseIcon.shadow = "http://www.google.com/mapfiles/shadow50.png";
 	  
      function createMarker(point, index, info) {
       //var letter = String.fromCharCode("A".charCodeAt(0) + index);
-       if(index<10) size=5;
-       else if(index<20) size=10;
-       else if(index<50) size=15;
-       else if(index<100) size=20;
-       else if(index<200) size=25;
-       else if(index<500) size=30;
-       else size=40;
+       if(Math.abs(index)>=100) size=35;
+       else if(Math.abs(index)>=80 && Math.abs(index)<100) size=30;
+       else if(Math.abs(index)>=60 && Math.abs(index)<80) size=25;
+       else if(Math.abs(index)>=40 && Math.abs(index)<60) size=20;
+       else if(Math.abs(index)>=20 && Math.abs(index)<40) size=15;
+	   else if(Math.abs(index)>=10 && Math.abs(index)<20) size=10;
+	   else if(Math.abs(index)>=0 && Math.abs(index)<10) size=5;
+       else size=0;
        baseIcon.iconSize = new GSize(size, size);
        baseIcon.shadowSize = new GSize(1,1);
        baseIcon.iconAnchor = new GPoint(1, 1);	  
        var letteredIcon = new GIcon(baseIcon);
-       letteredIcon.image = "js/icon16.png";
+       if (index>=0) letteredIcon.image = "js/icon16.png";
+	   else letteredIcon.image = "js/icon49.png";
        markerOptions = { icon:letteredIcon, title:info };
        var marker = new GMarker(point, markerOptions);
        GEvent.addListener(marker, "click", function() {
@@ -89,7 +103,4 @@
 	   }
       }
     }	
-	function change_period(){ 
-	   reload_js();
-       setTimeout("clear_and_draw(extract_date(to_date_comma($('#SDate').val())),extract_date(to_date_comma($('#EDate').val())))",1000);
-    }
+	
