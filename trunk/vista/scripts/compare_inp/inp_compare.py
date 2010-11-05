@@ -339,12 +339,38 @@ def write_summary_table(echo_file1,echo_file2,fh,d):
     for i in range(len(keys)):
         a = d.diff[keys[i]]
         if a[3] == 0:
-            print >> fh, """<tr><td><a href='#h%s'>%s</a></td><td><center>%d</center></td><td><center>%d</center></td>
-            <td><center>%d</center></td></tr>"""  %(i,keys[i],len(a[0]),len(a[1]),len(a[2][0]))
+            print >> fh, "<tr><td><a href='#h%s'>%s</a></td>"%(i,keys[i])
+            if len(a[0])>0:
+                print >> fh, '<td class="red"><center>%d</center></td>'%(len(a[0]))
+            else:
+                print >> fh, '<td><center>%d</center></td>'%(len(a[0]))
+            if len(a[1])>0:
+                print >> fh, '<td class="red"><center>%d</center></td>'%(len(a[1]))
+            else:
+                print >> fh, '<td><center>%d</center></td>'%(len(a[1]))
+            if len(a[2][0])>0:
+                print >> fh, '<td class="red"><center>%d</center></td></tr>'%(len(a[2][0]))
+            else:
+                print >> fh, '<td><center>%d</center></td></tr>'%(len(a[2][0]))
         else:
-            print >> fh, """<tr><td><a href='#h%s'>%s</a></td><td><center>%d</center></td><td><center>%d</center></td>
-            <td><center>%d</center></td></tr>"""  %(i,keys[i],a[0],a[1],a[2])            
+            print >> fh, """<tr><td><a href='#h%s'>%s</a></td>"""%(i,keys[i])
+            if a[0]>0:
+                print >> fh, '<td class="red"><center>%d</center></td>'%(a[0])
+            else:
+                print >> fh, '<td><center>%d</center></td>'%(a[0])
+            if a[1]>0:
+                print >> fh, '<td class="red"><center>%d</center></td>'%(a[1])
+            else:
+                print >> fh, '<td><center>%d</center></td>'%(a[1])
+            if a[2]>0:
+                print >> fh, '<td class="red"><center>%d</center></td></tr>'%(a[2])
+            else:
+                print >> fh, '<td><center>%d</center></td></tr>'%(a[2])       
     print >> fh, "</table><br>"
+    print >> fh, '<center><span>Color Styles: </span><span style="background-color:#F6CCDA"> &emsp;&emsp;Extra record in Study 1&emsp;</span>&emsp;'
+    print >> fh, '<span style="background-color:#DAF4F0"> &emsp;&emsp;Extra record in Study 2&emsp;</span>&emsp;'
+    print >> fh, '<span style="background-color:#FFFACD"> &emsp;&emsp;Modified block&emsp;</span>&emsp;'
+    print >> fh, '<span style="background-color:yellow;color:red">&emsp;Difference&emsp;</span></center><br>'
            
 def get_pathandname(fullname):
     a = fullname.split("\\")
