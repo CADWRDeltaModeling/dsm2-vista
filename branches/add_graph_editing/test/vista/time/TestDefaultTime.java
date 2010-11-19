@@ -1,5 +1,7 @@
 package vista.time;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -36,5 +38,20 @@ public class TestDefaultTime extends TestCase {
 		assertEquals(Calendar.FEBRUARY, calendar.get(Calendar.MONTH));
 		assertEquals(23,calendar.get(Calendar.HOUR_OF_DAY));
 		assertEquals(55, calendar.get(Calendar.MINUTE));
+	}
+	
+	public void testSetDate() throws ParseException{
+		TimeFactory tf = TimeFactory.getInstance();
+		String timeAsString = "01JAN2010 0100";
+		Time t1 = tf.createTime(timeAsString);
+		//
+		Date d1 = t1.getDate();
+		System.out.println("Time is "+t1);
+		t1.setDate(d1);
+		System.out.println("Time is "+t1);
+		Date d2 = new SimpleDateFormat("ddMMMyyyy HHmm").parse(timeAsString);
+		System.out.println("Date is "+d2);
+		t1.setDate(d2);
+		System.out.println("Time is "+t1);
 	}
 }

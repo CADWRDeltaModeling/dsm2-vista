@@ -15,5 +15,7 @@
 	<classpathentry kind="lib" path="lib/jhdfobj.jar"/>
 	<classpathentry kind="lib" path="lib/heclib.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-8.4-702.jdbc4.jar"/>
+	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
+	<classpathentry kind="lib" path="lib/dsm2-input-model.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

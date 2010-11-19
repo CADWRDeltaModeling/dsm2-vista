@@ -5,18 +5,18 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">jython 2.5</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">jython2.5.1</pydev_property>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
-<path>/vista_trunk/lib/Lib</path>
-<path>/vista_trunk/lib/dsm2-input-model.jar</path>
-<path>/vista_trunk/lib/heclib.jar</path>
-<path>/vista_trunk/lib/jakarta-oro-2.0.8.jar</path>
-<path>/vista_trunk/lib/jhall.jar</path>
-<path>/vista_trunk/lib/jhdf5.jar</path>
-<path>/vista_trunk/lib/jhdf5obj.jar</path>
-<path>/vista_trunk/lib/jhdfobj.jar</path>
-<path>/vista_trunk/lib/jnios.jar</path>
-<path>/vista_trunk/lib/jpy.jar</path>
-<path>/vista_trunk/lib/misc.jar</path>
-<path>/vista_trunk/lib/pd.jar</path>
-<path>/vista_trunk/bin</path>
+<path>/vista_graph_editing/lib/Lib</path>
+<path>/vista_graph_editing/lib/dsm2-input-model.jar</path>
+<path>/vista_graph_editing/lib/heclib.jar</path>
+<path>/vista_graph_editing/lib/jakarta-oro-2.0.8.jar</path>
+<path>/vista_graph_editing/lib/jhall.jar</path>
+<path>/vista_graph_editing/lib/jhdf5.jar</path>
+<path>/vista_graph_editing/lib/jhdf5obj.jar</path>
+<path>/vista_graph_editing/lib/jhdfobj.jar</path>
+<path>/vista_graph_editing/lib/jnios.jar</path>
+<path>/vista_graph_editing/lib/jpy.jar</path>
+<path>/vista_graph_editing/lib/misc.jar</path>
+<path>/vista_graph_editing/lib/pd.jar</path>
+<path>/vista_graph_editing/bin</path>
 </pydev_pathproperty>
 </pydev_project>
