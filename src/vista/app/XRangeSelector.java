@@ -65,6 +65,7 @@ import java.awt.event.MouseMotionListener;
 import vista.graph.CoordinateDisplayInteractor;
 import vista.graph.Curve;
 import vista.graph.GECanvas;
+import vista.graph.RangeSelected;
 import vista.graph.Scale;
 
 /**
@@ -73,7 +74,7 @@ import vista.graph.Scale;
  * @author Nicky Sandhu
  * @version $Id: RangeSelector.java,v 1.1 2003/10/02 20:48:39 redwood Exp $
  */
-public class XRangeSelector {
+public class XRangeSelector implements RangeSelected{
 	private Curve _curve;
 	private RangeListener rl;
 	private GECanvas _gC;
@@ -100,7 +101,7 @@ public class XRangeSelector {
 	/**
 	 * gets the minimum of range
 	 */
-	public double getRangeMin() {
+	public double getXRangeMin() {
 		Scale sc = _curve.getXAxis().getScale();
 		_rmin = sc.scaleToDC(rl.getRangeMin());
 		return _rmin;
@@ -109,10 +110,24 @@ public class XRangeSelector {
 	/**
 	 * gets maximum of range
 	 */
-	public double getRangeMax() {
+	public double getXRangeMax() {
 		Scale sc = _curve.getXAxis().getScale();
 		_rmax = sc.scaleToDC(rl.getRangeMax());
 		return _rmax;
+	}
+
+	/**
+	 * gets the minimum of range on y axis
+	 */
+	public double getYRangeMin(){
+		return _curve.getYAxis().getScale().getDataMinimum();
+	}
+
+	/**
+	 * gets the maximum of range on y axis
+	 */
+	public double getYRangeMax(){
+		return _curve.getYAxis().getScale().getDataMaximum();
 	}
 
 	/**

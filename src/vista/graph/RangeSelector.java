@@ -68,21 +68,19 @@ import java.awt.event.MouseMotionListener;
  * @author Nicky Sandhu
  * @version $Revision$
  */
-public class RangeSelector {
-	private Curve _curve;
+public class RangeSelector implements RangeSelected {
 	private RangeListener rl;
 	private GECanvas _gC;
-	private double _xmin, _xmax;
-	private double _ymin, _ymax;
 	private RangeActor _ra;
+	private Curve curve;
 
 	/**
 	 * selects a range on the x axis of the curve in the graph canvas.
 	 */
 	public RangeSelector(GECanvas gC, Curve curve, RangeActor ra) {
 		_gC = gC;
-		_curve = curve;
 		_ra = ra;
+		this.curve = curve;
 		selectRange();
 	}
 
@@ -95,46 +93,10 @@ public class RangeSelector {
 	}
 
 	/**
-	 * gets the minimum of range
-	 */
-	public double getRangeMin() {
-		Scale sc = _curve.getXAxis().getScale();
-		_xmin = sc.scaleToDC(rl.getXRangeMin());
-		return _xmin;
-	}
-
-	/**
-	 * gets maximum of range
-	 */
-	public double getRangeMax() {
-		Scale sc = _curve.getXAxis().getScale();
-		_xmax = sc.scaleToDC(rl.getXRangeMax());
-		return _xmax;
-	}
-
-	/**
-	 * gets the minimum of range along Y axis
-	 */
-	public double getYRangeMin() {
-		Scale sc = _curve.getYAxis().getScale();
-		_ymin = sc.scaleToDC(rl.getYRangeMin());
-		return _ymin;
-	}
-
-	/**
-	 * gets maximum of range along Y axis
-	 */
-	public double getYRangeMax() {
-		Scale sc = _curve.getYAxis().getScale();
-		_ymax = sc.scaleToDC(rl.getYRangeMax());
-		return _ymax;
-	}
-
-	/**
     *
     */
-	private void selectRange() {
-		_gC.addMouseListener(rl = new RangeListener(_gC, _curve));
+	public void selectRange() {
+		_gC.addMouseListener(rl = new RangeListener(_gC, curve));
 		_gC.addMouseMotionListener(rl);
 	}
 
@@ -144,22 +106,21 @@ public class RangeSelector {
 	private class RangeListener implements MouseListener, MouseMotionListener {
 		private boolean DEBUG = false;
 		private boolean click1 = false, click2 = false;
-		private Curve _curve;
 		private GECanvas _gC;
 		private int x1, x2;
 		private int y1, y2;
 		private Image _gCImage;
 		private CoordinateDisplayInteractor _cdi;
+		private Curve curve;
 
 		/**
    *
    */
 		public RangeListener(GECanvas gC, Curve curve) {
-			_curve = curve;
 			_gC = gC;
+			this.curve = curve;
 			_gC.addMouseMotionListener(_cdi = new CoordinateDisplayInteractor(
 					_gC));
-			_gC.setDoubleBuffered(true);
 			Rectangle r = _gC.getBounds();
 			_gCImage = _gC.createImage(r.width, r.height);
 		}
@@ -196,7 +157,7 @@ public class RangeSelector {
 		 * Invoked when the mouse has been clicked on a component.
 		 */
 		public void mouseClicked(MouseEvent e) {
-			Rectangle r = _curve.getBounds();
+			Rectangle r = curve.getBounds();
 			if (!click1) {
 				click1 = true;
 				x1 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
@@ -209,6 +170,7 @@ public class RangeSelector {
 				_gC.addMouseListener(this);
 				_gC.removeMouseMotionListener(_cdi);
 				_cdi.doneDisplaying();
+				_gC.redoNextPaint();
 				RangeSelector.this.doneSelecting();
 			}
 		}
@@ -234,9 +196,10 @@ public class RangeSelector {
 			if (click1 && click2) {
 				g.drawLine(0, 0, 100, 100);
 			} else if (click1) {
-				g.drawRect(Math.min(x1,x), Math.min(y1,y), Math.abs(x - x1), Math.abs(y - y1));
+				g.drawRect(Math.min(x1, x), Math.min(y1, y), Math.abs(x - x1),
+						Math.abs(y - y1));
 			} else {
-				int size=8;
+				int size = 8;
 				g.drawLine(x - size, y, x + size, y);
 				g.drawLine(x, y - size, x, y + size);
 			}
@@ -273,4 +236,28 @@ public class RangeSelector {
 						+ e.getY() + " )");
 		}
 	} // end of Range Listener
+
+	@Override
+	public double getXRangeMin() {
+		Scale sc = curve.getXAxis().getScale();
+		return sc.scaleToDC(rl.getXRangeMin());
+	}
+	
+	@Override
+	public double getXRangeMax() {
+		Scale sc = curve.getXAxis().getScale();
+		return sc.scaleToDC(rl.getXRangeMax());
+	}
+
+	@Override
+	public double getYRangeMax() {
+		Scale sc = curve.getYAxis().getScale();
+		return sc.scaleToDC(rl.getYRangeMin());
+	}
+
+	@Override
+	public double getYRangeMin() {
+		Scale sc = curve.getYAxis().getScale();
+		return sc.scaleToDC(rl.getYRangeMax());
+	}
 }

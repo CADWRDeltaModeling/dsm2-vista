@@ -648,7 +648,7 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 			if (curves == null || curves[0] == null)
 				throw new RuntimeException("No curves in selection");
 			Curve curve = (Curve) curves[0];
-			new vista.app.FlagEditor(_gC, curve);
+			new vista.app.FlagEditor(_gC, curve, true);
 		}
 	}
 
