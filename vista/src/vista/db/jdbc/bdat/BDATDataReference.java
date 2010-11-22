@@ -1,15 +1,11 @@
 package vista.db.jdbc.bdat;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +40,10 @@ public class BDATDataReference extends DataReference {
 	private Date startDate;
 	private Date endDate;
 	private String units;
+	/**
+	 * The data set contained by this reference. Don't save data on serializing
+	 */
+	private transient SoftReference<DataSet> dataset;
 
 	public BDATDataReference(int requestId) {
 		this.resultId = requestId;
@@ -110,11 +110,48 @@ public class BDATDataReference extends DataReference {
 
 	@Override
 	public DataSet getData() {
+		if (dataset == null || dataset.get() == null) {
+			loadData();
+		}
+		return dataset.get();
+	}
+
+	private double[] resize(double[] x) {
+		if (x == null) {
+			return null;
+		}
+		int l = x.length + 100000;
+		double[] nx = new double[l];
+		System.arraycopy(x, 0, nx, 0, x.length);
+		return nx;
+	}
+
+	private int[] resize(int[] x) {
+		if (x == null) {
+			return null;
+		}
+		int l = x.length + 100000;
+		int[] nx = new int[l];
+		System.arraycopy(x, 0, nx, 0, x.length);
+		return nx;
+	}
+	@Override
+	public void reloadData() {
+		if (dataset != null) {
+			dataset.clear();
+			dataset = null;
+		}
+		getData();
+	}
+	
+	public void loadData() {
+		DataSet data = null;
 		double[] x = null;
 		if (getTimeInterval() == null) {
 			x = new double[100000];
 		}
 		double[] y = new double[100000];
+		int[] flags = new int[100000];
 		Connection connection = null;
 		try {
 			BDATSession session = new BDATSession();
@@ -132,18 +169,18 @@ public class BDATDataReference extends DataReference {
 							.getTimeInMinutes();
 				}
 				y[index] = rs.getDouble("value");
+				flags[index]=0;
 				// FIXME: flag[index] = rs.getString("QAQC_FLAGID").. convert to
 				// MISSING, UNSCREENED, etc.
 				index++;
 				if (index >= y.length) {
 					x = resize(x);
 					y = resize(y);
-					// FIXME: flag=resize(flag);
+					flags=resize(flags);
 				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
 		} finally {
 			if (connection != null) {
 				try {
@@ -154,27 +191,14 @@ public class BDATDataReference extends DataReference {
 			}
 		}
 		if (getTimeInterval() == null) {
-			return new IrregularTimeSeries(getName(), x, y);
+			DataSetAttr attr = new DataSetAttr(DataType.IRREGULAR_TIME_SERIES, "TIME", units, "", "INST-VAL");
+			data = new IrregularTimeSeries(getName(), x, y, flags, attr);
 		} else {
 			DataSetAttr attr = new DataSetAttr(DataType.REGULAR_TIME_SERIES, "TIME", units, "", "INST-VAL");
-			return new RegularTimeSeries(getName(), getTimeWindow()
-					.getStartTime(), getTimeInterval(), y, null, attr);
+			data = new RegularTimeSeries(getName(), getTimeWindow()
+					.getStartTime(), getTimeInterval(), y, flags, attr);
 		}
-	}
-
-	private double[] resize(double[] x) {
-		if (x == null) {
-			return null;
-		}
-		int l = x.length + 100000;
-		double[] nx = new double[l];
-		System.arraycopy(x, 0, nx, 0, x.length);
-		return nx;
-	}
-
-	@Override
-	public void reloadData() {
-		// non-operation for now
+		dataset = new SoftReference<DataSet>(data);
 	}
 
 	public void setAbbreviation(String abbreviation) {
