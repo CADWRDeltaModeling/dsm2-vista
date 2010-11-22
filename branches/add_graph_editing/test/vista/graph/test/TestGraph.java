@@ -1,10 +1,21 @@
 package vista.graph.test;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import junit.framework.TestCase;
 import vista.app.DefaultGraphBuilder;
@@ -41,80 +52,62 @@ public class TestGraph {
 		graphs[0].setBackgroundColor(Color.white);
 		final Curve curve = graphs[0].getPlot().getCurve(0);
 		GECanvas canvas = new GECanvas(graphs[0]);
-		RangeSelector rangeSelector = new RangeSelector(canvas, curve,
+		final JFrame fr = new JFrame();
+		final RangeSelector rangeSelector = new RangeSelector(canvas, curve,
 				new RangeActor() {
 
 					@Override
 					public void selectedRange(int minX, int maxX, int minY,
 							int maxY) {
-						System.out.println("Selected range: " + minX + " to "
-								+ maxX);
+						String msg = "Selected range (screen horizontal): " + minX + " to "
+								+ maxX;
+						msg+="\n";
 						Axis xAxis = curve.getXAxis();
 						double dmin = xAxis.getScale().scaleToDC(minX);
 						double dmax = xAxis.getScale().scaleToDC(maxX);
-						System.out.println("Selected range: " + dmin + " to "
-								+ dmax);
+						msg += "Selected range (x axis): " + dmin + " to "
+								+ dmax;
+						msg+="\n";
 						Time tmin = TimeFactory.getInstance().createTime(
 								Math.round(dmin));
 						Time tmax = TimeFactory.getInstance().createTime(
 								Math.round(dmax));
-						System.out.println("Selected range: " + tmin + " to "
-								+ tmax);
-						System.out.println("Selected range: " + minY + " to "
-								+ maxY);
+						msg += "Selected range (time axis): " + tmin + " to "
+								+ tmax;
+						msg+="\n";
+						msg += "Selected range (screen vertical): " + minY + " to "
+								+ maxY;
+						msg+="\n";
 						Axis yAxis = curve.getYAxis();
 						double ymin = yAxis.getScale().scaleToDC(minY);
 						double ymax = yAxis.getScale().scaleToDC(maxY);
-						System.out.println("Selected Y range: " + ymin + " to "
-								+ ymax);
+						msg += "Selected Y range (y axis): " + ymin + " to "
+								+ ymax;
+						JOptionPane.showMessageDialog(fr, msg, "Range Selected", JOptionPane.INFORMATION_MESSAGE);
+						fr.invalidate();
 					}
 				});
-		final JFrame fr = new JFrame();
-		fr.getContentPane().add(canvas);
+		JPanel mainPanel = new JPanel();
+		fr.getContentPane().add(mainPanel);
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.add(canvas, BorderLayout.CENTER);
+		JButton selectButton = new JButton("Select");
+		selectButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rangeSelector.selectRange();
+			}
+		});
+		mainPanel.add(selectButton, BorderLayout.PAGE_END);
 		fr.pack();
 		fr.setVisible(true);
-		fr.addWindowListener(new WindowListener() {
-
-			@Override
-			public void windowOpened(WindowEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void windowIconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void windowDeiconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void windowDeactivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-
-			}
+		fr.addWindowListener(new WindowAdapter() {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
 				fr.dispose();
 				System.exit(0);
-			}
-
-			@Override
-			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void windowActivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 		});
 	}

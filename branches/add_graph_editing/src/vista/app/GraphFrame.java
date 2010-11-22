@@ -677,7 +677,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 			GEContainer curveContainer = graph.getPlot().getCurveContainer();
 			GraphicElement[] curves = curveContainer.getElements(Curve.class);
 			Curve curve = (Curve) curves[0];
-			new vista.app.FlagEditor(_gC, curve);
+			new vista.app.FlagEditor(_gC, curve, true);
 		}
 	}
 }
