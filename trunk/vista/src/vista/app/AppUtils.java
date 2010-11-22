@@ -74,7 +74,6 @@ import vista.graph.CurveDataModel;
 import vista.graph.GEContainer;
 import vista.graph.GraphProperties;
 import vista.graph.GraphicElement;
-import vista.graph.Leaf;
 import vista.graph.Symbol;
 import vista.graph.SymbolFactory;
 import vista.set.CompositeFilter;
@@ -164,7 +163,7 @@ public class AppUtils {
 	public static void setCurveFilter(GEContainer ge, ElementFilter filter) {
 		int count = ge.getElementCount();
 		for (int i = 0; i < count; i++) {
-			Leaf leaf = ge.getElement(i);
+			GraphicElement leaf = ge.getElement(i);
 			if (leaf instanceof GEContainer)
 				AppUtils.setCurveFilter((GEContainer) leaf, filter);
 			if (leaf instanceof Curve) {

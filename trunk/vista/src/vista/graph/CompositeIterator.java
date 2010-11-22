@@ -76,7 +76,7 @@ public interface CompositeIterator extends Enumeration {
 	 * 
 	 * @see Leaf
 	 */
-	public Leaf getNext();
+	public GraphicElement getNext();
 
 	/**
 	 * Advance by one.

@@ -224,7 +224,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 			Drawable ge = (Drawable) iterator.nextElement();
 			ge.draw();
 			if (DEBUG2) { // a prompt based method that shows all the drawn
-							// elements
+				// elements
 				byte[] b = new byte[2];
 				System.out.println("Drawing " + ge);
 				Rectangle r = ((Bounded) ge).getBounds();
@@ -307,26 +307,26 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * 
 	 * @returns the element.
 	 */
-	public Leaf getElement(int n) {
-		return (Leaf) (_elements.elementAt(n));
+	public GraphicElement getElement(int n) {
+		return (GraphicElement) (_elements.elementAt(n));
 	}
 
 	/**
 	 * gets an array of graphic elements of the given element class type.
 	 */
-	public Leaf[] getElements(Class elementClass) {
+	public GraphicElement[] getElements(Class elementClass) {
 		int count = getElementCount();
 		int classCount = 0;
-		Leaf[] geArray = new Leaf[count];
+		GraphicElement[] geArray = new GraphicElement[count];
 		for (int i = 0; i < count; i++) {
-			Leaf ge = getElement(i);
+			GraphicElement ge = getElement(i);
 			if (elementClass.isInstance(ge)) {
 				geArray[classCount] = ge;
 				classCount++;
 			}
 		}
 		if (classCount > 0) {
-			Leaf[] newArray = new Leaf[classCount];
+			GraphicElement[] newArray = new GraphicElement[classCount];
 			System.arraycopy(geArray, 0, newArray, 0, classCount);
 			geArray = newArray;
 		} else {
@@ -339,9 +339,9 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * returns a copy of the array of graphic elements contained in this
 	 * composite.
 	 */
-	public Leaf[] getElements() {
+	public GraphicElement[] getElements() {
 		synchronized (this) {
-			Leaf[] list = new Leaf[_elements.size()];
+			GraphicElement[] list = new GraphicElement[_elements.size()];
 			_elements.copyInto(list);
 			return list;
 		}
@@ -387,7 +387,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	/**
 	 * adds a graphic element to the composite
 	 */
-	public void add(Leaf ge) {
+	public void add(GraphicElement ge) {
 		if (DEBUG) {
 			System.out.println("number of elements is " + getElementCount());
 			System.out.println("The element is " + ge);
@@ -401,7 +401,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * to be public as there is an add method that calls this incase of String
 	 * object. ?? A left over relic
 	 */
-	public void add(String name, Leaf ge) {
+	public void add(String name, GraphicElement ge) {
 		if (name == null) {
 			add(ge);
 		} else if (_layoutManager instanceof GELineLayout) {
@@ -420,7 +420,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	/**
 	 * adds a graphic element to the composite with information
 	 */
-	public void add(Object obj, Leaf ge) {
+	public void add(Object obj, GraphicElement ge) {
 		if (obj == null) {
 			add(ge);
 		}
@@ -446,7 +446,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	/**
 	 * inserts an element at the desired index
 	 */
-	public void insertAt(int index, Leaf ge) {
+	public void insertAt(int index, GraphicElement ge) {
 		ge.setParent(this);
 		_elements.insertElementAt(ge, index);
 	}
@@ -455,7 +455,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * removes the particular object from the container and returns the number
 	 * of matches removed
 	 */
-	public int remove(Leaf ge) {
+	public int remove(GraphicElement ge) {
 		_elements.removeElement(ge);
 		return 1;
 	}
@@ -470,7 +470,7 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	/**
 	 * searches for the first element that matches and returns its index
 	 */
-	public int indexOf(Leaf ge) {
+	public int indexOf(GraphicElement ge) {
 		return _elements.indexOf(ge);
 	}
 

@@ -156,7 +156,7 @@ public class CoordinateDisplayInteractor extends ElementInteractor {
 	private Plot getPlot(int x, int y) {
 		Graph graph = (Graph) _gC.getGraphicElement();
 		Plot plot = graph.getPlot();
-		Leaf[] leafs = graph.getElements(MultiPlot.class);
+		GraphicElement[] leafs = graph.getElements(MultiPlot.class);
 		if (leafs == null)
 			return plot;
 		if (leafs.length == 1) {

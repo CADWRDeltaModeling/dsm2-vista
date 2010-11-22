@@ -63,6 +63,9 @@ import vista.db.dss.DSSUtil;
 import vista.graph.Curve;
 import vista.graph.GECanvas;
 import vista.graph.Graph;
+import vista.graph.RangeActor;
+import vista.graph.RangeSelected;
+import vista.graph.RangeSelector;
 import vista.gui.SendMailDialog;
 import vista.set.Constants;
 import vista.set.DataReference;
@@ -84,19 +87,23 @@ import vista.time.TimeInterval;
  * @author Nicky Sandhu
  * @version $Id: FlagEditor.java,v 1.1 2003/10/02 20:48:30 redwood Exp $
  */
-public class FlagEditor {
+public class FlagEditor implements RangeActor{
 	private Curve curve;
 	private GECanvas gC;
-	private RangeSelector rs;
+	private RangeSelected rs;
 	private FlagChoiceFrame fcf;
 
 	/**
 	 * Edits the flags for the given curve
 	 */
-	public FlagEditor(GECanvas gC, Curve curve) {
+	public FlagEditor(GECanvas gC, Curve curve, boolean boxSelection) {
 		this.gC = gC;
 		this.curve = curve;
-		rs = new RangeSelector(this, gC, curve);
+		if (boxSelection){
+			rs = new RangeSelector(gC, curve, this);
+		} else {
+			rs = new XRangeSelector(this, gC, curve);
+		}
 	}
 
 	/**
@@ -107,6 +114,10 @@ public class FlagEditor {
 		fcf = new FlagChoiceFrame(JOptionPane.getFrameForComponent(gC), this);
 	}
 
+	@Override
+	public void selectedRange(int xmin, int xmax, int ymin, int ymax) {
+		fcf = new FlagChoiceFrame(JOptionPane.getFrameForComponent(gC), this);
+	}
 	/**
    *
    */
@@ -121,9 +132,9 @@ public class FlagEditor {
 		String msg = "Data Reference:\n" + "Server: " + ref.getServername()
 				+ "\n" + "Filename: " + ref.getFilename() + "\n" + "Pathname: "
 				+ ref.getPathname() + "\n" + "Data Start Time: "
-				+ time.create(Math.round(rs.getRangeMin())).floor(ti) + "\n"
+				+ time.create(Math.round(rs.getXRangeMin())).floor(ti) + "\n"
 				+ "Data End Time: "
-				+ time.create(Math.round(rs.getRangeMax())).ceiling(ti) + "\n";
+				+ time.create(Math.round(rs.getXRangeMax())).ceiling(ti) + "\n";
 		Frame f = JOptionPane.getFrameForComponent(gC);
 		new SendMailDialog(f, rcp, subject, msg);
 	}
@@ -145,13 +156,17 @@ public class FlagEditor {
 		DataSetIterator iterator = ds.getIterator();
 		boolean overrideDecided = false;
 		boolean override = true;
-		double minx = rs.getRangeMin();
-		double maxx = rs.getRangeMax();
+		double minx = rs.getXRangeMin();
+		double maxx = rs.getXRangeMax();
+		double miny = rs.getYRangeMin();
+		double maxy = rs.getYRangeMax();
 		int userId = DSSUtil.getUserId();
 		for (iterator.resetIterator(); !iterator.atEnd(); iterator.advance()) {
 			DataSetElement dse = iterator.getElement();
 			double x = dse.getX();
-			if (x >= minx && x <= maxx) {
+			double y = dse.getY();
+			if ((x >= minx && x <= maxx) && (y >= miny && y <= maxy)) {
+				
 				if (!overrideDecided && FlagUtils.isScreened(dse)) {
 					overrideDecided = true;
 					// check one of override vs preserve with modal dialog
@@ -170,13 +185,13 @@ public class FlagEditor {
 				if (FlagUtils.isScreened(dse) && !override) {
 					// don't do anything...
 				} else {
-					double y = iterator.getElement().getY();
 					if (y == Constants.MISSING || y == Constants.MISSING_VALUE
-							|| y == Constants.MISSING_RECORD)
+							|| y == Constants.MISSING_RECORD){
 						FlagUtils.setQualityFlag(dse, FlagUtils.MISSING_FLAG,
 								userId);
-					else
+					}else{
 						FlagUtils.setQualityFlag(dse, flagId, userId);
+					}
 					iterator.putElement(dse);
 				}
 			}
@@ -198,4 +213,5 @@ public class FlagEditor {
 		gC.redoNextPaint();
 		gC.paint(gC.getGraphics());
 	}
+
 }

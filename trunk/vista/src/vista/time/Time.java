@@ -263,4 +263,6 @@ public interface Time extends java.io.Serializable {
 	 * for python
 	 */
 	public Object __rsub__(String ti);
+
+	public void setDate(Date d1);
 }
