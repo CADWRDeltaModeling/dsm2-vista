@@ -66,21 +66,21 @@ import java.awt.event.MouseMotionListener;
  * Selects a range on the x axis.
  * 
  * @author Nicky Sandhu
- * @version $Id: ZoomRangeSelector.java,v 1.3 2001/03/05 21:46:24 eli2 Exp $
+ * @version $Revision$
  */
-public class ZoomRangeSelector {
-	private Curve _curve;
+public class RangeSelector implements RangeSelected {
 	private RangeListener rl;
 	private GECanvas _gC;
-	private double _rmin, _rmax;
-	private RangeActor ra;
+	private RangeActor _ra;
+	private Curve curve;
 
 	/**
 	 * selects a range on the x axis of the curve in the graph canvas.
 	 */
-	public ZoomRangeSelector(GECanvas gC, Curve curve, RangeActor ra) {
+	public RangeSelector(GECanvas gC, Curve curve, RangeActor ra) {
 		_gC = gC;
-		_curve = curve;
+		_ra = ra;
+		this.curve = curve;
 		selectRange();
 	}
 
@@ -88,32 +88,15 @@ public class ZoomRangeSelector {
    *
    */
 	void doneSelecting() {
-		ra.selectedRange(rl.getRangeMin(), rl.getRangeMax());
-	}
-
-	/**
-	 * gets the minimum of range
-	 */
-	public double getRangeMin() {
-		Scale sc = _curve.getXAxis().getScale();
-		_rmin = sc.scaleToDC(rl.getRangeMin());
-		return _rmin;
-	}
-
-	/**
-	 * gets maximum of range
-	 */
-	public double getRangeMax() {
-		Scale sc = _curve.getXAxis().getScale();
-		_rmax = sc.scaleToDC(rl.getRangeMax());
-		return _rmax;
+		_ra.selectedRange(rl.getXRangeMin(), rl.getXRangeMax(), rl
+				.getYRangeMin(), rl.getYRangeMax());
 	}
 
 	/**
     *
     */
-	private void selectRange() {
-		_gC.addMouseListener(rl = new RangeListener(_gC, _curve));
+	public void selectRange() {
+		_gC.addMouseListener(rl = new RangeListener(_gC, curve));
 		_gC.addMouseMotionListener(rl);
 	}
 
@@ -123,63 +106,72 @@ public class ZoomRangeSelector {
 	private class RangeListener implements MouseListener, MouseMotionListener {
 		private boolean DEBUG = false;
 		private boolean click1 = false, click2 = false;
-		private Curve _curve;
 		private GECanvas _gC;
 		private int x1, x2;
+		private int y1, y2;
 		private Image _gCImage;
 		private CoordinateDisplayInteractor _cdi;
+		private Curve curve;
 
 		/**
    *
    */
 		public RangeListener(GECanvas gC, Curve curve) {
-			_curve = curve;
 			_gC = gC;
+			this.curve = curve;
 			_gC.addMouseMotionListener(_cdi = new CoordinateDisplayInteractor(
 					_gC));
-			_gC.setDoubleBuffered(true);
 			Rectangle r = _gC.getBounds();
 			_gCImage = _gC.createImage(r.width, r.height);
 		}
 
 		/**
-   *
-   */
-		public int getRangeMax() {
+		 *
+		 */
+		public int getXRangeMax() {
 			return Math.max(x1, x2);
 		}
 
 		/**
-   *
-   */
-		public int getRangeMin() {
+		 *
+		 */
+		public int getXRangeMin() {
 			return Math.min(x1, x2);
+		}
+
+		/**
+		 *
+		 */
+		public int getYRangeMax() {
+			return Math.max(y1, y2);
+		}
+
+		/**
+		 *
+		 */
+		public int getYRangeMin() {
+			return Math.min(y1, y2);
 		}
 
 		/**
 		 * Invoked when the mouse has been clicked on a component.
 		 */
 		public void mouseClicked(MouseEvent e) {
-			if (DEBUG)
-				System.out.println("Mouse Clicked at ( " + e.getX() + ", "
-						+ e.getY() + " )");
-			GraphicElement ge = _gC.getGraphicElement();
-			Rectangle r = _curve.getBounds();
+			Rectangle r = curve.getBounds();
 			if (!click1) {
 				click1 = true;
 				x1 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				if (DEBUG)
-					System.out.println("x1 = " + x1);
+				y1 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
 			} else if (!click2) {
 				click2 = true;
 				x2 = Math.min(Math.max(e.getX(), r.x), r.x + r.width);
-				if (DEBUG)
-					System.out.println("x2 = " + x2);
+				y2 = Math.min(Math.max(e.getY(), r.y), r.y + r.height);
 				_gC.removeMouseMotionListener(this);
 				_gC.addMouseListener(this);
 				_gC.removeMouseMotionListener(_cdi);
 				_cdi.doneDisplaying();
-				ZoomRangeSelector.this.doneSelecting();
+				_gC.redoNextPaint();
+				RangeSelector.this.doneSelecting();
 			}
 		}
 
@@ -188,28 +180,28 @@ public class ZoomRangeSelector {
 		 * buttons no down).
 		 */
 		public void mouseMoved(MouseEvent e) {
-			if (DEBUG)
-				System.out.println("Mouse Moved at ( " + e.getX() + ", "
-						+ e.getY() + " )");
-			moveVerticalLineTo(e.getX());
+			drawBox(e.getX(), e.getY());
 		}
 
 		/**
-   *
-   */
-		private void moveVerticalLineTo(int x) {
+         *
+         */
+		private void drawBox(int x, int y) {
+			if (_gCImage == null) {
+				Rectangle r = _gC.getBounds();
+				_gCImage = _gC.createImage(r.width, r.height);
+			}
 			Graphics g = _gCImage.getGraphics();
 			g.drawImage(_gC.getGraphicElementImage(), 0, 0, null);
-			Rectangle r = _curve.getBounds();
-			// g.setClip(r);
 			if (click1 && click2) {
-				g.drawLine(x1, r.y, x1, r.y + r.height);
-				g.drawLine(x2, r.y, x2, r.y + r.height);
+				g.drawLine(0, 0, 100, 100);
 			} else if (click1) {
-				g.drawLine(x1, r.y, x1, r.y + r.height);
-				g.drawLine(x, r.y, x, r.y + r.height);
+				g.drawRect(Math.min(x1, x), Math.min(y1, y), Math.abs(x - x1),
+						Math.abs(y - y1));
 			} else {
-				g.drawLine(x, r.y, x, r.y + r.height);
+				int size = 8;
+				g.drawLine(x - size, y, x + size, y);
+				g.drawLine(x, y - size, x, y + size);
 			}
 			_gC.getGraphics().drawImage(_gCImage, 0, 0, null);
 		}
@@ -244,4 +236,28 @@ public class ZoomRangeSelector {
 						+ e.getY() + " )");
 		}
 	} // end of Range Listener
+
+	@Override
+	public double getXRangeMin() {
+		Scale sc = curve.getXAxis().getScale();
+		return sc.scaleToDC(rl.getXRangeMin());
+	}
+	
+	@Override
+	public double getXRangeMax() {
+		Scale sc = curve.getXAxis().getScale();
+		return sc.scaleToDC(rl.getXRangeMax());
+	}
+
+	@Override
+	public double getYRangeMax() {
+		Scale sc = curve.getYAxis().getScale();
+		return sc.scaleToDC(rl.getYRangeMin());
+	}
+
+	@Override
+	public double getYRangeMin() {
+		Scale sc = curve.getYAxis().getScale();
+		return sc.scaleToDC(rl.getYRangeMax());
+	}
 }

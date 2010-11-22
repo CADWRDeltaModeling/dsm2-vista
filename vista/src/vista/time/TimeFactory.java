@@ -55,6 +55,8 @@
  */
 package vista.time;
 
+import java.util.Date;
+
 import org.python.core.Py;
 
 /**
@@ -112,6 +114,12 @@ public class TimeFactory implements java.io.Serializable {
 	 */
 	public Time createTime(long tm) {
 		return _time.create(tm);
+	}
+	
+	public Time createTime(Date date) {
+		 Time time = _time.create(0);
+		 time.setDate(date);
+		 return time;
 	}
 
 	/**

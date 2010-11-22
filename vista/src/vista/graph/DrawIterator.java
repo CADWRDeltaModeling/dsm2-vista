@@ -90,9 +90,9 @@ public class DrawIterator implements CompositeIterator {
 	 * @return The next set of values
 	 * @see DataSetElement
 	 */
-	public Leaf getNext() {
+	public GraphicElement getNext() {
 		_index++;
-		return (Leaf) _iterator.nextElement();
+		return (GraphicElement) _iterator.nextElement();
 	}
 
 	/**

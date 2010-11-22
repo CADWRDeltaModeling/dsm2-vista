@@ -260,7 +260,15 @@ public class DefaultTime implements Time, Serializable {
 
 	@Override
 	public Date getDate() {
-		return _date;
+		return new Date(_date.getTime()+_date.getTimezoneOffset()*60000);
+	}
+	/**
+	 * Creates a new date in GMT Time based on this date 
+	 * @param date
+	 */
+	@SuppressWarnings("deprecation")
+	public void setDate(Date date){
+		_date = new Date(date.getTime()-date.getTimezoneOffset()*60000);
 	}
 
 	/**
