@@ -55,11 +55,17 @@
  */
 package vista.app;
 
+import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
 import java.util.Stack;
 
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import vista.gui.Command;
 import vista.gui.VistaException;
@@ -74,6 +80,40 @@ import vista.gui.VistaUtils;
  * @version $Id: Executor.java,v 1.1 2003/10/02 20:48:29 redwood Exp $
  */
 public class Executor {
+	private static final class BackgroundExecutor extends
+			SwingWorker<Command, Object> {
+		private Command com;
+		private View view;
+		private Cursor oldCursor;
+
+		private BackgroundExecutor(Command com, View view, Cursor oldCursor) {
+			this.com = com;
+			this.view = view;
+			this.oldCursor = oldCursor;
+		}
+
+		@Override
+		protected Command doInBackground() throws Exception {
+			try {
+				com.execute();
+				_history.push(com);
+				view.updateView();
+				_historyView.push(view);
+			} catch (Exception ex) {
+				VistaUtils.displayException((Component) view, ex);
+			}
+			return com;
+		}
+
+		protected void done() {
+			try {
+				SwingUtilities.getRootPane((JComponent) view).setCursor(
+						oldCursor);
+			} catch (Exception ignore) {
+			}
+		}
+	}
+
 	/**
 	 * history of commands
 	 */
@@ -88,25 +128,20 @@ public class Executor {
 	/**
 	 * executes the command
 	 */
-	public static final void execute(Command com, View view) {
+	public static final void execute(final Command com, final View view) {
 		Cursor oldCursor = null;
 		try {
 			if (view instanceof JComponent) {
 				JComponent comp = (JComponent) view;
-				oldCursor = comp.getCursor();
-				JOptionPane.getFrameForComponent(comp).setCursor(waitCursor);
+				oldCursor = SwingUtilities.getRootPane(comp).getCursor();
+				SwingUtilities.getRootPane(comp).setCursor(
+						Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			}
-			com.execute();
-			_history.push(com);
-			view.updateView();
-			_historyView.push(view);
+			BackgroundExecutor worker = new BackgroundExecutor(com, view,
+					oldCursor);
+			worker.execute();
 		} catch (Exception e) {
 			VistaUtils.displayException(null, e);
-		} finally {
-			if (view instanceof JComponent) {
-				JComponent comp = (JComponent) view;
-				JOptionPane.getFrameForComponent(comp).setCursor(oldCursor);
-			}
 		}
 	}
 
