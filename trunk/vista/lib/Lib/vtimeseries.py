@@ -209,12 +209,46 @@ def resample(ref,outint,offset=0):
                             vals,dflags,data.getAttributes())
 
     return rts
+def apply(ts, function, ):
+    """
+    apply(ts, function)
+        applies to this time series the function
+         by evaluating the function at each point 
+         the function takes DataSetElement and modifying it if necessary
+         the conditional takes DataSetElement and returns 0/1 or False/True
+        http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/set/DataSetElement.html
+    """
+    tsi = ts.getIterator()
+    while not tsi.atEnd():
+       el = tsi.getElement()
+       function(el)
+       tsi.advance()
+def where(ts, conditional):
+    """
+    where(ts, conditional):
+        returns a time series with a 1 where conditional evaluates to true and 0 otherwise
+        conditional is a function that accepts a DataSetElement consisting of a x value, a y value and optionally a flag value
+        it can return True/False or 0/1
+    """
+    xa = zeros(len(ts),'d')
+    tsi = ts.getIterator()
+    index=0
+    while not tsi.atEnd():
+       el = tsi.getElement()
+       if conditional(el):
+           xa[index]=0
+       else:
+           xa[index]=1
+       tsi.advance()
+       index=index+1
+    return RegularTimeSeries(ts.getName(),str(ts.getStartTime()),str(ts.getTimeInterval()),xa)
+    
 def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
     """
-    where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
+    where_missing(ts,filter=Constants.DEFAULT_FLAG_FILTER):
      returns a time series with a 1 where missing or not acceptable with filter
      and 0 otherwise
-     where rts is a regular time series and
+     where ts is a regular time series and
           filter is of type vista.set.ElementFilter e.g. Constants.DEFAULT_FLAG_FILTER
     """
     xa = zeros(len(rts),'d')
@@ -298,11 +332,11 @@ def its2rts(irts,tw=None,tis='1hour'):
     next_time = time(long(itrtr_irts.getElement().getX()))
     # get starting time of regular time series
     time_val = time(st)
-    # loop over rts to fill values
+    # loop over ts to fill values
     # loop takes care of filling the regular time series
     # with last irts value and flag
     while index < nvals:
-	# if time value of rts is >= irts then update values
+	# if time value of ts is >= irts then update values
 	if not itrtr_irts.atEnd() and time_val.compare(next_time) >= 0:
 	    # initialize last val and last flag value
 	    last_val = itrtr_irts.getElement().getY()
@@ -836,69 +870,17 @@ def per_max(ds, interval='1mon'):
 def per_min(ds, interval='1mon'):
     return per_oper(ds, 'min', interval)
 #
-#def mov_avg(ts, backLength, forwardLength):
-#    '''
-#    mov_avg(ts,backLength,forwardLength):
-#    Does a moving average of the time series (dataset or ref) with 
-#    backLength previous points and forwardLength future points and
-#    the present point. Returns the result as a new time series.
-#    '''
-#    if isinstance(ts, DataReference):
-#        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
-#    else:
-#        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
-#  
-def mov_avg(dsref, backLength, forwardLength):
+def mov_avg(ts, backLength, forwardLength):
     '''
     mov_avg(ts,backLength,forwardLength):
     Does a moving average of the time series (dataset or ref) with 
     backLength previous points and forwardLength future points and
     the present point. Returns the result as a new time series.
     '''
-    filter = Constants.DEFAULT_FLAG_FILTER
-    if isinstance(dsref, DataReference):
-        ds = dsref.getData()
-        ref = dsref
-        isRef = True
-    else:   # dataset
-        if isinstance(dsref, RegularTimeSeries):    #RTS
-            ds = dsref
-        else:       # ITS
-            ds = IrregularTimeSeries(dsref)
-            ds.setAttributes(dsref.getAttributes())
-        isRef = False
-    # first fill a list with back and forward y values
-    # then MAs are then computed by
-    # adding the newest value, removing the oldest,
-    # divide by the number of good values in the vector
-    smallNumber = 1.e-10
-    totLength = backLength + forwardLength + 1
-    vecY = jarray.zeros(totLength, 'd')
-    for ndx in range(totLength - 1):
-        el1 = ds.getElementAt(ndx)
-        if filter.isAcceptable(el1): vecY[ndx + 1] = el1.getY()
-        else: vecY[ndx + 1] = smallNumber
-    for ndx in range(ds.size()):
-        el1 = ds.getElementAt(ndx)  # element now
-        if ndx < backLength or ndx >= (ds.size() - forwardLength):
-            el1.setY(Constants.MISSING_VALUE)
-        else:   # compute the MA centered at ndx
-            el2 = ds.getElementAt(ndx + forwardLength)    # farthest future element
-            # update vector with new value
-            if filter.isAcceptable(el2): vecY.append(el2.getY())
-            else: vecY.append(smallNumber)
-            vecY.pop(0)
-            if vecY.count(smallNumber) < totLength:
-                aveY = sum(vecY) / (totLength - vecY.count(smallNumber))
-            else:
-                aveY = Constants.MISSING_VALUE
-            el1.setY(aveY)
-        ds.putElementAt(ndx, el1)
-    if isRef:
-        return wrap_data(ds,filename=dsref.getFilename(),pathname=str(dsref.getPathname()))
+    if isinstance(ts, DataReference):
+        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
     else:
-        return ds
-#  
+        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
 def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     """
     merge(args,filter=Constants.DEFAULT_FLAG_FILTER):
@@ -1050,7 +1032,7 @@ def spline(ref,outint,offset=0):
     15minutes. Since there are are 96 15min samples per 24 hours
     offset = 0.5*96 = 48.
     
-    Output is a regular time series (rts).
+    Output is a regular time series (ts).
     
     Reference: Huynh, HT "Accurate Monotone Cubic Interpolation",
     SIAM J. Numer. Analysis V30 No. 1 pp 57-100 
