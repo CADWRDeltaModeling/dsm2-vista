@@ -229,7 +229,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 			is = VistaUtils.getPropertyFileAsStream("demo1.properties");
 		if (is == null)
 			is = VistaUtils
-					.getResourceAsStream("/vista.graph/demo1.properties");
+					.getResourceAsStream("/vista/graph/demo1.properties");
 		new AttributeSerializer(graph).load(is);
 
 		this.pack();
@@ -238,7 +238,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 		Dimension frameSize = getSize();
 		this.setLocation(screenSize.width - frameSize.width, screenSize.height
 				- frameSize.height);
-		this.show();
+		this.setVisible(true);
 
 	}
 
@@ -329,22 +329,6 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 	}
 
 	/**
-	 * Outputs plot to gif file.
-	 */
-	/*
-	 * public void outputGif(){
-	 * 
-	 * FileDialog dialog = new FileDialog(this,
-	 * GraphProperties.properties.getProperty("GraphFrame.gifSelectionMsg"),
-	 * FileDialog.SAVE);
-	 * dialog.setFile(GraphProperties.properties.getProperty("GraphFrame.GIF_FILE"
-	 * )); dialog.pack(); dialog.show(); if (dialog.getFile() != null){ Thread
-	 * serializerThread = new Thread (new ImageSerializer(dialog.getFile(), _gC,
-	 * ImageSerializer.GIF), "Gif serializer");
-	 * serializerThread.setPriority(Thread.MIN_PRIORITY);
-	 * serializerThread.run(); } }
-	 */
-	/**
 	 * Outputs plot to ps file.
 	 */
 	public void outputPS() {
@@ -354,7 +338,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 		dialog.setFile(GraphProperties.properties
 				.getProperty("GraphFrame.PS_FILE"));
 		dialog.pack();
-		dialog.show();
+		dialog.setVisible(true);
 		if (dialog.getFile() != null) {
 			String filename = dialog.getFile();
 			boolean bufferStatus = _gC.getDoubleBuffered();
@@ -373,12 +357,6 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 	public void outputJpeg() {
 		Dialog dialog = new InfoDialog(this, "Information Dialog", true,
 				"Sorry no jpeg output available yet");
-
-		// Thread serializerThread = new Thread
-		// (new ImageSerializer("junk.jpg", _gC, ImageSerializer.JPEG),
-		// "Jpeg serializer");
-		// serializerThread.setPriority(Thread.MIN_PRIORITY);
-		// serializerThread.run();
 	}
 
 	/**
@@ -390,7 +368,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 		dialog.setFile(GraphProperties.properties
 				.getProperty("GraphFrame.PPM_FILE"));
 		dialog.pack();
-		dialog.show();
+		dialog.setVisible(true);
 
 		if (dialog.getFile() != null) {
 			Thread serializerThread = new Thread(new ImageSerializer(
@@ -430,18 +408,7 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
    */
 		public void actionPerformed(ActionEvent e) {
 			new GETreeDialog(GraphFrame.this, getCanvas());
-			// System.out.println("Graph attribute editing capabilities are under development...");
-			// Dialog dialog = new DWR.Graph.InfoDialog(_tg,
-			// "Information Dialog", true,
-			// "Graph attribute editing capabilities are under development...");
-			// if (editor == null) editor = new
-			// GraphEditor(_tg.getGraphCanvas());
-			// else editor.setVisible(true);
 		}
-		/**
-   *
-   */
-		// protected GraphEditor editor;
 	}
 
 	/**

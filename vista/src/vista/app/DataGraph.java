@@ -216,8 +216,8 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		Dimension frameSize = getSize();
 		this.setLocation(screenSize.width - frameSize.width, screenSize.height
 				- frameSize.height);
-		if (isVisible)
-			this.show();
+		this.setVisible(isVisible);
+		this.repaint();
 	}
 
 	/**
@@ -231,12 +231,6 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		this.getContentPane().add(_gC, BorderLayout.CENTER);
 		//
 		addInteractors(graph);
-		// remove double buffering for this component
-		// Container comp = this.getContentPane();
-		// if (comp instanceof JComponent) {
-		// System.out.println("content pane is now non double buffered");
-		// ((JComponent)comp).setDoubleBuffered(false);
-		// }
 	}
 
 	/**
@@ -549,7 +543,6 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 
 		public void actionPerformed(ActionEvent evt) {
 			JCheckBoxMenuItem mi = (JCheckBoxMenuItem) evt.getSource();
-			String label = mi.getText();
 			if (mi.isSelected()) {
 				_cdi = new CoordinateDisplayInteractor(getCanvas());
 				getCanvas().addMouseMotionListener(_cdi);
@@ -585,8 +578,8 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		JMenuItem qItem, gItem, rItem, sItem, uItem;
 
 		/**
-      *
-      */
+		 * 
+         */
 		public void addQuestionableMenuItem(JMenuItem q) {
 			qItem = q;
 			qItem.addActionListener(this);

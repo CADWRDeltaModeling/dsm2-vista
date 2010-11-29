@@ -31,14 +31,14 @@ import vista.set.RegularTimeSeries;
 import vista.time.Time;
 import vista.time.TimeFactory;
 
-public class TestGraph {
+public class TestRectangularSelect {
 
 	public static void main(String[] args) {
-		TestGraph test = new TestGraph();
-		test.testSimpleGraph();
+		TestRectangularSelect test = new TestRectangularSelect();
+		test.testRectangularSelect();
 	}
 
-	public void testSimpleGraph() {
+	public void testRectangularSelect() {
 		double[] y = new double[100];
 		for (int i = 0; i < y.length; i++) {
 			y[i] = Math.sin(i / Math.PI);
