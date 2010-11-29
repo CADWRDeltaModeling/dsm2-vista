@@ -67,22 +67,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-
-import COM.objectspace.jgl.Array;
 
 /**
  * This class handles interaction of mouse and mouse motion with Graph class and
@@ -92,45 +91,194 @@ import COM.objectspace.jgl.Array;
  * @version $Id: ZoomInteractor.java,v 1.1 2003/10/02 20:49:12 redwood Exp $
  */
 public class ZoomInteractor extends ElementInteractor {
+	@SuppressWarnings("serial")
+	private final static class PagingAction extends AbstractAction {
+
+		private int axisDirection;
+		private ZoomInteractor zi;
+
+		public PagingAction(ZoomInteractor zi, int axisDirection) {
+			super("", getIcon(axisDirection));
+			this.zi = zi;
+			this.axisDirection = axisDirection;
+			putValue(SHORT_DESCRIPTION, getDescription(axisDirection));
+			putValue(MNEMONIC_KEY, getMnemonicKey(axisDirection));
+		}
+
+		static String getDescription(int axisDirection) {
+			switch (axisDirection) {
+			case AxisAttr.TOP:
+				return "Page Up";
+			case AxisAttr.BOTTOM:
+				return "Page Down";
+			case AxisAttr.LEFT:
+				return "Page Left";
+			case AxisAttr.RIGHT:
+				return "Page Right";
+			default:
+				return "Page Reset";
+			}
+		}
+
+		static Icon getIcon(int axisDirection) {
+			switch (axisDirection) {
+			case AxisAttr.TOP:
+				return new ImageIcon(ZoomInteractor.class
+						.getResource("/vista/images/arrow-up-sharp.gif"));
+			case AxisAttr.BOTTOM:
+				return new ImageIcon(ZoomInteractor.class
+						.getResource("/vista/images/arrow-dn-sharp.gif"));
+			case AxisAttr.LEFT:
+				return new ImageIcon(ZoomInteractor.class
+						.getResource("/vista/images/arrow-lft-sharp.gif"));
+			case AxisAttr.RIGHT:
+				return new ImageIcon(ZoomInteractor.class
+						.getResource("/vista/images/arrow-rit-sharp.gif"));
+			default:
+				return new ImageIcon(ZoomInteractor.class
+						.getResource("/vista/images/center.gif"));
+			}
+		}
+
+		static Integer getMnemonicKey(int axisDirection) {
+			switch (axisDirection) {
+			case AxisAttr.TOP:
+				return new Integer(KeyEvent.VK_UP);
+			case AxisAttr.BOTTOM:
+				return new Integer(KeyEvent.VK_DOWN);
+			case AxisAttr.LEFT:
+				return new Integer(KeyEvent.VK_LEFT);
+			case AxisAttr.RIGHT:
+				return new Integer(KeyEvent.VK_RIGHT);
+			default:
+				return new Integer(KeyEvent.VK_HOME);
+			}
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			zi.pageToPosition(axisDirection);
+		}
+	}
+
 	/**
 	 * for debuggin' purposes
 	 */
 	public static final boolean DEBUG = false;
-	private Array _zooms = new Array();
+	private ArrayList<Zoom> _zooms = new ArrayList<Zoom>();
 	private boolean _isPageMode = false;
-	private int _pix, _piy, _pfx, _pfy;
 	private int sensitivity = 25; // a movement of atleast 25 pixels is needed
+	private JButton zob;
+	private JPanel pagingPanel;
 
-	// to enable zoom.
+	/**
+	 * Controls zooming in/out and storage of state for being able to do so.
+	 * 
+	 * @see Zoom
+	 */
+	private Zoom _zoom;
+	/**
+	 * Buffers image so as to avoid flickering while selecting zoom region
+	 */
+	private Image _gCImage;
+	/**
+	 * Graph canvas
+	 */
+	private ElementContext _gC;
+	/**
+	 * Stores flag to indicate if double buffering was being used before
+	 */
+	private boolean _previouslyDoubleBuffered = false;
+	/**
+	 * Flag to indicate zoom region selection is in progress.
+	 */
+	private boolean _drawDragRect = true;
+	/**
+	 * Flag to indicate whether mouse was dragged after mouse button was
+	 * pressed.
+	 */
+	private boolean _mouseDragged = false;
+	/**
+	 * Initial point's x value
+	 */
+	private int _xi = 0;
+	/**
+	 * Initial point's y value
+	 */
+	private int _yi = 0;
+	/**
+	 * Final point's x value
+	 */
+	private int _xf = 0;
+	/**
+	 * Final point's y value
+	 */
+	private int _yf = 0;
+	/**
+	 * Current zooming region
+	 */
+	private Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
+	/**
+	 * color used to draw the zoom rectangle
+	 */
+	private Color _zoomRectColor = Color.black;
+	/**
+	 * Plot object
+	 */
+	private Plot _plot;
+	private JButton upButton;
+	private JButton downButton;
+	private JButton rightButton;
+	private JButton leftButton;
+	private JButton centerButton;
 
 	/**
 	 * constructor
 	 */
-	@SuppressWarnings("serial")
 	public ZoomInteractor(ElementContext gC) {
 		_gC = gC;
 		JToolBar tb = new JToolBar();
-		tb.setFloatable(true);
-		JButton zob = new JButton("Zoom Out");
+		tb.setFloatable(false);
+		tb.setFocusable(false);
+		zob = new JButton(new ImageIcon(getClass().getResource(
+				"/vista/images/zoom-out-icon.png")));
+		zob.setToolTipText("Zoom Out");
 		zob.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				zoomOut();
 				((JComponent) _gC).requestFocus();
 			}
 		});
-		JToggleButton ptb = new JRadioButton("Paging", false);
-		ptb.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				Object o = evt.getSource();
-				JToggleButton jtb = (JToggleButton) o;
-				setPagingMode(jtb.isSelected());
-				((JComponent) _gC).requestFocus();
-				// JOptionPane.getFrameForComponent(jtb).requestFocus();
-			}
-		});
+		//
+
+		AbstractAction leftPageAction = new PagingAction(this,AxisAttr.LEFT);
+		AbstractAction rightPageAction = new PagingAction(this,AxisAttr.RIGHT);
+		AbstractAction upPageAction = new PagingAction(this,AxisAttr.TOP);
+		AbstractAction downPageAction = new PagingAction(this,AxisAttr.BOTTOM);
+		AbstractAction homePageAction = new PagingAction(this,-1);
+		pagingPanel = new JPanel();
+		pagingPanel.setLayout(null);
+		upButton = new JButton(upPageAction);
+		downButton = new JButton(downPageAction);
+		rightButton = new JButton(rightPageAction);
+		leftButton = new JButton(leftPageAction);
+		centerButton = new JButton(homePageAction);
+		int s = 10;
+		upButton.setBounds(s, 0, s, s);
+		downButton.setBounds(s, s * 2, s, s);
+		rightButton.setBounds(s * 2, s, s, s);
+		leftButton.setBounds(0, s, s, s);
+		centerButton.setBounds(s, s, s, s);
+		pagingPanel.add(upButton);
+		pagingPanel.add(downButton);
+		pagingPanel.add(rightButton);
+		pagingPanel.add(leftButton);
+		pagingPanel.add(centerButton);
+		pagingPanel.setSize(s * 3, s * 3);
+		setPagingMode(true);
 		tb.add(zob);
-		tb.add(ptb);
-		// tb.setFocusTraversable(false);
+		tb.add(pagingPanel);
+		setZoomOutPagingEnabled(false);
 		Frame fr = JOptionPane.getFrameForComponent((Component) _gC);
 		if (fr instanceof GraphFrameInterface)
 			((GraphFrameInterface) fr).addToolBar(tb);
@@ -145,7 +293,6 @@ public class ZoomInteractor extends ElementInteractor {
 				jframe.getContentPane().add(mainPanel, BorderLayout.CENTER);
 			}
 		}
-		// FIXME: addregisterkeyboard listener
 		if (fr instanceof JFrame) {
 			Container contentPane = ((JFrame) fr).getContentPane();
 			if (contentPane instanceof JPanel) {
@@ -164,45 +311,28 @@ public class ZoomInteractor extends ElementInteractor {
 						KeyEvent.VK_HOME + "");
 				//
 				ActionMap actionMap = mainPanel.getActionMap();
-
-				actionMap.put(KeyEvent.VK_LEFT + "", new AbstractAction() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						pageToPosition(AxisAttr.LEFT);
-					}
-				});
-				actionMap.put(KeyEvent.VK_RIGHT + "", new AbstractAction() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						pageToPosition(AxisAttr.RIGHT);
-					}
-				});
-				actionMap.put(KeyEvent.VK_UP + "", new AbstractAction() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						pageToPosition(AxisAttr.TOP);
-					}
-				});
-				actionMap.put(KeyEvent.VK_DOWN + "", new AbstractAction() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						pageToPosition(AxisAttr.BOTTOM);
-					}
-				});
-				actionMap.put(KeyEvent.VK_HOME + "", new AbstractAction() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						pageToPosition(-1);
-					}
-				});
+				actionMap.put(KeyEvent.VK_LEFT + "", leftPageAction);
+				actionMap.put(KeyEvent.VK_RIGHT + "", rightPageAction);
+				actionMap.put(KeyEvent.VK_UP + "", upPageAction);
+				actionMap.put(KeyEvent.VK_DOWN + "", downPageAction);
+				actionMap.put(KeyEvent.VK_HOME + "", homePageAction);
 			}
 
 		}
+	}
+
+	public Object getMnemonicKey() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setZoomOutPagingEnabled(boolean enable) {
+		zob.setEnabled(enable);
+		upButton.setEnabled(enable);
+		downButton.setEnabled(enable);
+		leftButton.setEnabled(enable);
+		rightButton.setEnabled(enable);
+		centerButton.setEnabled(enable);
 	}
 
 	/**
@@ -249,8 +379,8 @@ public class ZoomInteractor extends ElementInteractor {
    *
    */
 	private Zoom getZoomFor(Plot plot) {
-		for (Enumeration e = _zooms.elements(); e.hasMoreElements();) {
-			Zoom z = (Zoom) e.nextElement();
+		for (Iterator<Zoom> e = _zooms.iterator(); e.hasNext();) {
+			Zoom z = e.next();
 			if (z.getPlot().equals(plot))
 				return z;
 		}
@@ -270,38 +400,23 @@ public class ZoomInteractor extends ElementInteractor {
 	 * the initial point of the zoom region
 	 */
 	public void mousePressed(MouseEvent e) {
-		if (_isPageMode) {
-			_pix = e.getX();
-			_piy = e.getY();
-			// get Plot clicked on...
-			_plot = getPlot(e.getX(), e.getY());
-			// get zoom object for this plot or create a new one for it...
-			if (DEBUG)
-				System.out.println("Paging: ");
-			if (DEBUG)
-				System.out.println("Initial Point: " + _pix + ", " + _piy);
-			_zoom = getZoomFor(_plot);
-		} else {
-			setInitialPoint(e.getX(), e.getY());
-			// get Plot clicked on...
-			_plot = getPlot(e.getX(), e.getY());
-			// get zoom object for this plot or create a new one for it...
-			_zoom = getZoomFor(_plot);
-			if (DEBUG)
-				System.out.println("Zooming: ");
-			if (DEBUG)
-				System.out.println("Initial Point: " + e.getX() + ", "
-						+ e.getY());
-			_drawDragRect = true;
+		setInitialPoint(e.getX(), e.getY());
+		// get Plot clicked on...
+		_plot = getPlot(e.getX(), e.getY());
+		// get zoom object for this plot or create a new one for it...
+		_zoom = getZoomFor(_plot);
+		if (DEBUG)
+			System.out.println("Zooming: ");
+		if (DEBUG)
+			System.out.println("Initial Point: " + e.getX() + ", " + e.getY());
+		_drawDragRect = true;
 
-			_previouslyDoubleBuffered = _gC.isDoubleBuffered();
-			if (!_previouslyDoubleBuffered)
-				_gC.setDoubleBuffered(true);
+		_previouslyDoubleBuffered = _gC.isDoubleBuffered();
+		if (!_previouslyDoubleBuffered)
+			_gC.setDoubleBuffered(true);
 
-			Rectangle r = _gC.getBounds();
-			_gCImage = _gC.createImage(r.width, r.height);
-			//
-		}
+		Rectangle r = _gC.getBounds();
+		_gCImage = _gC.createImage(r.width, r.height);
 	}
 
 	/**
@@ -313,73 +428,47 @@ public class ZoomInteractor extends ElementInteractor {
 	 * previous zoom state.
 	 */
 	public void mouseReleased(MouseEvent e) {
-		//
-		if (_isPageMode && _mouseDragged) {
-			if (DEBUG)
-				System.out.println("Mouse released on paging mode: ");
-			if (_zoom.getZoomRectangle() == null)
-				return;
-			_pfx = e.getX();
-			_pfy = e.getY();
+		if (_mouseDragged) {
+			_drawDragRect = false;
+
 			// check sensitivity
-			if (Math.pow(_pfx - _pix, 2) + Math.pow(_pfy - _piy, 2) < sensitivity) {
+			if (Math.pow(_xf - _xi, 2) + Math.pow(_yf - _yi, 2) < sensitivity) {
+				_mouseDragged = false;
 				_gC.repaint();
 				return;
 			}
-			Rectangle rb = _gC.getBounds();
-			Rectangle rz = _zoom.getZoomRectangle();
-			int delx = (int) Math.round(((_pfx - _pix) * rz.width * 1.0)
-					/ rb.width);
-			int dely = (int) Math.round(((_pfy - _piy) * rz.height * 1.0)
-					/ rb.height);
-			if (DEBUG)
-				System.out.println("Zooming next page: " + e);
-			if (DEBUG)
-				System.out.println("Moving x by: " + delx + " and y by: "
-						+ dely);
-			_zoom.nextPage(delx, dely);
+
+			setFinalPoint(e.getX(), e.getY());
+
+			if (_zoomRect.width == 0 || _zoomRect.height == 0)
+				return;
+			_zoom.zoomIn(_zoomRect);
+
 			_gC.redoNextPaint();
 			_gC.repaint();
+
+			_mouseDragged = false;
+
+			setZoomOutPagingEnabled(true);
 		} else {
-			if (_mouseDragged) {
-				_drawDragRect = false;
-
-				// check sensitivity
-				if (Math.pow(_xf - _xi, 2) + Math.pow(_yf - _yi, 2) < sensitivity) {
-					_mouseDragged = false;
-					_gC.repaint();
-					return;
-				}
-
-				setFinalPoint(e.getX(), e.getY());
-
-				if (_zoomRect.width == 0 || _zoomRect.height == 0)
-					return;
-				_zoom.zoomIn(_zoomRect);
-
-				_gC.redoNextPaint();
-				_gC.repaint();
-
-				_mouseDragged = false;
-
-			} else {
-			}
 		}
 	}
 
 	/**
-   *
-   */
-	void zoomOut() {
+	 * restores previous zoom
+	 */
+	public void zoomOut() {
 		if (_zoom == null)
 			return;
 		if (_zoom.zoomOut()) {
 
 			_gC.redoNextPaint();
-			// _gC.setDoubleBuffered(_previouslyDoubleBuffered);
 			_gC.repaint();
 
 			_mouseDragged = false;
+		}
+		if (_zoom.isZoomedOutAllTheWay()) {
+			setZoomOutPagingEnabled(false);
 		}
 	}
 
@@ -411,6 +500,9 @@ public class ZoomInteractor extends ElementInteractor {
 	public void pageToPosition(int nPos) {
 		if (!_isPageMode)
 			return;
+		if (_zoom == null) {
+			return;
+		}
 		if (nPos == -1)
 			_zoom.zoomReset();
 		else
@@ -497,62 +589,6 @@ public class ZoomInteractor extends ElementInteractor {
 	 */
 	public void setPagingMode(boolean b) {
 		_isPageMode = b;
-		_drawDragRect = !_isPageMode;
 	}
 
-	/**
-	 * Controls zooming in/out and storage of state for being able to do so.
-	 * 
-	 * @see Zoom
-	 */
-	private Zoom _zoom;
-	/**
-	 * Buffers image so as to avoid flickering while selecting zoom region
-	 */
-	private Image _gCImage;
-	/**
-	 * Graph canvas
-	 */
-	private ElementContext _gC;
-	/**
-	 * Stores flag to indicate if double buffering was being used before
-	 */
-	private boolean _previouslyDoubleBuffered = false;
-	/**
-	 * Flag to indicate zoom region selection is in progress.
-	 */
-	private boolean _drawDragRect = true;
-	/**
-	 * Flag to indicate whether mouse was dragged after mouse button was
-	 * pressed.
-	 */
-	private boolean _mouseDragged = false;
-	/**
-	 * Initial point's x value
-	 */
-	private int _xi = 0;
-	/**
-	 * Initial point's y value
-	 */
-	private int _yi = 0;
-	/**
-	 * Final point's x value
-	 */
-	private int _xf = 0;
-	/**
-	 * Final point's y value
-	 */
-	private int _yf = 0;
-	/**
-	 * Current zooming region
-	 */
-	private Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
-	/**
-	 * color used to draw the zoom rectangle
-	 */
-	private Color _zoomRectColor = Color.black;
-	/**
-	 * Plot object
-	 */
-	private Plot _plot;
 }

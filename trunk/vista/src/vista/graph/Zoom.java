@@ -299,6 +299,10 @@ public class Zoom {
 					.scaleToDC(zr.y), useMinMax);
 		}
 	}
+	
+	public boolean isZoomedOutAllTheWay(){
+		return _zoomHistory.isEmpty();
+	}
 
 	/**
 	 * zoom out to previous state
