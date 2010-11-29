@@ -1,4 +1,5 @@
 /*
+
     Copyright (C) 1996, 1997, 1998 State of California, Department of
     Water Resources.
 
@@ -867,6 +868,17 @@ public class TimeSeriesMath {
 		}
 	}
 
+	public static RegularTimeSeries createShifted(RegularTimeSeries ts,
+			TimeInterval ti) {
+		double[] y = SetUtils.createYArray(ts);
+		Time stime = ts.getStartTime();
+		stime = stime.create(stime);
+		stime.incrementBy(ti);
+		return new RegularTimeSeries(ts.getName(), stime, ts.getTimeInterval(),
+				y, null, ts.getAttributes());
+
+	}
+
 	/**
    *
    */
@@ -1279,8 +1291,8 @@ public class TimeSeriesMath {
 			} else if (snapForward) {
 				tm = tm.ceiling(ti);
 			}
-			int index = (int) stime.getExactNumberOfIntervalsTo(etime, ti);
-			y[index] = Constants.MISSING;
+			int index = (int) stime.getExactNumberOfIntervalsTo(tm, ti);
+			y[index] = iter.getElement().getY();
 		}
 		// create the attributes
 		DataSetAttr oa = its.getAttributes();
@@ -1292,38 +1304,48 @@ public class TimeSeriesMath {
 		return new RegularTimeSeries(its.getName(), stime.toString(), ti
 				.toString(), y, null, attr);
 	}
-
 	/**
-   *
-   */
-	public static RegularTimeSeries snapBackward(IrregularTimeSeries its,
-			TimeInterval ti) {
-		// TimeWindow tw = its.getTimeWindow();
-		// Time stime = its.getStartTime().round(ti);
-		// int nvals =
-		// tw.getStartTime().getExactNumberOfIntervalsTo(tw.getEndTime(),ti)+1;
-		// double [] y = new double[nvals];
-		// Time stime = tw.getStartTime().round(ti);
-		// DataSetIterator iter = its.getIterator();
-		// for(; !iter.atEnd(); iter.advance()){
-		// tm = TimeFactory.getInstance().createTime(iter.getElement().getX());
-		// tm = tm.round(ti);
-		// }
-		// int index = tw.getStartTime();
-		return null;
+	 * Creates a regular time series sample every ti (time interval) from the provided time series, ts
+	 * using interpolation at every point that is a linearly interpolate value between that point and the next point 
+	 * If the next point does not exist (end of series) then the last value is used.
+	 * @param ts
+	 * @param ti
+	 * @return
+	 */
+	public static RegularTimeSeries sampleWithLinearInterpolation(TimeSeries ts, TimeInterval ti){
+		TimeWindow tw = ts.getTimeWindow();
+		// get starting and ending times
+		Time stime = tw.getStartTime();
+		stime = stime.create(stime);
+		stime.floor(ti);
+		Time etime = tw.getEndTime();
+		etime = etime.create(etime);
+		etime = etime.ceiling(ti);
+		// create the attributes
+		DataSetAttr oa = ts.getAttributes();
+		DataSetAttr attr = new DataSetAttr(oa.getGroupName(), oa
+				.getLocationName(), oa.getTypeName(), oa.getSourceName(),
+				DataType.REGULAR_TIME_SERIES, oa.getXUnits(), oa.getYUnits(),
+				oa.getXType(), oa.getYType());
+		//
+		// get number of values
+		int nvals = (int) stime.getExactNumberOfIntervalsTo(etime, ti) + 1;
+		// create a regular time series
+		RegularTimeSeries rts =  new RegularTimeSeries(ts.getName(), stime.toString(), ti
+				.toString(), new double[nvals], null, attr);
+		// set the values
+		DataSetIterator iter = rts.getIterator();
+		for (; !iter.atEnd(); iter.advance()) {
+			DataSetElement element = iter.getElement();
+			double y = Constants.MISSING_VALUE;
+			ts.getElementAt(element.getXString());
+			element.setY(y);
+		}
+		return rts;
 	}
-
 	/**
-   *
-   */
-	public static RegularTimeSeries snapForward(IrregularTimeSeries its,
-			TimeInterval ti) {
-		return null;
-	}
-
-	/**
-   *
-   */
+     *
+     */
 	public static DefaultDataSet mate(TimeSeries ts1, TimeSeries ts2,
 			boolean sortByTime) {
 		MultiIterator mi = new MultiIterator(new TimeSeries[] { ts1, ts2 },
