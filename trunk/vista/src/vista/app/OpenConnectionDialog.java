@@ -90,7 +90,7 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 		// add server panel
 		if (_serverHistory == null) {
 			_serverHistory = new Array();
-			_serverHistory.add(DSSUtil.getDefaultServer());
+			_serverHistory.add("");
 		}
 		_serverField = new JComboBox(getObjectArray(_serverHistory));
 		_serverField.setEditable(true);
@@ -105,13 +105,13 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 			_directoryHistory = new Array();
 			_directoryHistory.add(DSSUtil.getDefaultDirectory());
 		}
-		_directoryField = new JComboBox(getObjectArray(_directoryHistory));
-		_directoryField.setEditable(true);
-		_directoryField.setSelectedIndex(_directoryField.getItemCount() - 1);
+		_databaseField = new JComboBox(getObjectArray(_directoryHistory));
+		_databaseField.setEditable(true);
+		_databaseField.setSelectedIndex(_databaseField.getItemCount() - 1);
 		JPanel directoryPanel = new JPanel();
 		directoryPanel.setLayout(new BorderLayout());
-		directoryPanel.add(new JLabel("DIRECTORY NAME: "), BorderLayout.WEST);
-		directoryPanel.add(_directoryField, BorderLayout.CENTER);
+		directoryPanel.add(new JLabel("Database: "), BorderLayout.WEST);
+		directoryPanel.add(_databaseField, BorderLayout.CENTER);
 		// add server and directory panels
 		connectionPanel.add(serverPanel, BorderLayout.NORTH);
 		connectionPanel.add(directoryPanel, BorderLayout.SOUTH);
@@ -147,7 +147,7 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 	 * returns directory name.
 	 */
 	public String getDirectory() {
-		String str = (String) _directoryField.getSelectedItem();
+		String str = (String) _databaseField.getSelectedItem();
 		return str;
 	}
 
@@ -165,12 +165,8 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 			_serverHistory.add(server);
 		if (!_directoryHistory.contains(server))
 			_directoryHistory.add(dir);
-		new Thread(new Runnable() {
-			public void run() {
-				Executor.execute(new OpenConnectionSessionCommand(MainGUI
-						.getContext(), server, dir, true), _view);
-			}
-		}).start();
+		Executor.execute(new OpenConnectionSessionCommand(MainGUI.getContext(),
+				server, dir, true), _view);
 	}
 
 	/**
@@ -183,7 +179,7 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 	/**
 	 * server and directory
 	 */
-	private JComboBox _serverField, _directoryField;
+	private JComboBox _serverField, _databaseField;
 	/**
    *
    */

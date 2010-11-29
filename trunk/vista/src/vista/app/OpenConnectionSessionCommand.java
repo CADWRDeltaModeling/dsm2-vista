@@ -56,6 +56,8 @@
 package vista.app;
 
 import vista.db.dss.DSSUtil;
+import vista.db.jdbc.bdat.BDATGroup;
+import vista.db.jdbc.bdat.BDATSession;
 import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.Session;
@@ -88,7 +90,8 @@ class OpenConnectionSessionCommand implements Command {
 	 * executes command
 	 */
 	public void execute() throws ExecutionException {
-		Session s = DSSUtil.createSession(_server, _directory);
+		Session s = new Session();
+		s.addGroup(new BDATGroup());
 		_previousSession = _app.getCurrentSession();
 		if (_addOn)
 			_app.setCurrentSession(s.createUnion(_previousSession));
