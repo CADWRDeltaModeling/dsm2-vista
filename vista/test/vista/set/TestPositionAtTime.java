@@ -44,10 +44,10 @@ public class TestPositionAtTime extends TestCase {
 		// position by time between (moving upwards)
 		tsi.positionAtTime(TimeFactory.getInstance().createTime(4));
 		assertEquals(0, tsi.getUnderlyingIndex());
-		tsi.positionAtTime(TimeFactory.getInstance().createTime(13));
-		assertEquals(1, tsi.getUnderlyingIndex());
 		tsi.positionAtTime(TimeFactory.getInstance().createTime(23));
 		assertEquals(2, tsi.getUnderlyingIndex());
+		tsi.positionAtTime(TimeFactory.getInstance().createTime(13));
+		assertEquals(1, tsi.getUnderlyingIndex());
 		tsi.positionAtTime(TimeFactory.getInstance().createTime(39));
 		assertEquals(3, tsi.getUnderlyingIndex());
 		// position by time exact (moving upwards)

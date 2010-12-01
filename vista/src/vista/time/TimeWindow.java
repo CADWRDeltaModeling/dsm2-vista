@@ -115,4 +115,11 @@ public interface TimeWindow extends java.io.Serializable {
 	 * tests for similarity
 	 */
 	public boolean isSameAs(TimeWindow tw);
+
+	/**
+	 * creates a time window which spans both this and the provided time window
+	 * @param timeWindow
+	 * @return 
+	 */
+	public TimeWindow union(TimeWindow timeWindow);
 }

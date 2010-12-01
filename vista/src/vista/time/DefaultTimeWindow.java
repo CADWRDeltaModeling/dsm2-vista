@@ -119,6 +119,27 @@ public class DefaultTimeWindow implements TimeWindow, Serializable {
 	public Time getEndTime() {
 		return _endTime;
 	}
+	
+	/**
+	 * creates a time window which spans both this and the provided time window
+	 * @param timeWindow
+	 * @return 
+	 */
+	public TimeWindow union(TimeWindow timeWindow){
+		if (timeWindow == null){
+			return this.create(this.getStartTime(), this.getEndTime());
+		}
+		long stime = _startTime.getTimeInMinutes();
+		long etime = _endTime.getTimeInMinutes();
+		long ostime = timeWindow.getStartTime().getTimeInMinutes();
+		long oetime = timeWindow.getEndTime().getTimeInMinutes();
+		long nstime = Math.min(stime, ostime);
+		long netime = Math.max(etime, oetime);
+		if (nstime > netime)
+			return null;
+		else
+			return new DefaultTimeWindow(nstime, netime);
+	}
 
 	/**
 	 * creates a time window which is the intersection of this time window with
@@ -217,8 +238,6 @@ public class DefaultTimeWindow implements TimeWindow, Serializable {
 		return buf.toString();
 	}
 
-	/**
-	 * The start and end time for this time window
-	 */
-	private Time _endTime, _startTime;
+	Time _endTime;
+	Time _startTime;
 }

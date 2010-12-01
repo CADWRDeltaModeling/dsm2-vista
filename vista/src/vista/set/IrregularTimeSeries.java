@@ -434,6 +434,18 @@ public class IrregularTimeSeries extends TimeSeries {
 		return _tf.createTimeWindow(getStartTime(), getEndTime());
 	}
 
+	public double[] getXArray() {
+		return _xArray;
+	}
+
+	public double[] getYArray() {
+		return _yArray;
+	}
+
+	public int[] getFlagArray() {
+		return _flagArray;
+	}
+
 	/**
 	 * creates a slice from the current time series.
 	 */
@@ -445,8 +457,8 @@ public class IrregularTimeSeries extends TimeSeries {
 	}
 
 	/**
-   *
-   */
+    *
+    */
 	public TimeSeries createSlice(TimeWindow tw) {
 		TimeWindow twi = tw.intersection(getTimeWindow());
 		if (twi == null)
@@ -854,10 +866,10 @@ public class IrregularTimeSeries extends TimeSeries {
 			double currentTimeInMins = currentElement.getX();
 			int i = _index;
 			if (currentTimeInMins < k) {
-				while (((long)_xArray[i]) < k) {
+				while (((long) _xArray[i]) < k) {
 					i++;
 				}
-				if ((long)_xArray[i] != k){
+				if ((long) _xArray[i] != k) {
 					i--;
 				}
 			} else {
@@ -981,8 +993,8 @@ public class IrregularTimeSeries extends TimeSeries {
 		 */
 		private boolean _firstNextCall;
 		/**
-   *
-   */
+         *
+         */
 		private DataSetElement _maximum, _minimum;
 	}
 }
