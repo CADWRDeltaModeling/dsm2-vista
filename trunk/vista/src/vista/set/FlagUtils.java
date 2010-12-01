@@ -296,6 +296,11 @@ public class FlagUtils {
 		checkFlagType(flagType);
 		checkUserId(uId);
 		int flag = dse.getFlag();
+		flag = setFlagTypeAndUserId(flag, flagType, uId);
+		dse.setFlag(flag);
+	}
+
+	public static int setFlagTypeAndUserId(int flag, int flagType, int uId) {
 		// check to clear other flags
 		for (int i = 2; i <= 5; i++) {
 			flag = clearBit(flag, i);
@@ -321,7 +326,7 @@ public class FlagUtils {
 		}
 		//
 		flag = setUserId(flag, uId);
-		dse.setFlag(flag);
+		return flag;
 	}
 
 	/**

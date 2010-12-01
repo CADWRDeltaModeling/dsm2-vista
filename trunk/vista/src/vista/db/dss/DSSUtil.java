@@ -397,7 +397,7 @@ public class DSSUtil {
 	 * data. Make only additions to this array. Any deletion will result in
 	 * mismatches with the older ids that were in use.
 	 */
-	public static final String[] USERS = { "nsandhu", "rfinch", "kkao", "jamiea",
+	public static final String[] USERS = { "psandhu", "rfinch", "kkao", "jamiea",
 			"eli", "mmierzwa", "tara", "kle", "datachecker" };
 	/**
 	 * users with access to setting flags and writing to data base
