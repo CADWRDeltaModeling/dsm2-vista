@@ -75,6 +75,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
@@ -97,6 +98,7 @@ import vista.graph.PrintPreviewer;
 import vista.graph.ZoomInteractor;
 import vista.gui.VistaUtils;
 import vista.set.DataReference;
+import vista.set.DefaultReference;
 
 /**
  * This class constructs a frame and provides the context with which to interact
@@ -122,9 +124,11 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 	public static String PRINTER_NAME = "";
 	private ZoomInteractor _zi;
 	private FontResizeInteractor _ri;
+	protected TimeSeriesMerger merger;
 
 	/**
 	 * shows graph in a frame with frame title and shows it if isVisible is true
+	 * @wbp.parser.constructor
 	 */
 	public DataGraph(Graph graph, String frameTitle, boolean isVisible) {
 		init(graph, isVisible, frameTitle);
@@ -817,10 +821,60 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		flagMenu.add(flagEdit);
 		flagMenu.add(flagDisplayMenu);
 		//
+		JMenu mergeMenu = new JMenu("Merge");
+		final JMenuItem startMergeMenu = new JMenuItem("Start");
+		mergeMenu.add(startMergeMenu);
+		final JMenuItem cancelMergeMenu = new JMenuItem("Cancel");
+		cancelMergeMenu.setEnabled(false);
+		mergeMenu.add(cancelMergeMenu);
+		final JMenuItem finishMergeMenu = new JMenuItem("Finish");
+		finishMergeMenu.setEnabled(false);
+		mergeMenu.add(finishMergeMenu);
+		
+		startMergeMenu.addActionListener(new ActionListener() {	
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startMergeMenu.setEnabled(false);
+				cancelMergeMenu.setEnabled(true);
+				finishMergeMenu.setEnabled(true);
+				try{
+					merger = new TimeSeriesMerger(_gC);
+				}catch(Exception ex){
+					JOptionPane.showConfirmDialog(DataGraph.this, ex.getMessage());
+				}
+			}
+		});
+		//
+		finishMergeMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DataTable table = new DataTable(new DefaultReference(merger.getMergedData()));
+				table.toFront();
+				startMergeMenu.setEnabled(true);
+				cancelMergeMenu.setEnabled(false);
+				finishMergeMenu.setEnabled(false);
+				merger.removeDataFromGraph();
+				merger=null;
+			}
+		});
+		//
+		cancelMergeMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startMergeMenu.setEnabled(true);
+				cancelMergeMenu.setEnabled(false);
+				finishMergeMenu.setEnabled(false);
+				merger.removeDataFromGraph();
+				merger=null;
+			}
+		});
+		//
 		displayMenu.add(flagMenu);
 		displayMenu.addSeparator();
 		displayMenu.add(displayLocationItem);
 		displayMenu.add(fontResizeItem);
+		displayMenu.addSeparator();
+		displayMenu.add(mergeMenu);
 		displayMenu.addSeparator();
 		displayMenu.add(graphEdit);
 		return displayMenu;

@@ -1,5 +1,7 @@
 package vista.set;
 
+import java.util.ArrayList;
+
 import vista.time.TimeInterval;
 import vista.time.TimeWindow;
 
@@ -373,5 +375,17 @@ public class TimeSeriesMergeUtils {
 		int[] narray = new int[size];
 		System.arraycopy(array, 0, narray, 0, array.length);
 		return narray;
+	}
+
+	public static TimeWindow getTimeWindow(TimeSeries[] timeSeries) {
+		TimeWindow tw = null;
+		for(int i=0; i < timeSeries.length; i++){
+			if (tw==null){
+				tw = timeSeries[i].getTimeWindow();
+			} else {
+				tw = tw.union(timeSeries[i].getTimeWindow());
+			}
+		}
+		return tw;
 	}
 }

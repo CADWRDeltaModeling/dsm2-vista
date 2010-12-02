@@ -98,6 +98,7 @@ import vista.set.DataReference;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.FlagUtils;
+import vista.set.Pathname;
 import vista.set.SetUtils;
 
 /**
@@ -107,6 +108,8 @@ import vista.set.SetUtils;
  * @version $Id: DataTable.java,v 1.1 2003/10/02 20:48:27 redwood Exp $
  */
 public class DataTable extends DefaultFrame {
+	private JLabel pathnameLabel;
+
 	/**
     *
     */
@@ -140,7 +143,7 @@ public class DataTable extends DefaultFrame {
 		infoPanel.setLayout(new GridLayout(5, 1));
 		infoPanel.add(new JLabel(ref.getServername()));
 		infoPanel.add(new JLabel(ref.getFilename()));
-		infoPanel.add(new JLabel(ref.getPathname().toString()));
+		infoPanel.add(pathnameLabel = new JLabel(ref.getPathname().toString()));
 		infoPanel.add(new JLabel("Number of data points: "
 				+ _dataModel.getRowCount()));
 		if (ref.getTimeWindow() != null) {
@@ -290,6 +293,7 @@ public class DataTable extends DefaultFrame {
 				isFlagged(_ref));
 		JMenuItem showStatsItem = new JMenuItem("Show Attributes & Stats");
 		JMenuItem editAttrItem = new JMenuItem("Edit Attributes");
+		JMenuItem editPathnameItem = new JMenuItem("Edit Pathname");
 		JMenu exportDataItem = new JMenu("Export Data to...");
 		JMenuItem dssExport = new JMenuItem("DSS");
 		JMenu txtMenu = new JMenu("Text");
@@ -307,6 +311,7 @@ public class DataTable extends DefaultFrame {
 		dataMenu.add(showFlagsItem);
 		dataMenu.add(showStatsItem);
 		dataMenu.add(editAttrItem);
+		dataMenu.add(editPathnameItem);
 		dataMenu.add(exportDataItem);
 		dataMenu.addSeparator();
 		dataMenu.add(reloadItem);
@@ -330,6 +335,11 @@ public class DataTable extends DefaultFrame {
 		editAttrItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				editAttr(evt);
+			}
+		});
+		editPathnameItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				editPathname(evt);
 			}
 		});
 		dssExport.addActionListener(new ActionListener() {
@@ -523,6 +533,10 @@ public class DataTable extends DefaultFrame {
    */
 	public void editAttr(ActionEvent evt) {
 		new DataSetAttrEditor(_ref.getData());
+	}
+
+	protected void editPathname(ActionEvent evt) {
+		new PathnameEditor(this, _ref);
 	}
 
 	/**
@@ -721,4 +735,8 @@ public class DataTable extends DefaultFrame {
 		public void keyReleased(KeyEvent evt) {
 		}
 	} // end of GotoListener
+
+	public void updatePathnameLabel() {
+		pathnameLabel.setText(_ref.getPathname().toString());
+	}
 }
