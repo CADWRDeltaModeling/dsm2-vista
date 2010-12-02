@@ -92,6 +92,10 @@ public class DataType {
 			return "UNDEFINED";
 		}
 	}
+	
+	public static String[] getDataTypes(){
+		return new String[]{"PER-AVER", "PER-CUM", "INST-VAL", "INST-CUM"};
+	}
 
 	/**
 	 * Undefined
