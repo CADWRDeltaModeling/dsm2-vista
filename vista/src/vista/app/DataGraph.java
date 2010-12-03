@@ -99,6 +99,7 @@ import vista.graph.ZoomInteractor;
 import vista.gui.VistaUtils;
 import vista.set.DataReference;
 import vista.set.DefaultReference;
+import vista.time.TimeWindow;
 
 /**
  * This class constructs a frame and provides the context with which to interact
@@ -830,6 +831,8 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		final JMenuItem finishMergeMenu = new JMenuItem("Finish");
 		finishMergeMenu.setEnabled(false);
 		mergeMenu.add(finishMergeMenu);
+		JMenuItem rangeOverrideMenu = new JMenuItem("Override for Time range...");
+		mergeMenu.add(rangeOverrideMenu);
 		
 		startMergeMenu.addActionListener(new ActionListener() {	
 			@Override
@@ -869,6 +872,16 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 			}
 		});
 		//
+		rangeOverrideMenu.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+				if (merger != null){
+					merger.selectRange();
+				}
+			}
+		});
+		//
 		displayMenu.add(flagMenu);
 		displayMenu.addSeparator();
 		displayMenu.add(displayLocationItem);
@@ -878,5 +891,12 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		displayMenu.addSeparator();
 		displayMenu.add(graphEdit);
 		return displayMenu;
+	}
+
+	
+	public void mergeAndReplace(Curve[] curves, TimeWindow timeWindow){
+		if (merger != null){
+			merger.doMerge(curves, timeWindow);
+		}
 	}
 }

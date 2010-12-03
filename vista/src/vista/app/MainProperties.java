@@ -94,9 +94,9 @@ public class MainProperties {
 		_props.put("gui.connect", "false");
 		// _props.put("","");
 		_props.put("debug", "false");
-		_props.put("email.maintainers", "kjacobs@water.ca.gov");
-		_props.put("default.server", "oakley");
-		_props.put("default.dir", "/delta4/data/dss");
+		_props.put("email.maintainers", "psandhu@water.ca.gov");
+		_props.put("default.server", "");
+		_props.put("default.dir", "");
 		_props.put("default.port", "1099");
 		_props.put("dss.flags", "true");
 		_props.put("dss.localAccess", "true");

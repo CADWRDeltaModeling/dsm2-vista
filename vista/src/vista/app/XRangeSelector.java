@@ -65,6 +65,7 @@ import java.awt.event.MouseMotionListener;
 import vista.graph.CoordinateDisplayInteractor;
 import vista.graph.Curve;
 import vista.graph.GECanvas;
+import vista.graph.RangeActor;
 import vista.graph.RangeSelected;
 import vista.graph.Scale;
 
@@ -79,12 +80,12 @@ public class XRangeSelector implements RangeSelected{
 	private RangeListener rl;
 	private GECanvas _gC;
 	private double _rmin, _rmax;
-	private FlagEditor fe;
+	private RangeActor fe;
 
 	/**
 	 * selects a range on the x axis of the curve in the graph canvas.
 	 */
-	public XRangeSelector(FlagEditor fe, GECanvas gC, Curve curve) {
+	public XRangeSelector(RangeActor fe, GECanvas gC, Curve curve) {
 		_curve = curve;
 		_gC = gC;
 		this.fe = fe;
@@ -95,7 +96,7 @@ public class XRangeSelector implements RangeSelected{
     *
     */
 	void doneSelecting() {
-		fe.doneSelecting();
+		fe.selectedRange(rl.getRangeMin(), rl.getRangeMax(), Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 
 	/**

@@ -88,12 +88,21 @@ public class DialogButtonPanel extends JPanel {
 	 * constructor
 	 */
 	public DialogButtonPanel(Changeable chg) {
+		this(chg, true);
+	}
+
+	/**
+	 * constructor
+	 */
+	public DialogButtonPanel(Changeable chg, boolean addApplyButton) {
 
 		setLayout(new FlowLayout());
 
 		add(okButton = new JButton(OK));
 		add(cancelButton = new JButton(CANCEL));
-		addApplyButton();
+		if (addApplyButton) {
+			addApplyButton();
+		}
 		addChangeable(chg);
 
 	}
@@ -122,7 +131,9 @@ public class DialogButtonPanel extends JPanel {
 	public void addChangeable(Changeable chg) {
 		okButton.addActionListener(new OKListener(chg));
 		cancelButton.addActionListener(new CancelListener(chg));
-		applyButton.addActionListener(new ApplyListener(chg));
+		if (applyButton != null) {
+			applyButton.addActionListener(new ApplyListener(chg));
+		}
 	}
 
 	/**
