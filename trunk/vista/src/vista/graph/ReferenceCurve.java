@@ -170,6 +170,12 @@ public class ReferenceCurve extends Curve {
 		else
 			_dc.drawCurve();
 	}
+	
+	public void setAttributes(GEAttr attr){
+		super.setAttributes(attr);
+		_fc.setAttributes(attr);
+		_dc.setAttributes(attr);
+	}
 
 	/**
 	 * gets preferred size

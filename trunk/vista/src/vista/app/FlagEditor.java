@@ -106,14 +106,6 @@ public class FlagEditor implements RangeActor{
 		}
 	}
 
-	/**
-	 * done selecting is called by the range selector once it is done with its
-	 * job
-	 */
-	void doneSelecting() {
-		fcf = new FlagChoiceFrame(JOptionPane.getFrameForComponent(gC), this);
-	}
-
 	@Override
 	public void selectedRange(int xmin, int xmax, int ymin, int ymax) {
 		fcf = new FlagChoiceFrame(JOptionPane.getFrameForComponent(gC), this);

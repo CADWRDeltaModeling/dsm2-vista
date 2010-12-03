@@ -1,8 +1,7 @@
 package vista.set;
 
-import vista.app.DataTable;
-import vista.app.MultiDataTable;
 import junit.framework.TestCase;
+import vista.app.MultiDataTable;
 
 public class TestTimeSeriesMergeUtils extends TestCase {
 

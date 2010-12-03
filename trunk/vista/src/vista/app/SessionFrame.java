@@ -91,6 +91,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.table.TableModel;
 
 import vista.db.dss.DSSUtil;
@@ -533,7 +536,26 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	 * sets look and feel for this gui.
 	 */
 	private void setLookAndFeel() {
+		/*
+		try {
+		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		        if ("Nimbus".equals(info.getName())) {
+		            UIManager.setLookAndFeel(info.getClassName());
+		            return;
+		        }
+		    }
+		} catch (UnsupportedLookAndFeelException e) {
+		    // handle exception
+		} catch (ClassNotFoundException e) {
+		    // handle exception
+		} catch (InstantiationException e) {
+		    // handle exception
+		} catch (IllegalAccessException e) {
+		    // handle exception
+		}
+	*/
 		String laf = MainProperties.getProperty("gui.lookAndFeel");
+		
 		if (laf.indexOf("vista") >= 0) {
 			VistaUtils.setLookAndFeel(this, "metal.MetalLookAndFeel");
 		} else if (laf.indexOf("motif") >= 0) {
@@ -547,7 +569,7 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 		} else if (laf.indexOf("mac") >= 0) {
 			VistaUtils.setLookAndFeel(this, "mac");
 		} else {
-			VistaUtils.setLookAndFeel(this, "metal.MetalLookAndFeel");
+			VistaUtils.setLookAndFeel(this, laf);
 		}
 	}
 

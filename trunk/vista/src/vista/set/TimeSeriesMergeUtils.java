@@ -8,13 +8,16 @@ import vista.time.TimeWindow;
 public class TimeSeriesMergeUtils {
 
 	private static final int INITIAL_SIZE = 10000;
+
 	/**
-	 * This function replaces the original series with values from the "replacer".
-	 * Note that this applies even if the replacer has missing values and there are values
-	 * that are not missing in the "original" series.
+	 * This function replaces the original series with values from the
+	 * "replacer". Note that this applies even if the replacer has missing
+	 * values and there are values that are not missing in the "original"
+	 * series.
 	 * 
-	 * Timewindow of the resulting series either remains the same or is expanded to accomodate
-	 * the replacer timewindow
+	 * Timewindow of the resulting series either remains the same or is expanded
+	 * to accomodate the replacer timewindow
+	 * 
 	 * @param original
 	 * @param replacer
 	 * @return
@@ -69,7 +72,7 @@ public class TimeSeriesMergeUtils {
 			DataSetAttr attr = new DataSetAttr(DataType.REGULAR_TIME_SERIES,
 					"TIME", attr1.getYUnits(), "", attr1.getYType());
 			String name = original.getName();
-			TimeInterval ti = getInterval(new TimeSeries[]{original, replacer});
+			TimeInterval ti = getInterval(new TimeSeries[] { original, replacer });
 			return new RegularTimeSeries(name, tw.getStartTime(), ti, y, flags,
 					attr);
 		} else {
@@ -86,8 +89,15 @@ public class TimeSeriesMergeUtils {
 			TimeInterval ti = ((RegularTimeSeries) original).getTimeInterval();
 			int size = (int) tw.getStartTime().getExactNumberOfIntervalsTo(
 					tw.getEndTime(), ti) + 1;
-			int srcPos = (int) tw.getStartTime().getExactNumberOfIntervalsTo(
+			int si = (int) tw.getStartTime().getExactNumberOfIntervalsTo(
 					original.getStartTime(), ti);
+			int ei = (int) tw.getStartTime().getExactNumberOfIntervalsTo(
+					original.getEndTime(), ti);
+			int osi = (int) original.getStartTime()
+					.getExactNumberOfIntervalsTo(tw.getStartTime(), ti);
+			int oei = (int) original.getStartTime()
+					.getExactNumberOfIntervalsTo(tw.getEndTime(), ti);
+			
 			double[] origy = ((RegularTimeSeries) original).getYArray();
 			int[] origflags = ((RegularTimeSeries) original).getFlagArray();
 			double[] newy = new double[size];
@@ -101,10 +111,28 @@ public class TimeSeriesMergeUtils {
 					newflags[i] = 0;
 				}
 			}
-			System.arraycopy(origy, 0, newy, srcPos, origy.length);
+
+			int origPos = 0;
+			int origLen = 0;
+			int newPos = 0;
+			if (si > size || ei < 0){ // non-overlapping
+				//leave as is
+			}
+			if (si >=0 && si < size) {
+				origPos = 0;
+				newPos = si;
+				origLen = Math.min(origy.length, size-si+1);
+			} 
+			if (si  < 0 && ei > 0){
+				origPos = -si;
+				newPos = 0;
+				origLen = Math.min(ei+1, size);
+			}
+
+			
+			System.arraycopy(origy, origPos, newy, newPos, origLen);
 			if (origflags != null) {
-				System.arraycopy(origflags, 0, newflags, srcPos,
-						origflags.length);
+				System.arraycopy(origflags, origPos, newflags, newPos, origLen);
 			}
 			String name = original.getName();
 			DataSetAttr attr = original.getAttributes().createClone();
@@ -190,6 +218,10 @@ public class TimeSeriesMergeUtils {
 	 * @return
 	 */
 	public static TimeSeries merge(TimeSeries[] tsArray, TimeWindow tw) {
+		for (int i = 0; i < tsArray.length; i++) {
+			TimeSeries ts = tsArray[i];
+			tsArray[i] = pad(ts, tw);
+		}
 		MultiIterator iterator = new MultiIterator(tsArray);
 		boolean isAllRegular = isAllRegular(tsArray);
 		double[] y = new double[INITIAL_SIZE];
@@ -307,7 +339,7 @@ public class TimeSeriesMergeUtils {
 	public static TimeInterval getInterval(TimeSeries[] tsArray) {
 		if (isAllRegular(tsArray)) {
 			TimeInterval ti = null;
-			for (int i=0; i < tsArray.length; i++) {
+			for (int i = 0; i < tsArray.length; i++) {
 				TimeSeries ts = tsArray[i];
 				RegularTimeSeries rts = (RegularTimeSeries) ts;
 				if (ti == null) {
@@ -332,7 +364,7 @@ public class TimeSeriesMergeUtils {
 	}
 
 	public static boolean isAllRegular(TimeSeries[] tsArray) {
-		for(int i=0; i < tsArray.length; i++){
+		for (int i = 0; i < tsArray.length; i++) {
 			TimeSeries ts = tsArray[i];
 			if (!(ts instanceof RegularTimeSeries)) {
 				return false;
@@ -379,8 +411,8 @@ public class TimeSeriesMergeUtils {
 
 	public static TimeWindow getTimeWindow(TimeSeries[] timeSeries) {
 		TimeWindow tw = null;
-		for(int i=0; i < timeSeries.length; i++){
-			if (tw==null){
+		for (int i = 0; i < timeSeries.length; i++) {
+			if (tw == null) {
 				tw = timeSeries[i].getTimeWindow();
 			} else {
 				tw = tw.union(timeSeries[i].getTimeWindow());
