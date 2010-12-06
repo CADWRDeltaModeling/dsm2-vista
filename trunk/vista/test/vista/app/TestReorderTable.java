@@ -18,7 +18,7 @@ public class TestReorderTable extends TestCase{
 		for(int i=0; i < curves.length; i++){
 			curves[i] = g.getPlot().getCurve(i);
 		}
-		ReorderMergingCurvesDialog table = new ReorderMergingCurvesDialog(curves);
+		ReorderMergingCurvesDialog table = new ReorderMergingCurvesDialog(null,curves);
 		Curve[] curves2 = table.getCurves();
 		System.out.println(curves2);
 	}

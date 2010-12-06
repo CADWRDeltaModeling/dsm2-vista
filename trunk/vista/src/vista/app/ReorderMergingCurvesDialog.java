@@ -3,6 +3,7 @@ package vista.app;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.EventObject;
@@ -12,10 +13,10 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
@@ -33,7 +34,7 @@ public class ReorderMergingCurvesDialog extends JDialog implements Changeable{
 	private JTable table;
 	private boolean reordered;
 
-	public ReorderMergingCurvesDialog(Curve[] curves){
+	public ReorderMergingCurvesDialog(Component comp,Curve[] curves){
 		reordered=false;
 		Object[][] data = new Object[curves.length][1];
 		for(int i=0; i < curves.length; i++){
@@ -67,7 +68,7 @@ public class ReorderMergingCurvesDialog extends JDialog implements Changeable{
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add(mainPanel, BorderLayout.CENTER);
 		getContentPane().add(new DialogButtonPanel(this, false), BorderLayout.SOUTH);
-		
+		this.setLocationRelativeTo(comp);
 		pack();
 		setModal(true);
 		setVisible(true);
