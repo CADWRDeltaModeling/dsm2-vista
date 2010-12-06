@@ -164,7 +164,7 @@ public class TimeSeriesMerger implements RangeActor{
 		}
 		TimeWindow timeWindow = TimeFactory.getInstance().createTimeWindow(st, et);
 		//
-		ReorderMergingCurvesDialog reorderDialog = new ReorderMergingCurvesDialog(this.curves);
+		ReorderMergingCurvesDialog reorderDialog = new ReorderMergingCurvesDialog(canvas,this.curves);
 		//
 		Curve[] newOrder = reorderDialog.getCurves();
 		if (newOrder != null){
