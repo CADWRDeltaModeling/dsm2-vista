@@ -523,8 +523,34 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 			xaxis_name: "Length(ft)",
 			yaxis_name: "Elevation(ft)"
 	};
-	var xvals = pv.map(profile_points,function(d){ return d.x;});
-	var yvals = pv.map(profile_points, function(d){return d.y;});
+	var xvals = pv.map(profile_points,function(d){
+		if (d.x != -999.9){
+			return d.x;
+		}else{
+			return 0;
+		}});
+	var yvals = pv.map(profile_points, function(d){
+		if (d.y != -999.9){
+			return d.y;
+		}else{
+			return 0;
+		}
+	});
+	var xvals2 = pv.map(xsection_points,function(d){
+		if (d.x != -999.9){
+			return d.x;
+		}else{
+			return 0;
+		}});
+	var yvals2 = pv.map(xsection_points, function(d){
+		if (d.y != -999.9){
+			return d.y;
+		}else{
+			return 0;
+		}
+	});
+	xvals=xvals.concat(xvals2)
+	yvals=yvals.concat(yvals2)
 	var x = pv.Scale.linear(pv.min(xvals), pv.max(xvals)).range(w2,w-w2);
 	var y = pv.Scale.linear(pv.min(yvals), pv.max(yvals)).range(h-h2,h2);
 	var xsection = xsection_points.map(function(d){return {x: x(d.x),y: y(d.y)}});
