@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>Spline Editor</title>
+    <script type="text/javascript" src="protovis-d3.3.js"></script>
+    <script type="text/javascript" src="plots.js"></script>
+    <style type="text/css">
+
+#fig {
+  width: 900px;
+  height: 620px;
+}
+
+.header {
+  float: right;
+  padding-top: 5px;
+}
+
+    </style>
+  </head>
+  <body><div id="center"><div id="fig"></div>
+    <script type="text/javascript">
+    var w=800;
+    var h=600;
+    var xsection = [{x: 0, y: 39.5, z:-999.9}, {x: 136.4, y: 20.6, z:-999.9}, {x: 404.6, y: 9.92, z:-999.9},
+                    {x: 613.7, y: -4.209, z:-999.9}, {x: 823.3, y:9.92, z:-999.9}, {x: 1018.3, y: 20.6, z:-999.9}, 
+                    {x: 1227.4, y: 39.5, z:-999.9}];
+	var profile = [ {x: 0, y:-999.9, z:-999.9}, {x: 25.4, y: 32.7, z:-999.9}, {x: 105.5, y: 22.8, z:-999.9}, 
+	                {x: 125.6, y: 13.7, z:-999.9}, {x: 347.6, y: 4.4, z:-999.9}, {x: 553.6, y: -2.7, z:-999.9}, {x: 694.3, y: -4.3, z:-999.9}, 
+	                {x: 897.3, y: 11.5, z:-999.9}, {x: 1033.3, y: 27.6, z:-999.9}, {x: 1434.3, y: 41.3, z:-999.9}, {x: 1533.5, y: 32.6, z:-999.9}];
+	var profile_missing = pv.map(profile, function(p){ return {x:p.x, y:-999.9, z:-999.9}})    
+	var points = pv.range(1,100).map(function(i) { return (
+		{x: Math.random()*1500, y:-5+Math.random()*40, z: Math.random()*400}
+		);
+	});
+    
+	plots.xsection_editor("fig",xsection, profile, points);    
+    </script>
+  </div></body>
+</html>
