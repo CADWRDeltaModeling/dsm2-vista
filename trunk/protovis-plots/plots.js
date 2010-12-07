@@ -511,11 +511,9 @@ return vis;
  * points are an array of objects {x: <distance along the xsection>, y: <depth
  * of the point>, z: <distance perpendicular to the xsection>}
  */
-Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points){
+Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points, w, h){
 	
-	var w = 896,
-		w2 = 50,
-	    h = 586,
+	var w2 = 50,
 	    h2 = 50,
 	    i = 3,
 	    interpolate = "linear";
@@ -554,7 +552,8 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	var x = pv.Scale.linear(pv.min(xvals), pv.max(xvals)).range(w2,w-w2);
 	var y = pv.Scale.linear(pv.min(yvals), pv.max(yvals)).range(h-h2,h2);
 	var xsection = xsection_points.map(function(d){return {x: x(d.x),y: y(d.y)}});
-	var ds = pv.Scale.linear(0,100,200,300,400).range("black","darkblue","dodgerblue","azure","lightgray");
+	var ds = pv.Scale.linear(-400,-200,0,200,400).range("lightgray","lightgreen","green","lightgreen","lightgray");
+	var rs = pv.Scale.linear(0,400).range(6,1);
 	var vis = new pv.Panel()
 		.canvas(div_id)
 	    .width(w+w2)
@@ -610,10 +609,10 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	/* add color legend */
 	vis.add(pv.Panel)
 		.add(pv.Label)
-		.text("Distance from X Section")
+		.text("400   <-     Distance from X Section   ->   0")
 		.textAngle(-Math.PI/2)
 		.right(30)
-		.top(150)
+		.top(170)
 		.add(pv.Bar)
 		.data(pv.range(0,400,5))
 		.right(5)
@@ -626,7 +625,7 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 		.data(function() {return points})
 		.left(function(d) {return x(d.x)})
 		.top(function(d) {return y(d.y)})
-		.shapeRadius(function(d) {return 5})
+		.shapeRadius(function(d) {return rs(Math.abs(d.z))})
 		.strokeStyle(function(d){return ds(d.z)})
 		.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);});
 	/* add profile points */
