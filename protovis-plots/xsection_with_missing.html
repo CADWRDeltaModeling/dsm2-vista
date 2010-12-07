@@ -29,11 +29,11 @@
 	                {x: 897.3, y: 11.5, z:-999.9}, {x: 1033.3, y: 27.6, z:-999.9}, {x: 1434.3, y: 41.3, z:-999.9}, {x: 1533.5, y: 32.6, z:-999.9}];
 	var profile_missing = pv.map(profile, function(p){ return {x:p.x, y:-999.9, z:-999.9}})    
 	var points = pv.range(1,100).map(function(i) { return (
-		{x: Math.random()*1500, y:-5+Math.random()*40, z: Math.random()*400}
+		{x: Math.random()*1500, y:-5+Math.random()*40, z: 400-Math.random()*800}
 		);
 	});
     
-	plots.xsection_editor("fig",xsection, profile, points);    
+	plots.xsection_editor("fig",xsection, profile, points, 600, 400);    
     </script>
   </div></body>
 </html>
