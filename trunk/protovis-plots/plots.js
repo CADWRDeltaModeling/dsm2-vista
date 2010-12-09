@@ -509,7 +509,7 @@ return vis;
  * as an initial set of profile points
  * 
  * points are an array of objects {x: <distance along the xsection>, y: <depth
- * of the point>, z: <distance perpendicular to the xsection>}
+ * of the point>, z: <distance perpendicular to the xsection>, year: <integer year e.g. 1998 that data was collected>}
  */
 Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points, w, h){
 	
@@ -552,7 +552,7 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	var x = pv.Scale.linear(pv.min(xvals), pv.max(xvals)).range(w2,w-w2);
 	var y = pv.Scale.linear(pv.min(yvals), pv.max(yvals)).range(h-h2,h2);
 	var xsection = xsection_points.map(function(d){return {x: x(d.x),y: y(d.y)}});
-	var ds = pv.Scale.linear(-400,-200,0,200,400).range("lightgray","lightgreen","green","lightgreen","lightgray");
+	var ds = pv.Scale.linear(1970,2010).range("lightgray","green");
 	var rs = pv.Scale.linear(0,400).range(6,1);
 	var vis = new pv.Panel()
 		.canvas(div_id)
@@ -609,12 +609,12 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	/* add color legend */
 	vis.add(pv.Panel)
 		.add(pv.Label)
-		.text("400   <-     Distance from X Section   ->   0")
+		.text("2010 <- Year -> 1900")
 		.textAngle(-Math.PI/2)
 		.right(30)
-		.top(170)
+		.top(110)
 		.add(pv.Bar)
-		.data(pv.range(0,400,5))
+		.data(pv.range(1900,2010,2))
 		.right(5)
 		.top(function() { return this.index * 2 })
 		.height(2)
@@ -626,7 +626,7 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 		.left(function(d) {return x(d.x)})
 		.top(function(d) {return y(d.y)})
 		.shapeRadius(function(d) {return rs(Math.abs(d.z))})
-		.strokeStyle(function(d){return ds(d.z)})
+		.strokeStyle(function(d){return ds(d.year)})
 		.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);});
 	/* add profile points */
 	vis.add(pv.Dot)
