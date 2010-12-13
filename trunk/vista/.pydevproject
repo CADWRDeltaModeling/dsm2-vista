@@ -20,5 +20,6 @@
 <path>/vista/lib/pd.jar</path>
 <path>/vista/lib/postgresql-8.4-702.jdbc4.jar</path>
 <path>/vista/bin</path>
+<path>/vista/lib/jyson-1.0.1.jar</path>
 </pydev_pathproperty>
 </pydev_project>
