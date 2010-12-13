@@ -844,7 +844,7 @@ def per_oper(dsref, oper, interval):
         raise 'Operation must be ave, max, or min.'
     if isRTS:
         if isRef:
-            pn = dsref.getPathname()
+            pn = Pathname.createPathname(dsref.getPathname())
             pn.setPart(Pathname.E_PART,interval)
             pn = str(pn)
             return wrap_data(TimeSeriesMath.doPeriodOperation(ds, ti, OPER), \
