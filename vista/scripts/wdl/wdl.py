@@ -18,7 +18,7 @@ class WDLStationAnalyteData:
         self.units = units
     def add(self, date, value):
         try:    
-            t = TF.createTime(date, 'dd/MM/yyyy HH:mm').getTimeInMinutes()
+            t = TF.createTime(date, 'MM/dd/yyyy HH:mm').getTimeInMinutes()
         except e:
             print 'Could not parse time: '+date
             raise e
