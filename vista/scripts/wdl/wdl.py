@@ -144,7 +144,16 @@ def write_to_dss(filename, stationids):
             print "Could not get data for: %s"%station_id
 #
 if __name__ == '__main__':
-    stationids=wdl.get_all_stationids(wdl.DELTA_MAP_BOUNDS)
+    print 'Retrieving all station ids with Delta Map Boundaries'
+    sys.stdout.flush()
+    stationids=get_all_stationids(DELTA_MAP_BOUNDS)
+    print 'Done retrieving station ids: %d'%(len(stationids))
+    sys.stdout.flush()
     filename='d:/temp/wdl.dss'
+    if len(sys.argv) > 1:
+        filename=sys.argv[1]
+    print 'Downloading data to %s'%filename
+    sys.stdout.flush()
     write_to_dss(filename,stationids)
+    print 'Done downloading data to %s'%filename
 #
