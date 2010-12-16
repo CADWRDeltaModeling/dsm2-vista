@@ -238,6 +238,8 @@ public class MathOperationsPanel extends JPanel {
 		mainPane.addTab("Period Ops", miscPanel);
 		mainPane.addTab("Filling", pairPanel);
 		mainPane.addTab("Averaging", maPanel);
+		mainPane.addTab("Conversion", new ConversionOperationsPanel(table));
+		mainPane.addTab("Shifting", new ShiftingTimeOperationsPanel(table));
 		//  
 		setLayout(new BorderLayout());
 		add(mainPane, BorderLayout.CENTER);

@@ -96,6 +96,8 @@ public class TimeSeriesMath {
 	public static final String PERIOD_LAST_AVERAGE_STR = "period-last-average";
 	public static final String PERIOD_LAST_MIN_STR = "period-last-min";
 	public static final String PERIOD_LAST_MAX_STR = "period-last-max";
+	public static final int LAST_VAL = 100;
+	public static final int LINEAR = 200;
 	public static boolean DUMB_PATCH = false;
 	private static ElementFilter _filter = Constants.DEFAULT_FLAG_FILTER;
 
@@ -871,11 +873,15 @@ public class TimeSeriesMath {
 	public static RegularTimeSeries createShifted(RegularTimeSeries ts,
 			TimeInterval ti) {
 		double[] y = SetUtils.createYArray(ts);
+		int[] flags = null;
+		if (ts.isFlagged()) {
+			flags = SetUtils.createFlagArray(ts);
+		}
 		Time stime = ts.getStartTime();
 		stime = stime.create(stime);
 		stime.incrementBy(ti);
 		return new RegularTimeSeries(ts.getName(), stime, ts.getTimeInterval(),
-				y, null, ts.getAttributes());
+				y, flags, ts.getAttributes());
 
 	}
 
@@ -884,12 +890,8 @@ public class TimeSeriesMath {
    */
 	public static RegularTimeSeries createShifted(RegularTimeSeries ts,
 			int shift) {
-		double[] y = SetUtils.createYArray(ts);
-		Time stime = ts.getStartTime();
-		stime = stime.create(stime);
-		stime.incrementBy(ts.getTimeInterval(), shift);
-		return new RegularTimeSeries(ts.getName(), stime, ts.getTimeInterval(),
-				y, null, ts.getAttributes());
+		TimeInterval ti = ts.getTimeInterval().__mul__(shift);
+		return createShifted(ts, ti);
 	}
 
 	/**
@@ -900,13 +902,6 @@ public class TimeSeriesMath {
 		return ts.__sub__(ts1);
 	}
 
-	/*
-	 * 
-	 * public static RegularTimeSeries
-	 * createMovingAveragedModel(RegularTimeSeries rts, double [] coeffs){
-	 * 
-	 * for(int i=0; i < coeffs.length; i++){ } }
-	 */
 	/**
    *
    */
@@ -915,6 +910,10 @@ public class TimeSeriesMath {
 		int ncount = ts.size();
 		double[] x = new double[ncount];
 		double[] y = new double[ncount];
+		int[] flags = null;
+		if (ts.isFlagged()) {
+			flags = new int[ncount];
+		}
 		DataSetElement dse;
 		DataSetIterator dsi = ts.getIterator();
 		TimeFactory tf = TimeFactory.getInstance();
@@ -926,8 +925,11 @@ public class TimeSeriesMath {
 			Time tm = tf.createTime(Math.round(x[i]));
 			tm.incrementBy(ti);
 			x[i] = tm.getTimeInMinutes();
+			if (ts.isFlagged()) {
+				flags[i] = dse.getFlag();
+			}
 		}
-		return new IrregularTimeSeries(ts.getName(), x, y, null, ts
+		return new IrregularTimeSeries(ts.getName(), x, y, flags, ts
 				.getAttributes());
 	}
 
@@ -1279,6 +1281,13 @@ public class TimeSeriesMath {
 		for (int i = 0; i < y.length; i++) {
 			y[i] = Constants.MISSING_VALUE;
 		}
+		int[] flags = null;
+		if (its.isFlagged()) {
+			flags = new int[nvals];
+			for (int i = 0; i < y.length; i++) {
+				flags[i] = 0;
+			}
+		}
 		// set the values
 		DataSetIterator iter = its.getIterator();
 		for (; !iter.atEnd(); iter.advance()) {
@@ -1293,6 +1302,9 @@ public class TimeSeriesMath {
 			}
 			int index = (int) stime.getExactNumberOfIntervalsTo(tm, ti);
 			y[index] = iter.getElement().getY();
+			if (its.isFlagged()) {
+				flags[index] = iter.getElement().getFlag();
+			}
 		}
 		// create the attributes
 		DataSetAttr oa = its.getAttributes();
@@ -1302,17 +1314,27 @@ public class TimeSeriesMath {
 				oa.getXType(), oa.getYType());
 		// create a regular time series and return it
 		return new RegularTimeSeries(its.getName(), stime.toString(), ti
-				.toString(), y, null, attr);
+				.toString(), y, flags, attr);
 	}
+
 	/**
-	 * Creates a regular time series sample every ti (time interval) from the provided time series, ts
-	 * using interpolation at every point that is a linearly interpolate value between that point and the next point 
-	 * If the next point does not exist (end of series) then the last value is used.
+	 * Creates a regular time series sample every ti (time interval) from the
+	 * provided time series, ts using last value or interpolation at every point
+	 * linearly interpolatee value between that point and the next point.
+	 * <p>
+	 * Flags are inherited for last value in the case of LAST_VAL
+	 * <p>
+	 * If the next point does not exist (end of series) then the last value is
+	 * used.
+	 * 
 	 * @param ts
 	 * @param ti
-	 * @return
+	 * @param sampleType
+	 *            either TimeSeriesMath.LINEAR or TimeSeriesMath.LAST_VAL
+	 * @return a regular time series with time interval of ti
 	 */
-	public static RegularTimeSeries sampleWithLinearInterpolation(TimeSeries ts, TimeInterval ti){
+	public static RegularTimeSeries sample(TimeSeries ts, TimeInterval ti,
+			int sampleType) {
 		TimeWindow tw = ts.getTimeWindow();
 		// get starting and ending times
 		Time stime = tw.getStartTime();
@@ -1327,22 +1349,62 @@ public class TimeSeriesMath {
 				.getLocationName(), oa.getTypeName(), oa.getSourceName(),
 				DataType.REGULAR_TIME_SERIES, oa.getXUnits(), oa.getYUnits(),
 				oa.getXType(), oa.getYType());
-		//
 		// get number of values
 		int nvals = (int) stime.getExactNumberOfIntervalsTo(etime, ti) + 1;
+		int[] flags = null;
+		if (ts.isFlagged()) {
+			flags = new int[nvals];
+		}
 		// create a regular time series
-		RegularTimeSeries rts =  new RegularTimeSeries(ts.getName(), stime.toString(), ti
-				.toString(), new double[nvals], null, attr);
-		// set the values
+		RegularTimeSeries rts = new RegularTimeSeries(ts.getName(), stime
+				.toString(), ti.toString(), new double[nvals], flags, attr);
+
 		DataSetIterator iter = rts.getIterator();
+		TimeSeriesIterator iter2 = (TimeSeriesIterator) ts.getIterator();
+		TimeFactory TF = TimeFactory.getInstance();
 		for (; !iter.atEnd(); iter.advance()) {
 			DataSetElement element = iter.getElement();
-			double y = Constants.MISSING_VALUE;
-			ts.getElementAt(element.getXString());
-			element.setY(y);
+			iter2.positionAtTime(TF.createTime(element.getXString()));
+			TimeElement elementAt = (TimeElement) iter2.getElement();
+			if (sampleType == LAST_VAL) {
+				element.setY(elementAt.getY());
+				if (ts.isFlagged()) {
+					element.setFlag(elementAt.getFlag());
+				}
+			} else if (sampleType == LINEAR){
+				if (_filter.isAcceptable(elementAt)){
+					elementAt = (TimeElement) elementAt.createClone();
+					TimeElement nextElement = (TimeElement) iter2.getElement();
+					if (_filter.isAcceptable(nextElement)){
+						element.setY(calculateLinearlyInterpolatedValue(element,elementAt, nextElement));
+						element.setFlag(elementAt.getFlag());
+					}
+				} else {
+					element.setY(Constants.MISSING);
+					element.setFlag(0);
+				}
+			} else {
+				element.setY(Constants.MISSING);
+			}
+			iter.putElement(element);
 		}
 		return rts;
 	}
+
+	private static double calculateLinearlyInterpolatedValue(
+			DataSetElement element, TimeElement elementAt,
+			TimeElement nextElement) {
+		double x1 = elementAt.getX();
+		double y1 = elementAt.getY();
+		double x2 = nextElement.getX();
+		double y2 = nextElement.getY();
+		double x = element.getX();
+		if (x2==x1){
+			return y1;
+		}
+		return (y2-y1)/(x2-x1)*(x-x1)+y1;
+	}
+
 	/**
      *
      */
@@ -1428,4 +1490,5 @@ public class TimeSeriesMath {
 		}
 		return sum2 == 0 ? 0 : sum1 / sum2;
 	}
+
 }
