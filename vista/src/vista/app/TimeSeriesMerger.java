@@ -108,6 +108,8 @@ public class TimeSeriesMerger implements RangeActor{
 		Graph graph = (Graph) this.canvas.getGraphicElement();
 		graph.getPlot().removeCurve(mergedCurve);
 		graph.getLegend().remove(mergedLegendItem);
+		this.canvas.redoNextPaint();
+		this.canvas.repaint();
 	}
 	
 	/**
