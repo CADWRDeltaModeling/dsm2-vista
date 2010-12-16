@@ -118,12 +118,10 @@ public class SessionTable extends SessionView implements RowMovable, View {
 		Group cg = MainGUI.getContext().getCurrentGroup();
 		if (cg != null) {
 			if (_groupTable != null) {
-				if (!_groupTable.getGroupTable().getGroup().equals(cg)) {
-					if (!_groupTable.isVisible())
-						_groupTable = new GroupFrame(cg);
-					else
-						_groupTable.getGroupTable().setGroup(cg);
-				}
+				if (!_groupTable.isVisible())
+					_groupTable = new GroupFrame(cg);
+				else
+					_groupTable.getGroupTable().setGroup(cg);
 			} else {
 				_groupTable = new GroupFrame(cg);
 			}
