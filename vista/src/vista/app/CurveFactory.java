@@ -308,11 +308,11 @@ public class CurveFactory {
 				cdm = new PerValFlaggedCurveModel((RegularTimeSeries) ds, null,
 						xAxisPos, yAxisPos, legend);
 			} else {
-				cdm = new InstValFlaggedCurveModel(ds, null, xAxisPos,
+				cdm = new InstValFlaggedCurveModel(ds, AppUtils.getCurrentCurveFilter(), xAxisPos,
 						yAxisPos, legend);
 			}
 		} else {
-			cdm = new InstValFlaggedCurveModel(ds, null, xAxisPos, yAxisPos,
+			cdm = new InstValFlaggedCurveModel(ds, AppUtils.getCurrentCurveFilter(), xAxisPos, yAxisPos,
 					legend);
 		}
 		return cdm;
