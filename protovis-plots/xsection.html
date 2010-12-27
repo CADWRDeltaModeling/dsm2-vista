@@ -26,9 +26,14 @@
 		{x: Math.random()*800-400, y:-10+Math.random()*7, z: 400-Math.random()*800, year: Math.random()*50+1960}
 		);
 	});
-	var xsection = profile.map(function(d){ return Object.create(d);});
+	var xsection = profile.map(function(d){ return {x: d.x, y:d.y};});
     
 	plots.xsection_editor("fig",xsection, profile, points, 600, 400);    
     </script>
-  </div></body>
+  </div>
+    <p> Click to add points or click and drag existing points. Also delete to delete currently selected point if any. If you want to insert points carefully
+  place mouse on the line between the two points (cursor should change). Then click to insert point.
+  </p>
+  
+  </body>
 </html>
