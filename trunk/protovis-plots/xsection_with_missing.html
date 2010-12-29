@@ -61,6 +61,7 @@ Also hovering over the bathymetry points will show the available information for
     var xsection = [{x: 0, y: 39.5, z:-999.9}, {x: 136.4, y: 20.6, z:-999.9}, {x: 404.6, y: 9.92, z:-999.9},
                     {x: 613.7, y: -4.209, z:-999.9}, {x: 823.3, y:9.92, z:-999.9}, {x: 1018.3, y: 20.6, z:-999.9}, 
                     {x: 1227.4, y: 39.5, z:-999.9}];
+	var dsm2xs = xsection.map(function(d){ return {x: d.x*(1.2-0.4*Math.random()), y:d.y*(1.2-0.4*Math.random())};});
 	var profile = [ {x: 0, y:-999.9, z:-999.9}, {x: 25.4, y: 32.7, z:-999.9}, {x: 105.5, y: 22.8, z:-999.9}, 
 	                {x: 125.6, y: 13.7, z:-999.9}, {x: 347.6, y: 4.4, z:-999.9}, {x: 553.6, y: -2.7, z:-999.9}, {x: 694.3, y: -4.3, z:-999.9}, 
 	                {x: 897.3, y: 11.5, z:-999.9}, {x: 1033.3, y: 27.6, z:-999.9}, {x: 1434.3, y: 41.3, z:-999.9}, {x: 1533.5, y: 32.6, z:-999.9}];
@@ -70,7 +71,7 @@ Also hovering over the bathymetry points will show the available information for
 		);
 	});
     
-	plots.xsection_editor("fig",xsection, profile, points, w, h);    
+	plots.xsection_editor("fig",xsection, dsm2xs, profile, points, w, h);    
     </script></div>
 </body>
 </html>
