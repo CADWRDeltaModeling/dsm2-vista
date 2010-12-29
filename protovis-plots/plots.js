@@ -511,7 +511,7 @@ return vis;
  * points are an array of objects {x: <distance along the xsection>, y: <depth
  * of the point>, z: <distance perpendicular to the xsection>, year: <integer year e.g. 1998 that data was collected>}
  */
-Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points, width, height){
+Plots.prototype.xsection_editor = function(div_id,xsection_points, dsm2xs,profile_points,points, width, height){
 	var w2 = 50,
 	    h2 = 50,
 	    i = 3,
@@ -682,6 +682,17 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	    .event("dragend", function(d){ i=this.index; var xp = xsection_points[i]; var p=xsection[i]; xp.x=x.invert(p.x); xp.y=y.invert(p.y);})
 	    .event("drag", vis);
 
+	/* dsm2 xsection line */
+	if (dsm2xs != null){
+	vis.add(pv.Line)
+	    .data(function() {return dsm2xs})
+	    .left(function(d) {return x(d.x)})
+	    .top(function(d) {return y(d.y)})
+	    .interpolate(function() {return interpolate})
+	    .strokeStyle(pv.color("red").alpha(0.6))
+	    .dashArray("5 3 2")
+	    .lineWidth(2);
+	}
 	vis.render();
 
 	pv.listen(window, "mousedown", function() {return self.focus()});

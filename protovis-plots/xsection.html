@@ -64,8 +64,9 @@ Also hovering over the bathymetry points will show the available information for
 		);
 	});
 	var xsection = profile.map(function(d){ return {x: d.x, y:d.y};});
+	var dsm2xs = profile.map(function(d){ return {x: d.x*(1.2-0.4*Math.random()), y:d.y*(1.2-0.4*Math.random())};});
     
-	plots.xsection_editor("fig",xsection, profile, points, w, h);    
+	plots.xsection_editor("fig",xsection, dsm2xs, profile, points, w, h);    
     </script></div>
 
 </body>
