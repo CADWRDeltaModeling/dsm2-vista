@@ -511,12 +511,13 @@ return vis;
  * points are an array of objects {x: <distance along the xsection>, y: <depth
  * of the point>, z: <distance perpendicular to the xsection>, year: <integer year e.g. 1998 that data was collected>}
  */
-Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points, w, h){
-	
+Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points,points, width, height){
 	var w2 = 50,
 	    h2 = 50,
 	    i = 3,
 	    interpolate = "linear";
+	var margin=70, right_margin=100;
+	var w = width-w2-margin-right_margin, h=height-h2-2*margin;
 	var data = {
 			xaxis_name: "Length(ft)",
 			yaxis_name: "Elevation(ft)"
@@ -562,8 +563,8 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 	    .strokeStyle("#ccc")
 	    .lineWidth(4)
 	    .antialias(false)
-	    .margin(70)
-	    .right(100)
+	    .margin(margin)
+	    .right(right_margin)
 	    .event("mousedown", function() {
 	        var m = this.mouse();
 	        xsection_points.push({x: x.invert(m.x), y: y.invert(m.y)});
@@ -611,15 +612,27 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 		.add(pv.Label)
 		.text("2010 <- Year -> 1900")
 		.textAngle(-Math.PI/2)
-		.right(30)
+		.left(36)
 		.top(110)
 		.add(pv.Bar)
 		.data(pv.range(1900,2010,2))
-		.right(5)
+		.left(5)
 		.top(function() { return this.index * 2 })
 		.height(2)
 		.width(20)
-		.fillStyle(function(d) {return ds(d)})
+		.fillStyle(function(d) {return ds(d)});
+	/* add point size legend */
+	vis.add(pv.Panel)
+		.add(pv.Label)
+		.text("0 <- Distance -> 400")
+		.left(45)
+		.top(15)
+		.add(pv.Dot)
+		.data(pv.range(0,400,100))
+		.left(function(d){ return 50+this.index*30;})
+		.top(25)
+		.shapeRadius(function(d){return rs(Math.abs(d));})
+		.strokeStyle("green");
 	/* data points */
 	vis.add(pv.Dot)
 		.data(function() {return points})
@@ -627,7 +640,8 @@ Plots.prototype.xsection_editor = function(div_id,xsection_points,profile_points
 		.top(function(d) {return y(d.y)})
 		.shapeRadius(function(d) {return rs(Math.abs(d.z))})
 		.strokeStyle(function(d){return ds(d.year)})
-		.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);});
+		.fillStyle(function(d) {return this.strokeStyle().alpha(0.2);})
+		.title(function(d){ return "year: "+Math.round(d.year)+", distance: "+Math.round(d.z*10)/10});
 	/* add profile points */
 	vis.add(pv.Dot)
 		.data(function() {return profile_points})
