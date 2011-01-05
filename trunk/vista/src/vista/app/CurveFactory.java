@@ -143,7 +143,7 @@ public class CurveFactory {
 	/**
    *
    */
-	public static Curve createFlaggedCurve(DataSet ds, int xAxisPos,
+	private static Curve createFlaggedCurve(DataSet ds, int xAxisPos,
 			int yAxisPos, String legend) {
 		CurveDataModel cdm = null;
 		if (ds instanceof RegularTimeSeries) {
@@ -181,7 +181,7 @@ public class CurveFactory {
 	/**
    *
    */
-	public static Curve createCurve(DataSet ds, int xAxisPos, int yAxisPos,
+	private static Curve createCurve(DataSet ds, int xAxisPos, int yAxisPos,
 			String legend) {
 		if (ds instanceof RegularTimeSeries)
 			return createCurve((RegularTimeSeries) ds, xAxisPos, yAxisPos,
@@ -200,16 +200,17 @@ public class CurveFactory {
    *
    */
 
-	public static Curve createCurve(RegularTimeSeries rts, int xAxisPos,
+	private static Curve createCurve(RegularTimeSeries rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
-		CurveDataModel cdm = new InstValCurveModel(rts, AppUtils
-				.getCurrentCurveFilter(), xAxisPos, yAxisPos, legend);
+		CurveDataModel cdm = null;
 		if (attr != null) {
 			if (attr.getYType().indexOf("PER") >= 0) {
-				cdm = new PerValCurveModel(rts, AppUtils
-						.getCurrentCurveFilter(), xAxisPos, yAxisPos, legend);
+				cdm = new PerValCurveModel(rts, null, xAxisPos, yAxisPos, legend);
 			}
+		}
+		if (cdm==null){
+			 cdm = new InstValCurveModel(rts, null, xAxisPos, yAxisPos, legend);
 		}
 		CurveDataModel cdmf = createFlaggedCurveDataModel(rts, xAxisPos,
 				yAxisPos, legend);
@@ -219,7 +220,7 @@ public class CurveFactory {
 	/**
    *
    */
-	public static Curve createCurve(IrregularTimeSeries rts, int xAxisPos,
+	private static Curve createCurve(IrregularTimeSeries rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
 		CurveDataModel cdm = new InstValCurveModel(rts, AppUtils
@@ -232,7 +233,7 @@ public class CurveFactory {
 	/**
    *
    */
-	public static Curve createCurve(DefaultDataSet rts, int xAxisPos,
+	private static Curve createCurve(DefaultDataSet rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
 		CurveDataModel cdm = new InstValCurveModel(rts, AppUtils
@@ -305,7 +306,7 @@ public class CurveFactory {
 		if (ds instanceof RegularTimeSeries) {
 			DataSetAttr attr = ds.getAttributes();
 			if (attr == null || attr.getYType().indexOf("PER") >= 0) {
-				cdm = new PerValFlaggedCurveModel((RegularTimeSeries) ds, null,
+				cdm = new PerValFlaggedCurveModel((RegularTimeSeries) ds, AppUtils.getCurrentCurveFilter(),
 						xAxisPos, yAxisPos, legend);
 			} else {
 				cdm = new InstValFlaggedCurveModel(ds, AppUtils.getCurrentCurveFilter(), xAxisPos,

@@ -101,6 +101,9 @@ public class Executor {
 				_historyView.push(view);
 			} catch (Exception ex) {
 				VistaUtils.displayException((Component) view, ex);
+			} finally {
+				SwingUtilities.getRootPane((JComponent) view).setCursor(
+						oldCursor);
 			}
 			return com;
 		}
@@ -141,6 +144,8 @@ public class Executor {
 					oldCursor);
 			worker.execute();
 		} catch (Exception e) {
+			SwingUtilities.getRootPane((JComponent) view).setCursor(
+					oldCursor);
 			VistaUtils.displayException(null, e);
 		}
 	}

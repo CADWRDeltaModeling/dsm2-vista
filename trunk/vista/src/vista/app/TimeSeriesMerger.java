@@ -14,6 +14,7 @@ import vista.graph.LegendItem;
 import vista.graph.Plot;
 import vista.graph.RangeActor;
 import vista.set.DataReference;
+import vista.set.DefaultReference;
 import vista.set.RegularTimeSeries;
 import vista.set.TimeSeries;
 import vista.set.TimeSeriesMergeUtils;
@@ -47,7 +48,8 @@ public class TimeSeriesMerger implements RangeActor{
 		// do merge using order in plot and union of time windows
 		TimeWindow tw = TimeSeriesMergeUtils.getTimeWindow(timeSeries);
 		merged = TimeSeriesMergeUtils.merge(timeSeries, tw);
-		mergedCurve = CurveFactory.createCurve(merged, ((Curve)curves[0]).getXAxis().getPosition(), ((Curve)curves[0]).getYAxis().getPosition(), "Merged");
+		DataReference mergedReference = new DefaultReference(merged);
+		mergedCurve = CurveFactory.createCurve(mergedReference, ((Curve)curves[0]).getXAxis().getPosition(), ((Curve)curves[0]).getYAxis().getPosition(), "Merged");
 		plot.addCurve(mergedCurve);
 		graph.getLegend().add(mergedLegendItem = new LegendItem(mergedCurve));
 		canvas.redoNextPaint();
@@ -92,14 +94,7 @@ public class TimeSeriesMerger implements RangeActor{
 	public void doMerge(Curve[] curves, TimeWindow timeWindow){
 		TimeSeries[] timeSeries = extractTimeSeriesFromCurves(curves);
 		TimeSeries replacer = TimeSeriesMergeUtils.merge(timeSeries, timeWindow);
-		merged = TimeSeriesMergeUtils.replace(merged, replacer);
-		GEAttr attributes = mergedCurve.getAttributes();
-		plot.removeCurve(mergedCurve);
-		graph.getLegend().remove(mergedLegendItem);
-		mergedCurve = CurveFactory.createCurve(merged, ((Curve)curves[0]).getXAxis().getPosition(), ((Curve)curves[0]).getYAxis().getPosition(), "Merged");
-		mergedCurve.setAttributes(attributes);
-		plot.addCurve(mergedCurve);
-		graph.getLegend().add(mergedLegendItem = new LegendItem(mergedCurve));
+		TimeSeriesMergeUtils.replaceInPlace(merged, replacer);
 		canvas.redoNextPaint();
 		canvas.repaint();
 	}

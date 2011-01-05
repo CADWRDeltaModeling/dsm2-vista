@@ -8,6 +8,26 @@ import vista.time.TimeWindow;
 public class TimeSeriesMergeUtils {
 
 	private static final int INITIAL_SIZE = 10000;
+	/**
+	 * Replaces time series in place only if there is an overlay
+	 * @param original
+	 * @param replacer
+	 */
+	public static void replaceInPlace(TimeSeries original, TimeSeries replacer) {
+		MultiIterator iterator = new MultiIterator(new TimeSeries[] { original,
+				replacer });
+		while(!iterator.atEnd()){
+			DataSetElement dse = iterator.getElement();
+			if (!Double.isNaN(dse.getX(2)) && !Double.isNaN(dse.getX(1))){
+				dse.setX(1, dse.getX(2));
+				if (original.isFlagged() && replacer.isFlagged()){
+					dse.setFlag(0, dse.getFlag(1));
+				}
+				iterator.putElement(dse);
+			}
+			iterator.advance();
+		}
+	}
 
 	/**
 	 * This function replaces the original series with values from the
