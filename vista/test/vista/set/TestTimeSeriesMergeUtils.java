@@ -66,6 +66,18 @@ public class TestTimeSeriesMergeUtils extends TestCase {
 		assertEquals(rts1.getTimeWindow().union(rts3.getTimeWindow()), replaced
 				.getTimeWindow());
 	}
+	
+	public void testReplaceInPlace(){
+		RegularTimeSeries series1 = new RegularTimeSeries("series1","01JAN1990 0100", "1HOUR", new double[]{5, 10, 15, Constants.MISSING_VALUE});
+		RegularTimeSeries series2 = new RegularTimeSeries("series2","01JAN1990 0200", "1HOUR", new double[]{-5, -10, -15});
+		assertApproxEquals(5, series1.getElementAt(0).getY());
+		assertApproxEquals(10, series1.getElementAt(1).getY());
+		assertApproxEquals(Constants.MISSING_VALUE, series1.getElementAt(3).getY());
+		TimeSeriesMergeUtils.replaceInPlace(series1, series2);
+		assertApproxEquals(5, series1.getElementAt(0).getY());
+		assertApproxEquals(-5, series1.getElementAt(1).getY());
+		assertApproxEquals(-15, series1.getElementAt(3).getY());
+	}
 
 	public static void assertApproxEquals(double expected, double actual) {
 		assertTrue(Math.abs(expected - actual) < 1e-6);

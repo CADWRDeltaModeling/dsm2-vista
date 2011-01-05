@@ -106,10 +106,11 @@ public class GroupTableModel extends AbstractTableModel {
 		if (columnIndex == 0)
 			return new Integer(rowIndex + 1).toString();
 		columnIndex = columnIndex - 1;
-		if (columnIndex != Pathname.D_PART)
+		if (columnIndex != Pathname.D_PART){
+			// FIXME: can throw null pointer exception.
 			return _group.getDataReference(rowIndex).getPathname().getPart(
 					columnIndex);
-		else {
+		} else {
 			TimeWindow tw = _group.getDataReference(rowIndex).getTimeWindow();
 			if (tw != null)
 				return tw.toString();
