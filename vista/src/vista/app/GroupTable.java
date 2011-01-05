@@ -684,7 +684,6 @@ public class GroupTable extends JPanel implements RowMovable, View {
 	public void graphData() {
 		Runnable task = new Runnable() {
 			public void run() {
-				setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				try {
 					int[] rows = _table.getSelectedRows();
 					if (rows == null || rows.length == 0)
@@ -711,7 +710,6 @@ public class GroupTable extends JPanel implements RowMovable, View {
 				} catch (Exception e) {
 					VistaUtils.displayException(GroupTable.this, e);
 				} finally {
-					setCursor(Cursor.getDefaultCursor());
 					setMonitorValue(0);
 				}
 			}
