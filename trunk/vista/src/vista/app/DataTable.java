@@ -67,6 +67,7 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -84,11 +85,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
-
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
 
 import vista.db.dss.DSSUtil;
 import vista.graph.Graph;
@@ -675,15 +671,8 @@ public class DataTable extends DefaultFrame {
 				value = new Double(field.getText()).doubleValue();
 			} catch (NumberFormatException nfe) {
 				String text = field.getText();
-				Pattern pattern;
-				Perl5Matcher matcher = new Perl5Matcher();
-				try {
-					pattern = new Perl5Compiler().compile(text,
-							Perl5Compiler.CASE_INSENSITIVE_MASK);
-				} catch (MalformedPatternException mpe) {
-					throw new RuntimeException("Invalid Regular Expression "
-							+ text);
-				}
+				
+				Pattern pattern = Pattern.compile(text, Pattern.CASE_INSENSITIVE);
 				int cpos = scrollBar.getValue();
 				int nearestValue = (int) Math.round(cpos
 						* _dataModel.getRowCount() / scrollBar.getMaximum());
@@ -706,7 +695,7 @@ public class DataTable extends DefaultFrame {
 						continue;
 					}
 					String ctxt = (String) obj;
-					gotMatch = matcher.contains(ctxt, pattern);
+					gotMatch = pattern.matcher(ctxt).find();
 					if (forwardSearch)
 						nearestValue++;
 					else

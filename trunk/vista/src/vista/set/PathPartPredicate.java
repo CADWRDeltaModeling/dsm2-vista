@@ -60,6 +60,7 @@ package vista.set;
  * Matches the given regular expression to a certain pathname part.
  * 
  */
+@SuppressWarnings("serial")
 public class PathPartPredicate extends RegExPredicate {
 	/**
 	 * initializes the regular expression compilers
@@ -85,8 +86,8 @@ public class PathPartPredicate extends RegExPredicate {
 				&& (first instanceof DataReference)
 				&& (((DataReference) first).getPathname().getPart(_partId)
 						.length() > 0)
-				&& (_matcher.contains(((DataReference) first).getPathname()
-						.getPart(_partId), _pattern));
+				&& (_pattern.matcher(((DataReference) first).getPathname()
+						.getPart(_partId)).find());
 	}
 
 	/**

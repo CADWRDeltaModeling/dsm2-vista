@@ -59,6 +59,7 @@ package vista.set;
 /**
  * Function for filtering the entire pathname string using a regular expressioin
  */
+@SuppressWarnings("serial")
 public class PathnamePredicate extends RegExPredicate {
 	/**
 	 * initializes the regular expression compilers
@@ -73,7 +74,7 @@ public class PathnamePredicate extends RegExPredicate {
 	public final boolean execute(Object first) {
 		return (first != null)
 				&& (first instanceof DataReference)
-				&& (_matcher.contains(((DataReference) first).getPathname()
-						.getFullPath(), _pattern));
+				&& (_pattern.matcher(((DataReference) first).getPathname()
+						.getFullPath()).find());
 	}
 }
