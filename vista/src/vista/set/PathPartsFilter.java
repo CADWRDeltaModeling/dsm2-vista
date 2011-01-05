@@ -55,10 +55,7 @@
  */
 package vista.set;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
+import java.util.regex.Pattern;
 
 import COM.objectspace.jgl.UnaryPredicate;
 
@@ -70,8 +67,6 @@ import COM.objectspace.jgl.UnaryPredicate;
  * @version $Id: PathPartsFilter.java,v 1.1 2003/10/02 20:49:28 redwood Exp $
  */
 public class PathPartsFilter implements UnaryPredicate {
-	static Perl5Compiler _compiler = new Perl5Compiler();
-	static Perl5Matcher _matcher = new Perl5Matcher();
 	Pattern[] _patterns = new Pattern[6];
 
 	/**
@@ -92,8 +87,8 @@ public class PathPartsFilter implements UnaryPredicate {
 				if (part.equals(""))
 					_patterns[i] = null;
 				else
-					_patterns[i] = _compiler.compile(part);
-			} catch (MalformedPatternException mpe) {
+					_patterns[i] = Pattern.compile(part);
+			} catch (Exception mpe) {
 				throw new RuntimeException("Incorrect Regular Expression "
 						+ part);
 			}
@@ -114,8 +109,7 @@ public class PathPartsFilter implements UnaryPredicate {
 		for (int i = 0; i < _patterns.length; i++) {
 			if (_patterns[i] == null)
 				continue;
-			keepThis = keepThis
-					&& _matcher.contains(path.getPart(i), _patterns[i]);
+			keepThis = keepThis && _patterns[i].matcher(path.getPart(i)).find();
 		}
 		return keepThis;
 	}

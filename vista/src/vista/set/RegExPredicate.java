@@ -55,12 +55,7 @@
  */
 package vista.set;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternCompiler;
-import org.apache.oro.text.regex.PatternMatcher;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
+import java.util.regex.Pattern;
 
 import COM.objectspace.jgl.UnaryPredicate;
 
@@ -68,20 +63,13 @@ import COM.objectspace.jgl.UnaryPredicate;
  * Uses a regular expression to determine filtering.
  */
 public abstract class RegExPredicate implements UnaryPredicate {
-	/**
-	 * expression type for using perl 5 regular expressions
-	 */
-	public static final int PERL5 = 1;
-	/**
-	 * expression type for using awk regular expressions
-	 */
-	public static final int AWK = 2;
+
+	protected Pattern _pattern;
 
 	/**
 	 * initializes the regular expression compilers
 	 */
 	public RegExPredicate(String regex) {
-		_expType = PERL5; // awk is giving trouble in jdk1.2
 		setRegularExpression(regex);
 	}
 
@@ -89,20 +77,6 @@ public abstract class RegExPredicate implements UnaryPredicate {
 	 * implements the method to determine the filtering criteria.
 	 */
 	public abstract boolean execute(Object first);
-
-	/**
-	 * true if regular expression grammar is perl
-	 */
-	public boolean isPerl() {
-		return (_expType == PERL5);
-	}
-
-	/**
-	 * true if regular expression grammar is perl
-	 */
-	public boolean isAwk() {
-		return (_expType == AWK);
-	}
 
 	/**
 	 * sets the regular expression. This may throw a runtime exception if the
@@ -121,63 +95,14 @@ public abstract class RegExPredicate implements UnaryPredicate {
 	}
 
 	/**
-	 * sets type of regular expression grammar
-	 */
-	public final void setExpressionType(int type) {
-		_expType = type;
-		setRegularExpression(_regularExp);
-	}
-
-	/**
 	 * initializes the regular expression by compiling it into the grammar
 	 */
 	private void initRegEx(String regex) {
-		if (isPerl())
-			createPerl5RegEx();
-		else if (isAwk())
-			createAwkRegEx();
-		try {
-			_pattern = _compiler.compile(regex);
-		} catch (MalformedPatternException mpe) {
-			mpe.printStackTrace();
-			throw new RuntimeException("Incorrect Regular Expression " + regex);
-		}
+		_pattern = Pattern.compile(regex);
 	}
 
-	/**
-	 * create perl 5 grammar
-	 */
-	private void createPerl5RegEx() {
-		_compiler = new Perl5Compiler();
-		_matcher = new Perl5Matcher();
-	}
-
-	/**
-	 * create awk grammar
-	 */
-	private void createAwkRegEx() {
-		// _compiler = new AwkCompiler();
-		// _matcher = new AwkMatcher();
-	}
-
-	/**
-	 * The pattern to be matched
-	 */
-	protected Pattern _pattern;
-	/**
-	 * The pattern match maker
-	 */
-	protected PatternMatcher _matcher;
 	/**
 	 * regular expression to be matched
 	 */
 	private String _regularExp;
-	/**
-	 * Type of expression, currently either PERL5 or AWK
-	 */
-	private int _expType;
-	/**
-   * 
-   */
-	private PatternCompiler _compiler;
 }
