@@ -1,0 +1,156 @@
+<html>
+<head>
+<title>South Delta Flows</title>
+<script src="raphael-min.js" type="text/javascript"></script>
+<script
+	src="http://maps.google.com/maps?file=api&amp;v=2.s&amp;sensor=false&amp;key="
+	type="text/javascript"></script>
+<script src="map_with_arrows.js" type="text/javascript"></script>
+<style type="text/css">
+#fig,#map,#temp {
+	width: 900px;
+	height: 600px;
+}
+
+#map {
+	border: solid 1px #999;
+}
+
+#map .canvas{
+	position: absolute;
+}
+
+</style>
+<script type="text/javascript">
+
+
+/* Define a new GOverlay class to contain the visualization. */
+function Canvas() {}
+
+g = function(){};
+g.prototype = GOverlay.prototype || GOverlay;
+Canvas.prototype=new g();
+/* Add our canvas to the map pane when initialized. */
+Canvas.prototype.initialize = function(map) {
+  this.map = map;
+  this.canvas = document.createElement("div");
+  this.canvas.setAttribute("class","canvas");
+  map.getPane(G_MAP_MAP_PANE).parentNode.appendChild(this.canvas);
+};
+
+/* Redraw the visualizations when the map is moved. */
+Canvas.prototype.redraw = function(force) {
+  var m = this.map;
+
+  /* Only update troop counts when the map is zoomed. */
+  var c = this.canvas, r = 50;
+
+  var paper = Raphael(c, 900, 600);
+    var zoom = m.getZoom();
+  	var arrow_size = Math.round(Math.pow(2,zoom)/70);
+  	var font_size = Math.round(20.0/70.0*arrow_size);
+  paper.rect(paper.width-300,5,280,data.legend.lines.length*25+10).attr("fill","wheat").attr("stroke","black");
+  for(i=0; i < data.legend.lines.length; i++){
+  	console.log(paper.width);
+  	var x=paper.width-200;
+  	var y = 25*i+20;
+  	var label = paper.text(Math.round(60/70.*arrow_size),0,data.legend.lines[i]).translate(x,y);
+  	label.attr("font-size",font_size*1.5).attr("font-weight","bold").attr("fill","black");
+  }
+  data.flows.forEach(function(d){
+  /* Convert latitude and longitude to pixel locations. */
+    var p = m.fromLatLngToDivPixel(new GLatLng(d.lat, d.lon));
+    d.x = p.x; d.y = p.y;
+  	var arrow_pts = [ [0,0],[-25,25],[-25,15],[-70,15],[-70,-15],[-25,-15],[-25,-25],[0,0]]
+  	var path="M ";
+  	arrow_pts.forEach(function (d){
+  		d[0]=Math.round(d[0]/70*arrow_size);
+  		d[1]=Math.round(d[1]/70*arrow_size);
+  		path=path+d[0]+" "+d[1]+" ";
+  	});
+  	var arrow = paper.path(path);
+  	if (d.invert){
+  		var dx = Math.cos(Raphael.rad(d.angle))*(80/70*arrow_size);
+  		var dy = Math.sin(Raphael.rad(d.angle))*(80/70*arrow_size);
+  		var x = d.x-dx;
+  		var y = d.y-dy;
+  		arrow.translate(x,y).rotate(d.angle-180,x,y);
+  	} else {
+	  	arrow.translate(d.x,d.y).rotate(d.angle, d.x, d.y);
+  	}
+  	arrow.attr("fill","blue").attr("stroke","blue").attr("title",d.label);
+  	var x = d.x; var y=d.y; var a= d.angle;
+  	if (a > 90 && a < 270){
+  		x=d.x+ Math.round(80/70.*arrow_size);
+  		a=d.angle-180;
+  	}
+  	var label = paper.text(-Math.round(40/70.*arrow_size),0,d.flow).translate(x,y).rotate(a,d.x,d.y);
+  	label.attr("font-size",font_size).attr("font-weight","bold").attr("fill","yellow").attr("title",d.label);
+  });
+	/* stage information as a circle and label */
+  data.stages.forEach(function(d){
+    var p = m.fromLatLngToDivPixel(new GLatLng(d.lat, d.lon));
+    paper.circle(p.x, p.y, arrow_size/10).attr("fill","green").attr("title",d.label);
+    var s=Math.round(20/70*arrow_size);
+    var mx=-1;
+    var my=1;
+    if (d.pos){
+	    if (d.pos[1]=="right"){
+	    	mx=1;
+	    }
+	    if (d.pos[0]=="up"){
+	    	my=-1;
+	    }
+    }
+	paper.text(p.x+mx*0.5*s, p.y+my*s, d.stage).attr("font-size",font_size*0.8).attr("font-weight","bold").attr("fill","black").attr("title",d.label);
+  });
+	/* barrier as a black rectangle */
+  data.barriers.forEach(function(d){
+    var p = m.fromLatLngToDivPixel(new GLatLng(d.lat, d.lon));
+    var rw=Math.round(10/70*arrow_size);
+    var rh=Math.round(20/70*arrow_size);
+  	paper.rect(p.x+rw/2, p.y-rh/2, rw, rh).attr("fill","black").attr("title",d.label);
+  });
+};
+
+/* Create the map, embedding our visualization! */
+function initMap(){
+	/* Restrict minimum and maximum zoom levels. */
+ 	[G_NORMAL_MAP, G_HYBRID_MAP, G_PHYSICAL_MAP].forEach(function(t) {
+	  t.getMinimumResolution = function() {return 12;}
+	  t.getMaximumResolution = function() {return 12;}
+	});
+ 	var map = new GMap2(document.getElementById("map"));
+	map.setCenter(new GLatLng(37.85777822261064, -121.45729064941406), 12);
+ 	var ui = map.getDefaultUI();
+	ui.maptypes.satellite = false;
+	ui.maptypes.physical = false;
+	ui.maptypes.hybrid = false;
+	ui.zoom.scrollwheel = false;
+	ui.zoom.doubleclick=false;
+	ui.controls.largemapcontrol3d=false;
+
+	map.setUI(ui);
+	map.disableDragging();
+	map.disableGoogleBar();
+	map.setMapType(G_NORMAL_MAP);
+	map.addOverlay(new Canvas());
+	//
+	GEvent.addListener(map,"dragend", function(){
+		console.log(map.getCenter());
+	});
+}
+
+    </script>
+</head>
+<body onload="initMap()" onunload="GUnload()">
+<div id="center">
+<div id="fig">
+<div id="map"></div>
+<div id="submap">
+<div id="temp"></div>
+</div>
+</div>
+</div>
+</body>
+</html>
