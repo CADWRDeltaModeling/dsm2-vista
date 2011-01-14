@@ -75,13 +75,19 @@ def _get_station_ids(bounds):
                 station_ids.append(station['point'][val]['STATIONNUMBER'])
     return station_ids
 #
-def get_data_for_station(station_id):
-    url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm?URLStation=%s&source=map' % station_id
-    response = urllib.urlopen(url)
+def get_data_for_station(station_id, from_map=1):
+    if from_map == 1:
+        url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm?URLStation=%s&source=map' % station_id
+        response = urllib.urlopen(url)
+    else:
+        params = { 'ddmCounty':'', 'txtNumber':(station_id+''), 'txtStation':''}
+        params = urllib.urlencode(params)
+        url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm'
+        response = urllib.urlopen(url, params)
     result = response.readlines()
     response.close()
     result = reduce(lambda x, y: x + y, result)
-    boxstation_id = re.findall(re.compile('<input.*? name="boxStationID" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
+    boxstation_id = re.findall(re.compile('<input.*? name="boxStationID".*? value="(.*?)" .*?>', re.S | re.M | re.I), result)[0]
     sdate = re.findall(re.compile('<input.*? name="MinDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
     edate = re.findall(re.compile('<input.*? name="MaxDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
     now = datetime.date.today()
@@ -132,12 +138,12 @@ def writewdl(filename, result):
         its = result[key].toITS()
         writedss(filename, its.name, its)
 #
-def write_to_dss(filename, stationids):
+def write_to_dss(filename, stationids, from_map=1):
     for station_id in stationids:
         print 'Getting data for station: %s'%station_id
         sys.stdout.flush()
         try:
-            data = get_data_for_station(station_id)
+            data = get_data_for_station(station_id,from_map)
             result = parse_wdl_its(data)
             writewdl(filename, result)
         except:
