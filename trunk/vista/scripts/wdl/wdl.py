@@ -75,6 +75,19 @@ def _get_station_ids(bounds):
                 station_ids.append(station['point'][val]['STATIONNUMBER'])
     return station_ids
 #
+def get_station_ids_from_county(county):
+    """
+    returns a list of station ids belonging to the provided county
+    """
+    params = { 'ddmCounty':county, 'txtNumber':'', 'txtStation':''}
+    params = urllib.urlencode(params)
+    url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm'
+    response = urllib.urlopen(url, params)
+    result = response.readlines()
+    response.close()
+    result = reduce(lambda x, y: x + y, result)
+    #station_infos = re.findall(re.compile('<td.*?>.*?value="(.*?)".*?</td>.*?<td.*?>.*?</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>',re.S|re.M|re.I),result)
+    return re.findall(re.compile('<td.*?>.*?value=".*?".*?</td>.*?<td.*?>.*?</td>.*?<td.*?>(.*?)</td>.*?<td.*?>.*?</td>.*?<td.*?>.*?</td>',re.S|re.M|re.I),result)
 def get_data_for_station(station_id, from_map=1):
     if from_map == 1:
         url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm?URLStation=%s&source=map' % station_id
@@ -149,17 +162,24 @@ def write_to_dss(filename, stationids, from_map=1):
         except:
             print "Could not get data for: %s"%station_id
 #
-if __name__ == '__main__':
+def download_delta_stations_from_map(filename):
     print 'Retrieving all station ids with Delta Map Boundaries'
     sys.stdout.flush()
     stationids=get_all_stationids(DELTA_MAP_BOUNDS)
     print 'Done retrieving station ids: %d'%(len(stationids))
     sys.stdout.flush()
-    filename='d:/temp/wdl.dss'
-    if len(sys.argv) > 1:
-        filename=sys.argv[1]
     print 'Downloading data to %s'%filename
     sys.stdout.flush()
     write_to_dss(filename,stationids)
     print 'Done downloading data to %s'%filename
+#
+def download_counties(filename): 
+    for county_id in range(1,59):
+        stationids=get_station_ids_from_county(county_id)
+        write_to_dss(filename,stationids,0)
+#
+if __name__ == '__main__':
+    filename='d:/temp/wdl.dss'
+    if len(sys.argv) > 1:
+        filename=sys.argv[1]
 #
