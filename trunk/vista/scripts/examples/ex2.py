@@ -1,3 +1,4 @@
+from vutils import *
 # generation of a data set from other data sets using conditionals
 # get the sine data
 g=opendss('../testdata/file1.dss')

@@ -67,31 +67,7 @@ import java.util.Vector;
  * @version $Id: ListDirectedPredicate.java,v 1.1 2003/10/02 20:49:25 redwood
  *          Exp $
  */
-public class ListDirectedPredicate implements SortMechanism {
-	/**
-   *
-   */
-	public ListDirectedPredicate(String[] files) {
-		if (files == null || files.length == 0)
-			throw new IllegalArgumentException(
-					"Invalid file list for list sort");
-		ListDirectedPredicate pp = null;
-		for (int i = 0; i < files.length; i++) {
-			ListDirectedPredicate p = new ListDirectedPredicate(files[i]);
-			if (pp != null)
-				pp.setSecondarySorter(p);
-			if (this._list == null && pp != null) {
-				this.initializeAll(pp._partId, pp._list, pp._sortOrder,
-						pp._secondarySorter);
-			}
-			pp = p;
-		}
-		if (this._list == null && pp != null) {
-			this.initializeAll(pp._partId, pp._list, pp._sortOrder,
-					pp._secondarySorter);
-		}
-	}
-
+public class ListDirectedPredicate implements SortMechanism<DataReference> {
 	/**
    *
    */
@@ -179,150 +155,51 @@ public class ListDirectedPredicate implements SortMechanism {
    *
    */
 	public ListDirectedPredicate(int partId, String[] list) {
-		this(partId, list, SortMechanism.INCREASING, null);
+		this(partId, list, INCREASING);
 	}
 
 	/**
    *
    */
 	public ListDirectedPredicate(int partId, String[] list, int sortOrder) {
-		this(partId, list, sortOrder, null);
+		initializeAll(partId, list, sortOrder);
 	}
 
 	/**
    *
    */
-	public ListDirectedPredicate(int partId, String[] list, int sortOrder,
-			SortMechanism secondarySorter) {
-		initializeAll(partId, list, sortOrder, secondarySorter);
-	}
-
-	/**
-   *
-   */
-	private void initializeAll(int partId, String[] list, int sortOrder,
-			SortMechanism secondarySorter) {
+	private void initializeAll(int partId, String[] list, int sortOrder) {
 		_partId = partId;
 		_list = list;
 		_sortOrder = sortOrder;
-		_secondarySorter = secondarySorter;
-	}
-
-	/**
-	 * true if sort order is ascending
-	 */
-	public boolean isAscendingOrder() {
-		return (_sortOrder == SortMechanism.INCREASING);
-	}
-
-	/**
-	 * sets the order to ascending or descending.
-	 */
-	public void setAscendingOrder(boolean ascending) {
-		_sortOrder = ascending ? SortMechanism.INCREASING
-				: SortMechanism.DECREASING;
-	}
-
-	/**
-	 * the sorter activated if the execute method of this one shows that first
-	 * == second.
-	 */
-	public SortMechanism getSecondarySorter() {
-		return _secondarySorter;
-	}
-
-	/**
-	 * sets the secondary sort mechanism
-	 */
-	public void setSecondarySorter(SortMechanism sm) {
-		_secondarySorter = sm;
 	}
 
 	/**
 	 * method for collections Comapartor interface
 	 */
-	public int compare(Object first, Object second) {
+	public int compare(DataReference first, DataReference second) {
 		// check instanceof first and second
-		if (!(first instanceof DataReference))
-			return -1;
-		else if (!(second instanceof DataReference))
-			return 1;
-		else {
-			Pathname fPath = ((DataReference) first).getPathname();
-			Pathname sPath = ((DataReference) second).getPathname();
-			int index1 = 0;
-			int index2 = 0;
-			if (_partId == -1) {
-				index1 = getPositionInList(fPath.toString());
-				index2 = getPositionInList(sPath.toString());
-			} else {
-				index1 = getPositionInList(fPath.getPart(_partId));
-				index2 = getPositionInList(sPath.getPart(_partId));
-			}
-			int lexicalValue = 0;
-			//
-			if (_sortOrder == SortMechanism.INCREASING)
-				lexicalValue = index2 - index1;
-			else if (_sortOrder == SortMechanism.DECREASING)
-				lexicalValue = index1 - index2;
-			else
-				lexicalValue = 0;
-			//
-			return lexicalValue;
+		Pathname fPath = first.getPathname();
+		Pathname sPath = second.getPathname();
+		int index1 = 0;
+		int index2 = 0;
+		if (_partId == -1) {
+			index1 = getPositionInList(fPath.toString());
+			index2 = getPositionInList(sPath.toString());
+		} else {
+			index1 = getPositionInList(fPath.getPart(_partId));
+			index2 = getPositionInList(sPath.getPart(_partId));
 		}
-	}
-
-	/*
-   *
-   */
-	public boolean equals(Object o) {
-		return false;
-	}
-
-	/**
-	 * Return true if both objects are DataReference objects and the part of
-	 * first object is greater than the part of second object. The part to be
-	 * compared is defined by the partId and comparision is done by the compare
-	 * method of java.lang.String
-	 */
-	public boolean execute(Object first, Object second) {
-		// check instanceof first and second
-		if (!(first instanceof DataReference))
-			return false;
-		else if (!(second instanceof DataReference))
-			return false;
-		else {
-			Pathname fPath = ((DataReference) first).getPathname();
-			Pathname sPath = ((DataReference) second).getPathname();
-			int index1 = 0;
-			int index2 = 0;
-			if (_partId == -1) {
-				index1 = getPositionInList(fPath.toString());
-				index2 = getPositionInList(sPath.toString());
-			} else {
-				index1 = getPositionInList(fPath.getPart(_partId));
-				index2 = getPositionInList(sPath.getPart(_partId));
-			}
-			int lexicalValue = 0;
-			//
-			if (_sortOrder == SortMechanism.INCREASING)
-				lexicalValue = index2 - index1;
-			else if (_sortOrder == SortMechanism.DECREASING)
-				lexicalValue = index1 - index2;
-			else
-				lexicalValue = 0;
-			//
-			if (lexicalValue > 0) {
-				return true;
-			} else if (lexicalValue == 0) {
-				if (_secondarySorter == null)
-					return false;
-				else
-					return _secondarySorter.execute(first, second);
-			} else {
-				return false;
-			}
-		}
+		int lexicalValue = 0;
+		//
+		if (_sortOrder == INCREASING)
+			lexicalValue = index2 - index1;
+		else if (_sortOrder == DECREASING)
+			lexicalValue = index1 - index2;
+		else
+			lexicalValue = 0;
+		//
+		return lexicalValue;
 	}
 
 	/**
@@ -346,13 +223,16 @@ public class ListDirectedPredicate implements SortMechanism {
    *
    */
 	private String[] _list;
-	/**
-   *
-   */
-	private SortMechanism _secondarySorter;
-	/**
-   *
-   */
 	private int _sortOrder;
 	private static boolean DEBUG = false;
+
+	@Override
+	public boolean isAscendingOrder() {
+		return _sortOrder == INCREASING;
+	}
+
+	@Override
+	public void setAscendingOrder(boolean ascending) {
+		_sortOrder = INCREASING;
+	}
 }

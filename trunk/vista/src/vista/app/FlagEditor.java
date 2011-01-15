@@ -66,7 +66,6 @@ import vista.graph.Graph;
 import vista.graph.RangeActor;
 import vista.graph.RangeSelected;
 import vista.graph.RangeSelector;
-import vista.gui.SendMailDialog;
 import vista.set.Constants;
 import vista.set.DataReference;
 import vista.set.DataRetrievalException;
@@ -128,7 +127,6 @@ public class FlagEditor implements RangeActor{
 				+ "Data End Time: "
 				+ time.create(Math.round(rs.getXRangeMax())).ceiling(ti) + "\n";
 		Frame f = JOptionPane.getFrameForComponent(gC);
-		new SendMailDialog(f, rcp, subject, msg);
 	}
 
 	/**

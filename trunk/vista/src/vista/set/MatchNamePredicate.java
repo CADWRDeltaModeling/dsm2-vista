@@ -55,14 +55,17 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.UnaryPredicate;
 
 /**
  * Matches name of Named implementers to name given in constructor.
  * 
  * @see Named
  */
-public class MatchNamePredicate implements UnaryPredicate {
+public class MatchNamePredicate implements Predicate<Named> {
+	/**
+	 * name to be matched
+	 */
+	private String _name;
 	/**
 	 * constructor name to be matched
 	 */
@@ -70,16 +73,12 @@ public class MatchNamePredicate implements UnaryPredicate {
 		_name = name;
 	}
 
+
 	/**
 	 * execute function returns true if object's name matches given name.
 	 */
-	public boolean execute(Object obj) {
-		return (obj != null) && (obj instanceof Named)
-				&& (((Named) obj).getName().equals(_name));
+	@Override
+	public boolean apply(Named type) {
+		return type != null && type.getName().equals(_name);
 	}
-
-	/**
-	 * name to be matched
-	 */
-	private String _name;
 }

@@ -1,3 +1,4 @@
+from vutil import *
 # Capabilities and methods of Regular Time Series
 x=range(50); y = map(Math.sin, x);
 # Creating a new regular time series given the name, a start time, the time interval

@@ -104,7 +104,9 @@ import vista.set.DataSet;
 import vista.set.Group;
 import vista.set.GroupTableModel;
 import vista.set.PartNamePredicate;
+import vista.set.PathPartPredicate;
 import vista.set.Pathname;
+import vista.set.PathnamePredicate;
 import vista.set.RegularTimeSeries;
 import vista.set.SetUtils;
 import vista.set.SortMechanism;
@@ -1027,13 +1029,13 @@ public class GroupTable extends JPanel implements RowMovable, View {
 			// prevSm = null;
 			// }
 			if (e.getClickCount() == 1 && column != -1) {
-				SortMechanism sortMechanism = null;
+				SortMechanism<DataReference> sortMechanism = null;
 				// if ( prevSm != null && ((PartNamePredicate)
 				// prevSm).getPartId() == column){
 				// sortMechanism = prevSm;
 				// } else {
 				sortMechanism = new PartNamePredicate(column,
-						SortMechanism.INCREASING, null);
+						SortMechanism.INCREASING);
 				// }
 				sortMechanism.setAscendingOrder(ascVals[column]);
 				Executor.execute(new SortReferencesCommand(getGroup(),

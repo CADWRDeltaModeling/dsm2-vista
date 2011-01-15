@@ -79,7 +79,7 @@ import javax.swing.table.TableModel;
 
 import vista.gui.VistaUtils;
 import vista.set.Group;
-import vista.set.NameSort;
+import vista.set.GroupSortMechanism;
 import vista.set.Session;
 import vista.set.SessionTableModel;
 
@@ -426,12 +426,12 @@ public class SessionTable extends SessionView implements RowMovable, View {
 			if (e.getClickCount() == 1 && column != -1) {
 				if (ascending) {
 					Executor.execute(new SortSessionCommand(MainGUI
-							.getContext(), getSession(), new NameSort(
-							NameSort.INCREASING)), SessionTable.this);
+							.getContext(), getSession(), new GroupSortMechanism(
+							GroupSortMechanism.INCREASING)), SessionTable.this);
 				} else {
 					Executor.execute(new SortSessionCommand(MainGUI
-							.getContext(), getSession(), new NameSort(
-							NameSort.DECREASING)), SessionTable.this);
+							.getContext(), getSession(), new GroupSortMechanism(
+							GroupSortMechanism.DECREASING)), SessionTable.this);
 				}
 				ascending = !ascending;
 			}

@@ -2,6 +2,7 @@
 # dss files 
 #
 # select the two files to which to output the data
+from vutils import *
 file1 = '../testdata/ex3-base.dss'
 file2 = '../testdata/ex3-pump.dss'
 stationList = ['CLFCT','085_3500']

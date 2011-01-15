@@ -55,13 +55,12 @@
  */
 package vista.set;
 
-
 /**
  * Matches the given regular expression to a certain pathname part.
  * 
  */
 @SuppressWarnings("serial")
-public class PathPartPredicate extends RegExPredicate {
+public class PathPartPredicate extends RegExPredicate<DataReference> {
 	/**
 	 * initializes the regular expression compilers
 	 */
@@ -79,19 +78,15 @@ public class PathPartPredicate extends RegExPredicate {
 	}
 
 	/**
-	 * determines filtering criteria
-	 */
-	public final boolean execute(Object first) {
-		return (first != null)
-				&& (first instanceof DataReference)
-				&& (((DataReference) first).getPathname().getPart(_partId)
-						.length() > 0)
-				&& (_pattern.matcher(((DataReference) first).getPathname()
-						.getPart(_partId)).find());
-	}
-
-	/**
 	 * The path part id.
 	 */
 	private int _partId;
+
+	@Override
+	public boolean apply(DataReference first) {
+		return (first != null)
+				&& (first.getPathname().getPart(_partId).length() > 0)
+				&& (_pattern.matcher(first.getPathname().getPart(_partId))
+						.find());
+	}
 }

@@ -55,13 +55,12 @@
  */
 package vista.app;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import vista.graph.AxisAttr;
 import vista.set.DataReference;
 import vista.set.PathnameFormat;
-import COM.objectspace.jgl.Array;
 
 /**
  * This class calculates the x and y axis positions of the given data sets. Each
@@ -74,7 +73,9 @@ public class GraphBuilderInfo {
 	static int PLOTS_PER_GRAPH = 2;
 	static boolean DEBUG = false;
 
-	private Array _dataRefs, _graphInfo, _dataSetInfo;
+	private ArrayList<DataReference> _dataRefs;
+	private ArrayList<GraphInfo> _graphInfo;
+	private ArrayList<DataSetInfo> _dataSetInfo;
 	private Properties _props;
 	private boolean _useUnits;
 	private static int ngraphs = 1;
@@ -102,9 +103,9 @@ public class GraphBuilderInfo {
 			_useUnits = true;
 		else
 			_useUnits = false;
-		_dataRefs = new Array();
-		_graphInfo = new Array();
-		_dataSetInfo = new Array();
+		_dataRefs = new ArrayList<DataReference>();
+		_graphInfo = new ArrayList<GraphInfo>();
+		_dataSetInfo = new ArrayList<DataSetInfo>();
 	}
 
 	/**
@@ -158,7 +159,7 @@ public class GraphBuilderInfo {
 		if (graphIndex >= getNumberOfGraphs())
 			return 0;
 		else
-			return ((GraphInfo) _graphInfo.at(graphIndex)).getNumberOfPlots();
+			return ((GraphInfo) _graphInfo.get(graphIndex)).getNumberOfPlots();
 	}
 
 	/**
@@ -170,7 +171,7 @@ public class GraphBuilderInfo {
 		// else return ((GraphInfo) _graphInfo.at(graphIndex)).title;
 		else {
 			DataReference[] refs = new DataReference[_dataRefs.size()];
-			_dataRefs.copyTo(refs);
+			refs = _dataRefs.toArray(refs);
 			return PathnameFormat.format(getTitleTemplate(), refs);
 		}
 	}
@@ -260,12 +261,13 @@ public class GraphBuilderInfo {
 	 */
 	private void updateInfo() {
 		if (_graphInfo.size() > 0) {
-			_graphInfo.remove(0, ngraphs - 1);
+			for(int i=ngraphs-1; i>=0; i--){
+				_graphInfo.remove(i);
+			}
 			ngraphs = 1;
 		}
-		int setCount = _dataRefs.size();
-		for (Enumeration e = _dataRefs.elements(); e.hasMoreElements();) {
-			_dataSetInfo.add(addSetInfo((DataReference) e.nextElement()));
+		for(DataReference r: _dataRefs){
+			_dataSetInfo.add(addSetInfo(r));
 		}
 	}
 
@@ -280,7 +282,7 @@ public class GraphBuilderInfo {
 		}
 		while (true) {
 			try {
-				GraphInfo info = (GraphInfo) _graphInfo.back();
+				GraphInfo info = (GraphInfo) _graphInfo.get(_graphInfo.size()-1);
 				dsi = info.addDataReference(ref);
 				break;
 			} catch (GraphLimitException e) {
@@ -300,7 +302,7 @@ public class GraphBuilderInfo {
 		buf.append("\n").append("Number Of Graphs: ").append(
 				getNumberOfGraphs()).append("\n");
 		for (int i = 0; i < getNumberOfGraphs(); i++) {
-			buf.append(((GraphInfo) _graphInfo.at(i)).toString());
+			buf.append(((GraphInfo) _graphInfo.get(i)).toString());
 		}
 		buf.append("---------").append("\n");
 		return buf.toString();
@@ -310,7 +312,7 @@ public class GraphBuilderInfo {
    *
    */
 	public GraphInfo getGraphInfo(int graphIndex) {
-		return (GraphInfo) _graphInfo.at(graphIndex);
+		return (GraphInfo) _graphInfo.get(graphIndex);
 	}
 
 	/**
@@ -325,14 +327,11 @@ public class GraphBuilderInfo {
    *
    */
 	public DataSetInfo getDataSetInfo(DataReference ref) {
-		DataSetInfo info = null;
-		for (Enumeration e = _dataSetInfo.elements(); e.hasMoreElements();) {
-			DataSetInfo dsi = (DataSetInfo) e.nextElement();
-			if (ref.equals(dsi.getReference())) {
-				info = dsi;
-				break;
+		for(DataSetInfo dsi: _dataSetInfo){
+			if (ref.equals(dsi.getReference())){
+				return dsi;
 			}
 		}
-		return info;
+		return null;
 	}
 }// end of class GraphBuilder Info

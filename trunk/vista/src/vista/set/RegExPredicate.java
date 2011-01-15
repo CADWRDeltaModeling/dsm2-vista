@@ -57,12 +57,11 @@ package vista.set;
 
 import java.util.regex.Pattern;
 
-import COM.objectspace.jgl.UnaryPredicate;
-
 /**
  * Uses a regular expression to determine filtering.
+ * @param <T>
  */
-public abstract class RegExPredicate implements UnaryPredicate {
+public abstract class RegExPredicate<T> implements Predicate<T> {
 
 	protected Pattern _pattern;
 
@@ -72,11 +71,6 @@ public abstract class RegExPredicate implements UnaryPredicate {
 	public RegExPredicate(String regex) {
 		setRegularExpression(regex);
 	}
-
-	/**
-	 * implements the method to determine the filtering criteria.
-	 */
-	public abstract boolean execute(Object first);
 
 	/**
 	 * sets the regular expression. This may throw a runtime exception if the

@@ -1,9 +1,10 @@
+from vutils import *
 # filtering through values
 # temporary imports 
 from vista.set import CompositeFilter, DefaultReference, ElementFilterIterator
 # Open a group and filter it some
-g=opendss('/delta4/data/dss/IEP/hydro.dss')
-g.filterBy('rsan112/flow')
+g=opendss('../testdata/qual-2b.dss')
+g.filterBy('clfct/ec')
 g.filterBy('1hour')
 # get the first data reference in the group
 ref = g[0]
@@ -11,7 +12,7 @@ ref = g[0]
 ds = ref.getData()
 # create a 1 year slice
 st = ds.getTimeWindow().getStartTime()
-ds = ds[repr(st):repr(st+'1year')]
+#FIXME: ds = ds[str(st):str(st+'1year')]
 # get the iterator on that data set, these iterates 
 # through all the values in the data set. Till now there is no 
 # difference between stepping thro the data set or the

@@ -7,7 +7,7 @@ from vista.set import Constants, DefaultReference,\
      RegularTimeSeries, IrregularTimeSeries, \
      SetUtils, PathnamePredicate, \
      PartNamePredicate, PathPartPredicate, \
-     PartSort, SortMechanism
+     SortMechanism
 from vista.db.dss import DSSUtil
 from vista.time import TimeFactory
 from vista.app import MainProperties
@@ -97,9 +97,9 @@ def find(group,filter,part="",selecting=1):
     except :
         pId = -1
     if pId == -1:
-        g.filterBy(selecting, PathnamePredicate(filter))
+        g.filterBy(PathnamePredicate(filter), selecting)
     else:
-        g.filterBy(selecting, PathPartPredicate(filter,pId))
+        g.filterBy(PathPartPredicate(filter,pId), selecting)
     return g
 #
 def sort(group,part_name="B", increasing=True):
@@ -114,7 +114,7 @@ def sort(group,part_name="B", increasing=True):
     else:
         dir = SortMechanism.DECREASING
     pId = get_part_id(part_name)
-    group.sortBy(PartSort(PartNamePredicate(pId,dir,None)))
+    group.sortBy(PartNamePredicate(pId,dir))
 #
 def opendss(filename, server='local'):
     """
@@ -305,7 +305,7 @@ def rename(oldfile,oldpart,newfile,newpart,part_name="f"):
     a,b,c or f.
     """
     g=opendss(oldfile)
-    g.filterBy(1,PathPartPredicate(oldpart,pp_map[part_name]))
+    g.filterBy(PathPartPredicate(oldpart,pp_map[part_name]),1)
     if len(g) == 0:
         raise SystemExit,'No FPART: %s in DSS FILE: %s'%(oldpart,oldfile)
     refs = g.getAllDataReferences()

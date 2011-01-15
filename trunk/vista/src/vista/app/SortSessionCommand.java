@@ -57,8 +57,9 @@ package vista.app;
 
 import vista.gui.Command;
 import vista.gui.ExecutionException;
+import vista.set.Group;
 import vista.set.Session;
-import vista.set.Sorter;
+import vista.set.SortMechanism;
 
 /**
  * Encapsulates commands implementing session related commands
@@ -69,14 +70,14 @@ import vista.set.Sorter;
 class SortSessionCommand implements Command {
 	private SessionContext _sc;
 	private Session _session, _previousSession;
-	private Sorter _sorter;
+	private SortMechanism<Group> _sorter;
 
 	/**
 	 * opens session and sets current session to
 	 */
-	public SortSessionCommand(SessionContext sc, Session s, Sorter sorter) {
+	public SortSessionCommand(SessionContext sc, Session s, SortMechanism<Group> sortMechanism) {
 		_session = s;
-		_sorter = sorter;
+		_sorter = sortMechanism;
 		_sc = sc;
 	}
 

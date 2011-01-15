@@ -57,8 +57,6 @@ package vista.set;
 
 import java.util.regex.Pattern;
 
-import COM.objectspace.jgl.UnaryPredicate;
-
 /**
  * A path parts filter which filters on a data reference and returns true to
  * keep it and false to reject it.
@@ -66,7 +64,7 @@ import COM.objectspace.jgl.UnaryPredicate;
  * @author Nicky Sandhu
  * @version $Id: PathPartsFilter.java,v 1.1 2003/10/02 20:49:28 redwood Exp $
  */
-public class PathPartsFilter implements UnaryPredicate {
+public class PathPartsFilter implements Predicate<DataReference> {
 	Pattern[] _patterns = new Pattern[6];
 
 	/**
@@ -95,15 +93,10 @@ public class PathPartsFilter implements UnaryPredicate {
 		}
 	}
 
-	/**
-    *
-    */
-	public boolean execute(Object first) {
-		if (first == null)
+	@Override
+	public boolean apply(DataReference ref) {
+		if (ref == null)
 			return false;
-		if (!(first instanceof DataReference))
-			return false;
-		DataReference ref = (DataReference) first;
 		Pathname path = ref.getPathname();
 		boolean keepThis = true;
 		for (int i = 0; i < _patterns.length; i++) {

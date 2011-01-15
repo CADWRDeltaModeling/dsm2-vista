@@ -1,4 +1,5 @@
 import vutils
+from vutils import *
 g=opendss('../testdata/ex3-base.dss')
 ref = g[0]
 refma = vutils.mov_avg(ref,20,20)

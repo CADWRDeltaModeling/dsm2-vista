@@ -55,9 +55,7 @@
  */
 package vista.graph;
 
-import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * Mediates information flow between an axis and data sets. This will promote
@@ -77,7 +75,7 @@ public class AxisDataSetMediator {
 	 */
 	public AxisDataSetMediator(Axis axis) {
 		_axis = axis;
-		_cdms = new Array();
+		_cdms = new ArrayList<CurveDataModel>();
 	}
 
 	/**
@@ -100,8 +98,7 @@ public class AxisDataSetMediator {
 	public void setCurveModelMinMax(Scale sc) {
 		double minx = sc.getDataMinimum();
 		double maxx = sc.getDataMaximum();
-		for (Enumeration e = _cdms.elements(); e.hasMoreElements();) {
-			CurveDataModel cdm = (CurveDataModel) e.nextElement();
+		for (CurveDataModel cdm : _cdms) {
 			cdm.setXViewMax(maxx);
 			cdm.setXViewMin(minx);
 		}
@@ -135,8 +132,7 @@ public class AxisDataSetMediator {
 		double min = Float.MAX_VALUE;
 		int or = _axis.getOrientation();
 
-		for (Enumeration e = _cdms.elements(); e.hasMoreElements();) {
-			CurveDataModel cdm = (CurveDataModel) e.nextElement();
+		for (CurveDataModel cdm : _cdms) {
 			if (or == AxisAttr.HORIZONTAL) {
 				min = Math.min(min, cdm.getXMin());
 			} else {
@@ -153,8 +149,7 @@ public class AxisDataSetMediator {
 		double max = -Float.MAX_VALUE;
 		int or = _axis.getOrientation();
 
-		for (Enumeration e = _cdms.elements(); e.hasMoreElements();) {
-			CurveDataModel cdm = (CurveDataModel) e.nextElement();
+		for (CurveDataModel cdm : _cdms) {
 			if (or == AxisAttr.HORIZONTAL) {
 				max = Math.max(max, cdm.getXMax());
 			} else {
@@ -171,7 +166,7 @@ public class AxisDataSetMediator {
 	/**
 	 * The data sets containing all the data sets attached to the axis
 	 */
-	private Array _cdms;
+	private ArrayList<CurveDataModel> _cdms;
 	/**
    *
    */

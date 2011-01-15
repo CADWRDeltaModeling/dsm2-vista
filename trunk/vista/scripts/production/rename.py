@@ -2,7 +2,7 @@ import vutils
 from vista.set import PathPartPredicate, Pathname
 def rename(file,oldf,newfile,newf):
     g=vutils.opendss(file)
-    g.filterBy(1,PathPartPredicate(oldf,Pathname.F_PART))
+    g.filterBy(PathPartPredicate(oldf,Pathname.F_PART),1)
     if len(g) == 0:
 	raise SystemExit,'No FPART: %s in DSS FILE: %s'%(oldf,file)
     for ref in g:

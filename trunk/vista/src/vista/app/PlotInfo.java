@@ -55,13 +55,14 @@
  */
 package vista.app;
 
+import java.util.ArrayList;
+
 import vista.graph.AxisAttr;
 import vista.set.DataReference;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.DataSetAttr;
 import vista.set.PathnameFormat;
-import COM.objectspace.jgl.Array;
 
 /**
  * 
@@ -76,15 +77,16 @@ class PlotInfo {
 	private int _index;
 	private String _title;
 	private String[] _axisLabels;
-	private Array _dataRefs, _dataSetInfos;
+	private ArrayList<DataReference> _dataRefs;
+	private ArrayList<DataSetInfo> _dataSetInfos;
 	private int _maximumDataLimit;
 
 	/**
 	 * initializes plot information class
 	 */
 	public PlotInfo() {
-		_dataRefs = new Array();
-		_dataSetInfos = new Array();
+		_dataRefs = new ArrayList<DataReference>();
+		_dataSetInfos = new ArrayList<DataSetInfo>();
 		_axisLabels = new String[5];
 		_maximumDataLimit = 5;
 	}
@@ -155,8 +157,7 @@ class PlotInfo {
 		if (nd == 0)
 			return null;
 		DataReference[] ds = new DataReference[nd];
-		_dataRefs.copyTo(ds);
-		return ds;
+		return _dataRefs.toArray(ds);
 	}
 
 	/**

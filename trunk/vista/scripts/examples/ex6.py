@@ -1,4 +1,6 @@
-from vista.set import Stats
+from vutils import *
+from vista.set import Stats, ElementFilterIterator
+from vista.app import CurveFactory
 #
 g=opendss('../testdata/ex6.dss')
 g.filterBy('stage')
@@ -46,8 +48,8 @@ for i in range(3):
 #
 ds_both = DefaultDataSet('stage profiles (BOTH)',[1,2,3],amplsb);
 ds_chan = DefaultDataSet('stage profiles (CHAN)',[1,2,3],amplsc);
-crv_both = CurveFactory.createCurve(ds_both,AxisAttr.BOTTOM, AxisAttr.LEFT, 'stage profile (BOTH)')
-crv_chan = CurveFactory.createCurve(ds_chan,AxisAttr.BOTTOM, AxisAttr.LEFT, 'stage profile (CHAN)')
+crv_both = CurveFactory.createCurve(DefaultReference(ds_both),AxisAttr.BOTTOM, AxisAttr.LEFT, 'stage profile (BOTH)')
+crv_chan = CurveFactory.createCurve(DefaultReference(ds_chan),AxisAttr.BOTTOM, AxisAttr.LEFT, 'stage profile (CHAN)')
 crv_both.lineThickness=2; crv_both.foregroundColor=Color.blue;
 crv_both.drawLines=1;
 crv_chan.lineThickness=2; crv_chan.foregroundColor=Color.green;

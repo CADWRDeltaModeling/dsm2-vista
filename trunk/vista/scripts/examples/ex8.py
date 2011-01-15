@@ -1,3 +1,5 @@
+from vutils import *
+from java.lang import Math
 # Capabilities and methods of Regular Time Series
 x=range(50); y = map(Math.sin, x);
 # Creating a new regular time series given the name, a start time, the time interval
@@ -50,11 +52,11 @@ remote_ref = DSSUtil.createDataReference('aqua.water.ca.gov','/junk/file1.dss','
 #
 #
 # The data set can be saved in a dss file as follows
-writedss('testdata/file_rts.dss','/A PART/B PART/C PART//E PART/F PART/',rts1)
+writedss('../testdata/file_rts.dss','/A PART/B PART/C PART//E PART/F PART/',rts1)
 # The data set can be saved in an ascii file as follows
-writeascii('testdata/file_rts.txt',rts1)
+writeascii('../testdata/file_rts.txt',rts1)
 # if there are flags that need to be output to ascii and you need them
-writeascii('file_rts.txt',rts1, 1)
+writeascii('../testdata/file_rts.txt',rts1, 1)
 # to see this data in a table first wrap in a reference as explained above
 # lets use local_ref for our purposes
 # 

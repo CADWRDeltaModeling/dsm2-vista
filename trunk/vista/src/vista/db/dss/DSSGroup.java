@@ -55,12 +55,14 @@
  */
 package vista.db.dss;
 
+import java.util.ArrayList;
+
 import javax.swing.JProgressBar;
 
+import vista.set.DataReference;
 import vista.set.Group;
 import vista.set.GroupProxy;
 import vista.set.Pathname;
-import COM.objectspace.jgl.Array;
 
 /**
  * This is the default group created from a .dss file. It is a proxy for the
@@ -111,7 +113,7 @@ class DSSGroup extends GroupProxy {
 							+ _filename);
 		_redoCatalog = false;
 		// create an array of data references with pathname and default window
-		Array array = new Array();
+		ArrayList<DataReference> array = new ArrayList<DataReference>();
 		JProgressBar pbar = vista.app.SessionFrame.getProgressBar();
 		int npaths = reader.getNumberOfPaths();
 		if (pbar != null) {

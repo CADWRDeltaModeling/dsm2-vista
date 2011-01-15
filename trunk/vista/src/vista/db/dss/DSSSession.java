@@ -55,10 +55,11 @@
  */
 package vista.db.dss;
 
+import java.util.ArrayList;
+
 import vista.set.Group;
 import vista.set.Session;
 import vista.set.SessionProxy;
-import COM.objectspace.jgl.Array;
 
 /**
  * A proxy for a session existing as a directory on a remote server which has a
@@ -102,7 +103,7 @@ class DSSSession extends SessionProxy {
 			dssFiles[i] = _directory + dssFiles[i];
 		}
 		// create group proxies
-		Array groupList = new Array();
+		ArrayList<Group> groupList = new ArrayList<Group>();
 		for (int i = 0; i < dssFiles.length; i++) {
 			String dssFile = dssFiles[i];
 			if (!DSSUtil.isValidDSSFile(dssFile))

@@ -66,6 +66,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Date;
 
 import vista.set.DataReference;
@@ -78,7 +79,6 @@ import vista.set.Pathname;
 import vista.set.RegularTimeSeries;
 import vista.time.Time;
 import vista.time.TimeInterval;
-import COM.objectspace.jgl.Array;
 
 /**
  * Implements the server side of the RMI call
@@ -180,13 +180,13 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		try {
 			LineNumberReader reader = new LineNumberReader(new BufferedReader(
 					new FileReader(catalogFile)));
-			Array catalog = new Array();
+			ArrayList<String> catalog = new ArrayList<String>();
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				catalog.add(line);
 			}
 			String[] catalogListing = new String[catalog.size()];
-			catalog.copyTo(catalogListing);
+			catalogListing = catalog.toArray(catalogListing);
 			if (VERBOSE) {
 				try {
 					_writer

@@ -55,27 +55,25 @@
  */
 package vista.set;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
-import COM.objectspace.jgl.Filtering;
-import COM.objectspace.jgl.UnaryPredicate;
+import java.util.Iterator;
 
 /**
  * Uses a regular expression to filter a group of pathnames. It defines either
  * Perl5 or Awk Expressions
  */
-public class DataReferenceFilter implements Enumeration {
+public class DataReferenceFilter implements Enumeration<DataReference> {
 	/**
 	 * Iterates over an array of data references using a filter as defined by
 	 * regex
 	 */
-	public DataReferenceFilter(DataReference[] refs, UnaryPredicate predicate) {
+	public DataReferenceFilter(DataReference[] refs, Predicate<DataReference> predicate) {
 		_filteringFunction = predicate;
 		setSelecting(true);
 		setReferences(refs);
 		filter();
-		// _filtered = false;
 	}
 
 	/**
@@ -83,7 +81,6 @@ public class DataReferenceFilter implements Enumeration {
 	 */
 	public void setReferences(DataReference[] refs) {
 		_references = refs;
-		// filter();
 	}
 
 	/**
@@ -105,14 +102,14 @@ public class DataReferenceFilter implements Enumeration {
 	 * true if it has more elements
 	 */
 	public boolean hasMoreElements() {
-		return _enumerator.hasMoreElements();
+		return iterator.hasNext();
 	}
 
 	/**
 	 * next element in the sequence
 	 */
-	public Object nextElement() {
-		return _enumerator.nextElement();
+	public DataReference nextElement() {
+		return iterator.next();
 	}
 
 	/**
@@ -120,13 +117,7 @@ public class DataReferenceFilter implements Enumeration {
 	 */
 	public final void filter() {
 		_filtered = true;
-		if (_selecting)
-			_filteredArray = (Array) Filtering.select(new Array(_references),
-					_filteringFunction);
-		else
-			_filteredArray = (Array) Filtering.reject(new Array(_references),
-					_filteringFunction);
-
+		CollectionUtils.filter(Arrays.asList(_references), _filteringFunction, _selecting);
 		resetIterator();
 	}
 
@@ -135,15 +126,14 @@ public class DataReferenceFilter implements Enumeration {
 	 */
 	public DataReference[] getFilteredArray() {
 		DataReference[] refs = new DataReference[_filteredArray.size()];
-		_filteredArray.copyTo(refs);
-		return refs;
+		return _filteredArray.toArray(refs);
 	}
 
 	/**
 	 * resets the iterator.
 	 */
 	public void resetIterator() {
-		_enumerator = _filteredArray.elements();
+		iterator = _filteredArray.iterator();
 	}
 
 	/**
@@ -157,7 +147,7 @@ public class DataReferenceFilter implements Enumeration {
 	/**
 	 * array containing the filtered result.
 	 */
-	private Array _filteredArray;
+	private ArrayList<DataReference> _filteredArray;
 	/**
 	 * The data reference array
 	 */
@@ -165,9 +155,9 @@ public class DataReferenceFilter implements Enumeration {
 	/**
 	 * The function used to define what values are to be rejected
 	 */
-	private UnaryPredicate _filteringFunction;
+	private Predicate<DataReference> _filteringFunction;
 	/**
 	 * iterator for the filtered array.
 	 */
-	private Enumeration _enumerator;
+	private Iterator<DataReference> iterator;
 }

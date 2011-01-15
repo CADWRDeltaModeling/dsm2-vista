@@ -55,7 +55,7 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.UnaryPredicate;
+import java.util.Comparator;
 
 /**
  * This a proxy for group object
@@ -136,8 +136,8 @@ public abstract class GroupProxyState extends Group {
 	 * references by some criteria. The reference list is being directly
 	 * manipulated by the sorting mechanism.
 	 */
-	public void sortBy(Sorter sortAlgo) {
-		_delegate.sortBy(sortAlgo);
+	public void sortBy(Comparator<DataReference> comparator) {
+		_delegate.sortBy(comparator);
 	}
 
 	/**
@@ -145,8 +145,8 @@ public abstract class GroupProxyState extends Group {
 	 * by this group to be modified. This change is physically reflected by
 	 * appending the filter expression string to the name of this group.
 	 */
-	public void filterBy(boolean selecting, UnaryPredicate predicate) {
-		_delegate.filterBy(selecting, predicate);
+	public void filterBy(Predicate predicate, boolean selecting) {
+		_delegate.filterBy(predicate, selecting);
 	}
 
 	/**

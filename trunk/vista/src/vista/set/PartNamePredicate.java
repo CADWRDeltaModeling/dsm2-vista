@@ -55,22 +55,19 @@
  */
 package vista.set;
 
-
 /**
  * 
  * 
  * @author Nicky Sandhu
  * @version $Id: PartNamePredicate.java,v 1.1 2003/10/02 20:49:28 redwood Exp $
  */
-public class PartNamePredicate implements SortMechanism {
+public class PartNamePredicate implements SortMechanism<DataReference> {
 	/**
    *
    */
-	public PartNamePredicate(int partId, int sortOrder,
-			SortMechanism secondarySorter) {
+	public PartNamePredicate(int partId, int sortOrder) {
 		_partId = partId;
 		_sortOrder = sortOrder;
-		_secondarySorter = secondarySorter;
 	}
 
 	/**
@@ -96,96 +93,28 @@ public class PartNamePredicate implements SortMechanism {
 	}
 
 	/**
-	 * the sorter activated if the execute method of this one shows that first
-	 * == second.
-	 */
-	public SortMechanism getSecondarySorter() {
-		return _secondarySorter;
-	}
-
-	/**
-	 * sets the secondary sort mechanism
-	 */
-	public void setSecondarySorter(SortMechanism sm) {
-		_secondarySorter = sm;
-	}
-
-	/**
 	 * method for collections Comapartor interface
 	 */
-	public int compare(Object first, Object second) {
+	public int compare(DataReference first, DataReference second) {
 		// check instanceof first and second
-		if (!(first instanceof DataReference))
-			return -1;
-		else if (!(second instanceof DataReference))
-			return 1;
-		else {
-			Pathname fPath = ((DataReference) first).getPathname();
-			Pathname sPath = ((DataReference) second).getPathname();
-			int lexicalValue = 0;
-			if (_sortOrder == SortMechanism.INCREASING)
-				lexicalValue = sPath.getPart(_partId).compareTo(
-						fPath.getPart(_partId));
-			else if (_sortOrder == SortMechanism.DECREASING)
-				lexicalValue = fPath.getPart(_partId).compareTo(
-						sPath.getPart(_partId));
-			else
-				lexicalValue = 0;
-			return lexicalValue;
-		}
-	}
-
-	/**
-   *
-   */
-	public boolean equals(Object o) {
-		return false;
-	}
-
-	/**
-	 * Return true if both objects are DataReference objects and the part of
-	 * first object is greater than the part of second object. The part to be
-	 * compared is defined by the partId and comparision is done by the compare
-	 * method of java.lang.String
-	 */
-	public boolean execute(Object first, Object second) {
-		// check instanceof first and second
-		if (!(first instanceof DataReference))
-			return false;
-		else if (!(second instanceof DataReference))
-			return false;
-		else {
-			Pathname fPath = ((DataReference) first).getPathname();
-			Pathname sPath = ((DataReference) second).getPathname();
-			int lexicalValue = 0;
-			if (_sortOrder == SortMechanism.INCREASING)
-				lexicalValue = sPath.getPart(_partId).compareTo(
-						fPath.getPart(_partId));
-			else if (_sortOrder == SortMechanism.DECREASING)
-				lexicalValue = fPath.getPart(_partId).compareTo(
-						sPath.getPart(_partId));
-			else
-				lexicalValue = 0;
-			if (lexicalValue > 0)
-				return true;
-			else if (lexicalValue == 0) {
-				if (_secondarySorter == null)
-					return false;
-				else
-					return _secondarySorter.execute(first, second);
-			} else
-				return false;
-		}
+		Pathname fPath = ((DataReference) first).getPathname();
+		Pathname sPath = ((DataReference) second).getPathname();
+		int lexicalValue = 0;
+		if (_sortOrder == SortMechanism.INCREASING)
+			lexicalValue = sPath.getPart(_partId).compareTo(
+					fPath.getPart(_partId));
+		else if (_sortOrder == SortMechanism.DECREASING)
+			lexicalValue = fPath.getPart(_partId).compareTo(
+					sPath.getPart(_partId));
+		else
+			lexicalValue = 0;
+		return lexicalValue;
 	}
 
 	/**
    *
    */
 	private int _partId;
-	/**
-   *
-   */
-	private SortMechanism _secondarySorter;
 	/**
    *
    */

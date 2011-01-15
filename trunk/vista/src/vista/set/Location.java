@@ -55,7 +55,7 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * Describes a location.
@@ -69,14 +69,14 @@ public class Location {
 	 */
 	private double _x, _y;
 	private String _name;
-	private Array _aliases;
+	private ArrayList<String> _aliases;
 
 	/**
 	 * creates a location with given name, x and y coordinates
 	 */
 	public Location(String name, double x, double y) {
 		_name = name;
-		_aliases = new Array();
+		_aliases = new ArrayList<String>();
 		_x = x;
 		_y = y;
 	}
@@ -114,7 +114,6 @@ public class Location {
 	 */
 	public String[] getAliases() {
 		String[] names = new String[_aliases.size()];
-		_aliases.copyTo(names);
-		return names;
+		return _aliases.toArray(names);
 	}
 }

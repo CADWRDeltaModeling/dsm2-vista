@@ -56,8 +56,7 @@
 package vista.graph;
 
 import java.awt.Dimension;
-
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * Lays out the elements in North, South , East , West and Center positions. The
@@ -96,7 +95,7 @@ public class GEMultiBorderLayout extends GEBorderLayout {
 	 * returns the maximum of preferred required dimensions for all graphical
 	 * elements in the array times the number of elements in that array.
 	 */
-	protected Dimension getPreferredSize(Array array) {
+	protected Dimension getPreferredSize(ArrayList array) {
 		Dimension size = null;
 		if (_mediator == null)
 			return super.getPreferredSize(array);
@@ -118,7 +117,7 @@ public class GEMultiBorderLayout extends GEBorderLayout {
 	 * returns the maximum of minimum required dimensions for all graphical
 	 * elements in the array.
 	 */
-	private Dimension getMinimumSize(Array array) {
+	private Dimension getMinimumSize(ArrayList array) {
 		return getPreferredSize(array);
 	}
 

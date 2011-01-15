@@ -55,27 +55,20 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.UnaryPredicate;
 
 /**
  * returns true if object is null. Useful in filtering containers of null
  * values.
  */
-public class IsNull implements UnaryPredicate {
+public class IsNull implements Predicate<Object> {
 	/**
 	 * empty constructor
 	 */
 	public IsNull() {
 	}
 
-	/**
-	 * Return the result of executing with a single Object.
-	 * 
-	 * @param object
-	 *            The object to process.
-	 * @return The result of processing the input Object.
-	 */
-	public boolean execute(Object object) {
-		return (object == null);
+	@Override
+	public boolean apply(Object type) {
+		return type==null;
 	}
 }

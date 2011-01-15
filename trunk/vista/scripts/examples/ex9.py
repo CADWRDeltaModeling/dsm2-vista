@@ -1,3 +1,4 @@
+from vutils import *
 def simple_plot(x,y,
                 xlabel="x axis", ylabel="y axis", title = "title",
                 legend = "legend",

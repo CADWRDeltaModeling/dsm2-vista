@@ -58,7 +58,6 @@ package vista.app;
 import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.Group;
-import vista.set.PartSort;
 import vista.set.SortMechanism;
 
 /**
@@ -86,7 +85,7 @@ public class SortReferencesCommand implements Command {
 	public void execute() throws ExecutionException {
 		if (_group == null || _sm == null)
 			return;
-		_group.sortBy(new PartSort(_sm));
+		_group.sortBy(_sm);
 	}
 
 	/**

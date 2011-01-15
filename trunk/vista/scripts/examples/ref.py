@@ -1,3 +1,4 @@
+from vutils import *
 # DataReference methods
 # This opens up a dss file and g is now a variable containing
 # all the data references in that group
@@ -8,16 +9,16 @@ for ref in g:
 # to thin down this group to contain only given references
 # the expression for this method is a regular expression. For
 # more information on regular expressions see any Perl reference
-g.filterBy('xyz')
+g.filterBy('COS')
 # to only thin down the group using selection or rejection 
 # based on a particular pathname part
 selecting=1 # 1 for select matching, 0 for reject matching
-g.filterBy(selecting, PathPartPredicate('regexp', Pathname.B_PART))
+g.filterBy(PathPartPredicate('regexp', Pathname.B_PART),selecting)
 # if you want to not thin down this original group use the clone command
 gclone = g.clone()
-gclone.filterBy('xyz')
+gclone.filterBy('COS')
 # or there is a short cut function defined called find
-gnew = find(g,'xyz')
+gnew = find(g,'COS')
 #
 # this is a reference. It contains the servername, pathname, filename
 # and optionally the timewindow and the time interval

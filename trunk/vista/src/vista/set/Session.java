@@ -62,32 +62,31 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import COM.objectspace.jgl.Array;
-import COM.objectspace.jgl.Filtering;
-import COM.objectspace.jgl.Finding;
-import COM.objectspace.jgl.InputIterator;
-import COM.objectspace.jgl.OutputIterator;
-import COM.objectspace.jgl.SetOperations;
 
 /**
  * A session is an aggregate of groups.
  */
+@SuppressWarnings("serial")
 public class Session implements GroupManager, Serializable {
 	/**
 	 * creates an empty session with a blank name
 	 */
 	public Session() {
 		_name = "";
-		_groupList = new Array();
+		_groupList = new ArrayList<Group>();
 	}
 
 	/**
 	 * creates a session with a name and list of groups
 	 */
-	public Session(String name, Array groupList) {
+	public Session(String name, List<Group> groupList) {
 		if (name != null)
 			_name = name;
 		if (groupList != null)
@@ -104,7 +103,7 @@ public class Session implements GroupManager, Serializable {
 	/**
 	 * creates a session with a name and a group list
 	 */
-	public static Session createSession(String name, Array groupList) {
+	public static Session createSession(String name, List<Group> groupList) {
 		Session s = new Session();
 		if (name != null)
 			s._name = name;
@@ -124,7 +123,11 @@ public class Session implements GroupManager, Serializable {
 	 * copies the groups from this session into specified one.
 	 */
 	public void copyInto(Session s) {
-		s._groupList = new Array(getAllGroups());
+		ArrayList<Group> groupList = new ArrayList<Group>();
+		for (Group g : s.getAllGroups()) {
+			groupList.add(g);
+		}
+		s._groupList = groupList;
 	}
 
 	/**
@@ -134,7 +137,7 @@ public class Session implements GroupManager, Serializable {
 		Session s = new Session();
 		synchronized (this) {
 			s._name = _name;
-			s._groupList = (Array) _groupList.clone();
+			s._groupList = new ArrayList<Group>(s._groupList);
 		}
 		return s;
 	}
@@ -152,23 +155,13 @@ public class Session implements GroupManager, Serializable {
 		else
 			name = this._name + " union " + s._name;
 		// make copies of reference list and sort by hash code
-		Array ref1 = (Array) _groupList.clone();
-		Array ref2 = (Array) s._groupList.clone();
-		// LessEqualName comparator = new LessEqualName();
-		// Sorting.sort( ref1, comparator );
-		// Sorting.sort( ref2, comparator );
-		Array groupList = new Array(ref1.size() + ref2.size());
-		OutputIterator outI = groupList.start();
-		// make the union of the reference lists
-		SetOperations.setUnion(ref1.begin(), ref1.end(), ref2.begin(), ref2
-				.end(), outI);
-		groupList = (Array) Filtering.reject(groupList, new IsNull());
-		// Sorting.sort( groupList, comparator);
-		Array uniqueGroupList = new Array();
-		Filtering.uniqueCopy(groupList, uniqueGroupList, new EqualName());
+		TreeSet<Group> uniqueGroupList = new TreeSet<Group>();
+		uniqueGroupList.addAll(_groupList);
+		uniqueGroupList.addAll(s._groupList);
+		//
 		Session sessionUnion = new Session();
 		sessionUnion._name = name;
-		sessionUnion._groupList = uniqueGroupList;
+		sessionUnion._groupList = new ArrayList<Group>(uniqueGroupList);
 		return sessionUnion;
 	}
 
@@ -213,7 +206,7 @@ public class Session implements GroupManager, Serializable {
 	 */
 	public void insertGroupAt(int i, Group g) {
 		if (!_groupList.contains(g))
-			_groupList.insert(i, g);
+			_groupList.add(i, g);
 	}
 
 	/**
@@ -240,7 +233,9 @@ public class Session implements GroupManager, Serializable {
 			index1 = index0;
 			index0 = swap;
 		}
-		_groupList.remove(index0, index1);
+		for (int i = index1; i <= index0; i--) {
+			_groupList.remove(i);
+		}
 	}
 
 	/**
@@ -248,7 +243,7 @@ public class Session implements GroupManager, Serializable {
 	 */
 	public Group getGroup(int index) {
 		if (index < _groupList.size()) {
-			return (Group) _groupList.at(index);
+			return (Group) _groupList.get(index);
 		} else
 			return null;
 	}
@@ -257,21 +252,20 @@ public class Session implements GroupManager, Serializable {
 	 * gets group by name
 	 */
 	public Group getGroup(String groupName) {
-		InputIterator iterator = Finding.findIf(_groupList,
-				new MatchNamePredicate(groupName));
-		if (iterator.atEnd())
-			throw new RuntimeException(groupName + " not found in "
-					+ this.getName());
-		return (Group) iterator.get();
+		for (Group g : _groupList) {
+			if (g.getName().equals(groupName)) {
+				return g;
+			}
+		}
+		return null;
 	}
 
 	/**
 	 * gets all the groups
 	 */
 	public Group[] getAllGroups() {
-		Group[] groups = new Group[getNumberOfGroups()];
-		_groupList.copyTo(groups);
-		return groups;
+		Group[] groups = new Group[_groupList.size()];
+		return _groupList.toArray(groups);
 	}
 
 	/**
@@ -279,8 +273,8 @@ public class Session implements GroupManager, Serializable {
 	 * groups by some criteria. The group list is being directly manipulated by
 	 * the sorting mechanism.
 	 */
-	public void sortBy(Sorter sortAlgo) {
-		sortAlgo.sort(_groupList);
+	public void sortBy(Comparator<Group> comparator) {
+		Collections.sort(_groupList, comparator);
 	}
 
 	/**
@@ -344,7 +338,7 @@ public class Session implements GroupManager, Serializable {
 	/**
 	 * A list of groups in this session
 	 */
-	private Array _groupList;
+	private List<Group> _groupList;
 	/**
    *
    */

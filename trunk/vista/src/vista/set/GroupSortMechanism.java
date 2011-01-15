@@ -55,51 +55,55 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.Array;
 
 /**
- * Sorts an array of data reference by using one of the parts. The default
- * sorting order is increasing.
+ * Sorts an array of named by their names The default sorting order is
+ * increasing.
+ * 
+ * @author Nicky Sandhu
+ * @version $Id: NameSort.java,v 1.1 2003/10/02 20:49:27 redwood Exp $
  */
-public class PartSort implements Sorter {
+public class GroupSortMechanism implements SortMechanism<Group> {
+	private int sortOrder;
+
 	/**
 	 * sorts using the partId specified and increasing order of sort.
 	 */
-	public PartSort(SortMechanism sortMechanism) {
-		setSortMechanism(sortMechanism);
+	public GroupSortMechanism() {
+		this(INCREASING);
 	}
 
 	/**
-    *
-    */
-	public SortMechanism getSortMechanism() {
-		return _sortMechanism;
-	}
-
-	/**
-	 * set the sort mechanism;
+	 * Initializes the sorting method for a certain part id.
+	 * 
+	 * @param partId
+	 *            Id of the part by which to sort as defined by Pathname.?_PART
+	 *            constants
+	 * @see Pathname
 	 */
-	public void setSortMechanism(SortMechanism sortMechanism) {
-		if (sortMechanism == null)
-			throw new IllegalArgumentException("null sort mechanism");
-		_sortMechanism = sortMechanism;
+	public GroupSortMechanism(int sortOrder) {
+		this.sortOrder = sortOrder;
 	}
 
 	/**
-	 * sorts the array of data references and returns it as a sorted array No
-	 * copy is made of the sorted array.
+	 * checks if order of sort is ascending or descending...
 	 */
-	public Array sort(Array refs) {
-		// Sorting.sort( refs , _sortMechanism );
-		DataReference[] refArray = new DataReference[refs.size()];
-		refs.copyTo(refArray);
-		com.sun.java.util.collections.Arrays.sort(refArray, _sortMechanism);
-		refs.swap(new Array(refArray));
-		return refs;
+	public boolean isAscendingOrder() {
+		return sortOrder == INCREASING;
 	}
 
 	/**
-	 * The sorting mechanism used for sorting.
+	 * sets ascending / descending order
 	 */
-	private SortMechanism _sortMechanism;
+	public void setAscendingOrder(boolean ascending) {
+		sortOrder = ascending ? INCREASING : DECREASING; 
+	}
+	@Override
+	public int compare(Group o1, Group o2) {
+		if (isAscendingOrder()){
+			return o1.getName().compareTo(o2.getName());
+		} else {
+			return o2.getName().compareTo(o1.getName());
+		}
+	}
 }

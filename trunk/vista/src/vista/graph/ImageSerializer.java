@@ -79,13 +79,9 @@ public class ImageSerializer implements Runnable {
 	 */
 	public static final int JPEG = GIF + 1;
 	/**
-	 * Output format is ppm
-	 */
-	public static final int PPM = JPEG + 1;
-	/**
    *
    */
-	public static final int PS = PPM + 1;
+	public static final int PS = JPEG + 1;
 
 	/**
 	 * constructor
@@ -115,8 +111,6 @@ public class ImageSerializer implements Runnable {
 				printGif(osi, _plotFile);
 			else if (_format == JPEG)
 				printJpeg(osi, _plotFile);
-			else if (_format == PPM)
-				printPPM(osi, _plotFile);
 		}
 	}
 
@@ -180,19 +174,6 @@ public class ImageSerializer implements Runnable {
 			FileOutputStream fos = new java.io.FileOutputStream(filename);
 			new vista.graph.JpegEncoder(img, 85, fos).Compress();
 			fos.close();
-		} catch (java.io.IOException ioe) {
-			System.out.println("Unsuccesful in printing out graphics to "
-					+ _plotFile);
-		}
-	}
-
-	/**
-	 * prints image in PPM format
-	 */
-	private void printPPM(Image img, String filename) {
-		try {
-			new Acme.JPM.Encoders.PpmEncoder(img, new java.io.FileOutputStream(
-					filename)).encode();
 		} catch (java.io.IOException ioe) {
 			System.out.println("Unsuccesful in printing out graphics to "
 					+ _plotFile);

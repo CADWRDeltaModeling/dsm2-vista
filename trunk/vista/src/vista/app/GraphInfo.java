@@ -55,10 +55,9 @@
  */
 package vista.app;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
 
 import vista.set.DataReference;
-import COM.objectspace.jgl.Array;
 
 /**
  * 
@@ -70,13 +69,13 @@ class GraphInfo {
 	private int PLOTS_PER_GRAPH = 2;
 	private int index;
 	private String title;
-	private Array plots;
+	private ArrayList<PlotInfo> plots;
 
 	/**
    *
    */
 	public GraphInfo(int index, String title) {
-		plots = new Array();
+		plots = new ArrayList<PlotInfo>();
 	}
 
 	/**
@@ -90,7 +89,7 @@ class GraphInfo {
    *
    */
 	public PlotInfo getPlotInfo(int index) {
-		return (PlotInfo) plots.at(index);
+		return (PlotInfo) plots.get(index);
 	}
 
 	/**
@@ -98,14 +97,11 @@ class GraphInfo {
    */
 	public DataSetInfo addDataReference(DataReference ref)
 			throws GraphLimitException {
-
-		PlotInfo pInfo = null;
 		DataSetInfo dsi = null;
 
 		boolean setAdded = false;
 
-		for (Enumeration e = plots.elements(); e.hasMoreElements();) {
-			pInfo = (PlotInfo) e.nextElement();
+		for (PlotInfo pInfo: plots) {
 			try {
 				dsi = pInfo.addDataReference(ref);
 				setAdded = true;
@@ -116,6 +112,7 @@ class GraphInfo {
 		if (!setAdded) {
 			if (limitReached())
 				throw new GraphLimitException();
+			PlotInfo pInfo = new PlotInfo();
 			plots.add(pInfo = new PlotInfo());
 			pInfo.setIndex(plots.size());
 			pInfo.setTitle("Plot # " + plots.size());
@@ -145,7 +142,7 @@ class GraphInfo {
 		buf.append("Graph title ").append(index).append("\n");
 		buf.append("# of plots ").append(plots.size()).append("\n");
 		for (int i = 0; i < plots.size(); i++)
-			buf.append(((PlotInfo) plots.at(i)).toString());
+			buf.append(((PlotInfo) plots.get(i)).toString());
 		return buf.toString();
 	}
 }

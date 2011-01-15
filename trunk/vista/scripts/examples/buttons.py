@@ -12,7 +12,7 @@ def makeAction(myfunc):
 #
 # define a function to invoke a given script
 def makeScriptButton(button_name,script_name):
-	from com.sun.java.swing import JButton
+	from javax.swing import JButton
 	from java.awt.event import ActionListener
 	btn = JButton(button_name)
         #defin a class to invoke a script
@@ -28,6 +28,7 @@ def makeScriptButton(button_name,script_name):
 	btn.addActionListener(action(script_name))
 	return btn
 #
+from javax.swing import *
 # now make a new frame
 fr = JFrame();
 pane=fr.getContentPane()

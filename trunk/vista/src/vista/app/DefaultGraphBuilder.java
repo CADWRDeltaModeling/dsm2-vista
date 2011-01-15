@@ -56,6 +56,7 @@
 package vista.app;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Date;
 
 import vista.graph.Axis;
@@ -79,7 +80,6 @@ import vista.graph.TimeTickGenerator;
 import vista.set.DataReference;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
-import COM.objectspace.jgl.Array;
 
 /**
  * Builds a graph from given data sets.
@@ -93,7 +93,7 @@ public class DefaultGraphBuilder implements GraphBuilder {
 	 * initializes the graph builder with no data sets
 	 */
 	public DefaultGraphBuilder() {
-		_dataRefs = new Array();
+		_dataRefs = new ArrayList<DataReference>();
 	}
 
 	/**
@@ -118,8 +118,9 @@ public class DefaultGraphBuilder implements GraphBuilder {
 	 * removes all the data sets
 	 */
 	public void removeAll() {
-		if (_dataRefs.size() > 0)
-			_dataRefs.remove(0, _dataRefs.size());
+		if (_dataRefs.size() > 0) {
+			_dataRefs.clear();
+		}
 	}
 
 	/**
@@ -129,7 +130,7 @@ public class DefaultGraphBuilder implements GraphBuilder {
 		if (_dataRefs.size() == 0)
 			return null;
 		DataReference[] drefs = new DataReference[_dataRefs.size()];
-		_dataRefs.copyTo(drefs);
+		drefs = _dataRefs.toArray(drefs);
 		GraphBuilderInfo info = new GraphBuilderInfo(drefs, MainProperties
 				.getProperties());
 		if (DEBUG)
@@ -261,7 +262,7 @@ public class DefaultGraphBuilder implements GraphBuilder {
 	/**
    *
    */
-	private Array _dataRefs;
+	private ArrayList<DataReference> _dataRefs;
 	/**
 	 * debuggin' flag...
 	 */

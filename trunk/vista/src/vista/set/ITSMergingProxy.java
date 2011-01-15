@@ -55,12 +55,14 @@
  */
 package vista.set;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 import vista.time.Time;
 import vista.time.TimeInterval;
 import vista.time.TimeWindow;
-import COM.objectspace.jgl.Array;
-import COM.objectspace.jgl.BinaryPredicate;
-import COM.objectspace.jgl.Sorting;
 
 /**
  * This proxy is for merging data references. The time window is the union of
@@ -327,31 +329,23 @@ public class ITSMergingProxy extends DataReference {
    *
    */
 	protected void sort(DataReference[] refs) {
-		Array a = new Array(refs);
-		Sorting.sort(a, new MergingOrder());
+		ArrayList<DataReference> a = new ArrayList<DataReference>(Arrays.asList(refs));
+		Collections.sort(a, new MergingOrder());
 		DataReference[] nrefs = new DataReference[a.size()];
-		a.copyTo(nrefs);
+		nrefs=a.toArray(nrefs);
 		System.arraycopy(nrefs, 0, refs, 0, refs.length);
 	}
 
 	/**
    *
    */
-	private class MergingOrder implements BinaryPredicate {
+	private class MergingOrder implements Comparator<DataReference> {
 		/**
 		 * return true if obj1 comes before obj2 in sort order
 		 */
-		public boolean execute(Object obj1, Object obj2) {
-			if (!(obj1 instanceof DataReference))
-				return false;
-			if (!(obj2 instanceof DataReference))
-				return false;
-			DataReference ref1 = (DataReference) obj1;
-			DataReference ref2 = (DataReference) obj2;
-			if (ref1.getTimeInterval().compare(ref2.getTimeInterval()) < 0)
-				return true;
-			else
-				return false;
+		@Override
+		public int compare(DataReference ref1, DataReference ref2) {
+			return ref1.getTimeInterval().compare(ref2.getTimeInterval());
 		}
 	}
 
