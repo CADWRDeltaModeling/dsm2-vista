@@ -8,16 +8,13 @@
 <path>/vista/lib/Lib</path>
 <path>/vista/lib/dsm2-input-model.jar</path>
 <path>/vista/lib/heclib.jar</path>
-<path>/vista/lib/jakarta-oro-2.0.8.jar</path>
 <path>/vista/lib/jhall.jar</path>
 <path>/vista/lib/jhdf5.jar</path>
 <path>/vista/lib/jhdf5obj.jar</path>
 <path>/vista/lib/jhdfobj.jar</path>
 <path>/vista/lib/jnios.jar</path>
 <path>/vista/lib/jpy.jar</path>
-<path>/vista/lib/misc.jar</path>
 <path>/vista/lib/ojdbc6.jar</path>
-<path>/vista/lib/pd.jar</path>
 <path>/vista/lib/postgresql-8.4-702.jdbc4.jar</path>
 <path>/vista/bin</path>
 <path>/vista/lib/jyson-1.0.1.jar</path>

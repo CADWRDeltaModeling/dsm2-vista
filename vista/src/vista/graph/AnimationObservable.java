@@ -55,9 +55,7 @@
  */
 package vista.graph;
 
-import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * A non-thread based class for efficiency. This is not thread safe but it is
@@ -72,7 +70,7 @@ public class AnimationObservable {
 	 * initializes an observable with no observers
 	 */
 	public AnimationObservable() {
-		observers = new Array();
+		observers = new ArrayList<AnimationObserver>();
 	}
 
 	/**
@@ -93,11 +91,10 @@ public class AnimationObservable {
 	 * notifies the observers and sends messages in the Object args
 	 */
 	public void notifyAll(Object args) {
-		for (Enumeration e = observers.elements(); e.hasMoreElements();) {
-			AnimationObserver observer = (AnimationObserver) e.nextElement();
+		for(AnimationObserver observer: observers){
 			observer.update(this, args);
 		}
 	}
 
-	private Array observers;
+	private ArrayList<AnimationObserver> observers;
 }

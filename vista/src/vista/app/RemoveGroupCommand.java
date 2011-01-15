@@ -55,11 +55,13 @@
  */
 package vista.app;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.Group;
 import vista.set.Session;
-import COM.objectspace.jgl.Array;
 
 /**
  * Encapsulates commands implementing session related commands
@@ -70,7 +72,7 @@ import COM.objectspace.jgl.Array;
 class RemoveGroupCommand implements Command {
 	private Session _session;
 	private int[] _gNumbers;
-	private Array _gRemoved;
+	private ArrayList<Object> _gRemoved;
 
 	/**
 	 * opens session and sets current session to
@@ -78,7 +80,7 @@ class RemoveGroupCommand implements Command {
 	public RemoveGroupCommand(Session s, int[] groupNumbers) {
 		_session = s;
 		_gNumbers = groupNumbers;
-		_gRemoved = new Array();
+		_gRemoved = new ArrayList<Object>();
 	}
 
 	/**
@@ -95,11 +97,9 @@ class RemoveGroupCommand implements Command {
 			_gRemoved.add(_session.getGroup(ng));
 		}
 		// then remove them
-		for (java.util.Enumeration e = _gRemoved.elements(); e
-				.hasMoreElements();) {
-			e.nextElement();
-			Object obj = e.nextElement();
-			_session.removeGroup((Group) obj);
+		for (Iterator<Object> eg = _gRemoved.iterator(); eg.hasNext();) {
+			eg.next();
+			_session.removeGroup((Group) eg.next());
 		}
 	}
 
@@ -110,10 +110,9 @@ class RemoveGroupCommand implements Command {
 		int n = _gRemoved.size();
 		if (n == 0)
 			return;
-		for (java.util.Enumeration eg = _gRemoved.elements(); eg
-				.hasMoreElements();) {
-			int gNumber = ((Integer) eg.nextElement()).intValue();
-			Group group = (Group) eg.nextElement();
+		for (Iterator<Object> eg = _gRemoved.iterator(); eg.hasNext();) {
+			int gNumber = ((Integer) eg.next()).intValue();
+			Group group = (Group) eg.next();
 			_session.insertGroupAt(gNumber, group);
 		}
 	}

@@ -56,17 +56,14 @@
 package vista.set;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
 
 import org.python.core.Py;
-
-import COM.objectspace.jgl.Array;
-import COM.objectspace.jgl.Filtering;
-import COM.objectspace.jgl.Finding;
-import COM.objectspace.jgl.InputIterator;
-import COM.objectspace.jgl.OutputIterator;
-import COM.objectspace.jgl.SetOperations;
-import COM.objectspace.jgl.Sorting;
-import COM.objectspace.jgl.UnaryPredicate;
 
 /**
  * This class groups associate data references together.
@@ -74,7 +71,7 @@ import COM.objectspace.jgl.UnaryPredicate;
  * @author Nicky Sandhu
  * @version $Id: Group.java,v 1.1 2003/10/02 20:49:24 redwood Exp $
  */
-public class Group implements Named, Serializable {
+public class Group implements Named, Serializable, Comparable<Group> {
 	/**
    *
    */
@@ -84,7 +81,7 @@ public class Group implements Named, Serializable {
 	 */
 	public Group() {
 		_name = "";
-		_referenceList = new Array();
+		_referenceList = new ArrayList<DataReference>();
 	}
 
 	/**
@@ -92,7 +89,7 @@ public class Group implements Named, Serializable {
 	 */
 	public Group(String name) {
 		_name = name;
-		_referenceList = new Array();
+		_referenceList = new ArrayList<DataReference>();
 	}
 
 	/**
@@ -103,7 +100,7 @@ public class Group implements Named, Serializable {
 	public static Group createGroup(String name) {
 		Group g = new Group();
 		g._name = name;
-		g._referenceList = new Array();
+		g._referenceList = new ArrayList<DataReference>();
 		return g;
 	}
 
@@ -118,7 +115,7 @@ public class Group implements Named, Serializable {
 		synchronized (refs) {
 			Group g = new Group();
 			g._name = name;
-			g._referenceList = new Array(refs);
+			g._referenceList = new ArrayList<DataReference>(Arrays.asList(refs));
 			return g;
 		}
 	}
@@ -126,7 +123,7 @@ public class Group implements Named, Serializable {
 	/**
 	 * creates a group with a name and reference list
 	 */
-	public static Group createGroup(String name, Array refArray) {
+	public static Group createGroup(String name, List refArray) {
 		if (refArray == null)
 			return null;
 		if (name == null)
@@ -134,7 +131,7 @@ public class Group implements Named, Serializable {
 		synchronized (refArray) {
 			Group g = new Group();
 			g._name = name;
-			g._referenceList = new Array(refArray);
+			g._referenceList = new ArrayList(refArray);
 			return g;
 		}
 	}
@@ -146,7 +143,7 @@ public class Group implements Named, Serializable {
 	public static Group createGroup(Group g) {
 		Group gcopy = new Group();
 		gcopy.setName(g.getName() + "(copy)");
-		gcopy._referenceList = new Array(g.getAllDataReferences());
+		gcopy._referenceList = new ArrayList<DataReference>(g._referenceList);
 		return gcopy;
 	}
 
@@ -176,7 +173,7 @@ public class Group implements Named, Serializable {
 	 */
 	public void insertDataReferenceAt(int index, DataReference ref) {
 		if (!_referenceList.contains(ref))
-			_referenceList.insert(index, ref);
+			_referenceList.add(index, ref);
 	}
 
 	/**
@@ -207,7 +204,9 @@ public class Group implements Named, Serializable {
 			index1 = index0;
 			index0 = swap;
 		}
-		_referenceList.remove(index0, index1);
+		for (int i = index1; i >= index0; i++) {
+			_referenceList.remove(index0);
+		}
 	}
 
 	/**
@@ -215,7 +214,7 @@ public class Group implements Named, Serializable {
 	 */
 	public DataReference getDataReference(int index) {
 		if (index < _referenceList.size())
-			return (DataReference) _referenceList.at(index);
+			return _referenceList.get(index);
 		else
 			return null;
 	}
@@ -224,9 +223,12 @@ public class Group implements Named, Serializable {
 	 * gets data reference by name
 	 */
 	public DataReference getDataReference(String dataName) {
-		InputIterator iterator = Finding.findIf(_referenceList,
-				new MatchNamePredicate(dataName));
-		return (DataReference) iterator.get();
+		for (DataReference r : _referenceList) {
+			if (r.getName().equals(dataName)) {
+				return r;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -234,15 +236,14 @@ public class Group implements Named, Serializable {
 	 */
 	public DataReference[] getAllDataReferences() {
 		DataReference[] refs = new DataReference[getNumberOfDataReferences()];
-		_referenceList.copyTo(refs);
-		return refs;
+		return _referenceList.toArray(refs);
 	}
 
 	/**
 	 * copies this group into given group.
 	 */
 	public void copyInto(Group group) {
-		group._referenceList = new Array(getAllDataReferences());
+		group._referenceList = new ArrayList<DataReference>(this._referenceList);
 	}
 
 	/**
@@ -261,20 +262,12 @@ public class Group implements Named, Serializable {
 			return (Group) this.clone();
 		String name = this._name + " union " + group._name;
 		// make copies of reference list and sort by hash code
-		Array ref1 = new Array(getAllDataReferences());
-		Array ref2 = new Array(group.getAllDataReferences());
-		Sorting.sort(ref1);
-		Sorting.sort(ref2);
-		Array referenceList = new Array(ref1.size() + ref2.size());
-		// referenceList.ensureCapacity( ref1.size() + ref2.size() );
-		OutputIterator outI = referenceList.start();
-		// make the union of the reference lists
-		SetOperations.setUnion(ref1.begin(), ref1.end(), ref2.begin(), ref2
-				.end(), outI);
-		referenceList = (Array) Filtering.reject(referenceList, new IsNull());
+		TreeSet<DataReference> refs = new TreeSet<DataReference>();
+		refs.addAll(this._referenceList);
+		refs.addAll(group._referenceList);
 		Group groupUnion = new Group();
 		groupUnion._name = name;
-		groupUnion._referenceList = referenceList;
+		groupUnion._referenceList = new ArrayList<DataReference>(refs);
 		return groupUnion;
 	}
 
@@ -287,20 +280,12 @@ public class Group implements Named, Serializable {
 			return (Group) this.clone();
 		String name = this._name + " intersection " + group._name;
 		// make copies of reference list and sort by hash code
-		Array ref1 = new Array(getAllDataReferences());
-		Array ref2 = new Array(group.getAllDataReferences());
-		Sorting.sort(ref1);
-		Sorting.sort(ref2);
-		Array referenceList = new Array();
-		referenceList.ensureCapacity(Math.max(ref1.size(), ref2.size()));
-		OutputIterator outI = referenceList.start();
-		// make the intersection of the reference lists
-		SetOperations.setIntersection(ref1.begin(), ref1.end(), ref2.begin(),
-				ref2.end(), outI);
-		referenceList = (Array) Filtering.reject(referenceList, new IsNull());
+		TreeSet<DataReference> refs = new TreeSet<DataReference>();
+		refs.addAll(this._referenceList);
+		refs.retainAll(group._referenceList);
 		Group groupIntersection = new Group();
 		groupIntersection._name = name;
-		groupIntersection._referenceList = referenceList;
+		groupIntersection._referenceList = new ArrayList<DataReference>(refs);
 		return groupIntersection;
 	}
 
@@ -309,11 +294,8 @@ public class Group implements Named, Serializable {
 	 * references by some criteria. The reference list is being directly
 	 * manipulated by the sorting mechanism.
 	 */
-	public void sortBy(Sorter sortAlgo) {
-		// DataReference [] refs = getAllDataReferences();
-		// com.sun.java.utils.collections.Arrays.sort(refs, comparator);
-		sortAlgo.sort(_referenceList);
-		// _referenceList = new Array(refs);
+	public void sortBy(Comparator<DataReference> comparator) {
+		Collections.sort(_referenceList, comparator);
 	}
 
 	/**
@@ -322,7 +304,7 @@ public class Group implements Named, Serializable {
 	 * in them.
 	 */
 	public void filterBy(String regex) {
-		filterBy(true, new PathnamePredicate(regex));
+		filterBy(new PathnamePredicate(regex), true);
 	}
 
 	/**
@@ -330,31 +312,9 @@ public class Group implements Named, Serializable {
 	 * by this group to be modified. This change is physically reflected by
 	 * appending the filter expression string to the name of this group.
 	 */
-	public void filterBy(boolean selecting, UnaryPredicate predicate) {
-		// filtering operations...
-		DataReferenceFilter filter = new DataReferenceFilter(
-				getAllDataReferences(), predicate);
-		filter.setSelecting(selecting);
-		filter.filter();
-		DataReference[] refs = filter.getFilteredArray();
-		// modify list
-		this._referenceList = new Array(refs);
-		// modify name
-		String filterName = null;
-		if (predicate instanceof RegExPredicate)
-			filterName = ((RegExPredicate) predicate).getRegularExpression();
-		else
-			filterName = predicate.toString();
-		if (predicate instanceof PathPartPredicate) {
-			String sep = "=";
-			if (!selecting)
-				sep = "!=";
-			filterName = Pathname.getPartName(((PathPartPredicate) predicate)
-					.getPartId())
-					+ sep + filterName;
-		}
-		if (this._name.indexOf(filterName) == -1)
-			this._name = this._name + "<" + filterName + ">";
+	public void filterBy(Predicate<DataReference> predicate, boolean selecting) {
+		_referenceList = (ArrayList<DataReference>) CollectionUtils.filter(Collections.unmodifiableList(_referenceList), predicate, selecting);
+		this._name = this._name + "<" + predicate + "[" + selecting + "]>";
 	}
 
 	/**
@@ -363,14 +323,15 @@ public class Group implements Named, Serializable {
 	public DataReference[] find(String[] pathParts) {
 		// initialize group...
 		getNumberOfDataReferences();
-		//
-		Array result = (Array) Filtering.select(_referenceList,
-				new PathPartsFilter(pathParts));
-		if (result == null || result.size() == 0)
-			return null;
+		ArrayList<DataReference> result = new ArrayList<DataReference>();
+		PathPartsFilter predicate = new PathPartsFilter(pathParts);
+		for (DataReference r : _referenceList) {
+			if (predicate.apply(r)) {
+				result.add(r);
+			}
+		}
 		DataReference[] refs = new DataReference[result.size()];
-		result.copyTo(refs);
-		return refs;
+		return result.toArray(refs);
 	}
 
 	/**
@@ -435,7 +396,7 @@ public class Group implements Named, Serializable {
 		getDataReference(0);
 		//
 		for (int k = 0; k < refArray.length; k++) {
-			refArray[k] = (DataReference) _referenceList.at(k + bi);
+			refArray[k] = (DataReference) _referenceList.get(k + bi);
 		}
 		return refArray;
 	}
@@ -455,7 +416,7 @@ public class Group implements Named, Serializable {
 		getDataReference(0);
 		//
 		for (int k = 0; k < array.length; k++) {
-			_referenceList.put(k + bi, array[k]);
+			_referenceList.add(k + bi, array[k]);
 		}
 	}
 
@@ -480,6 +441,10 @@ public class Group implements Named, Serializable {
 		removeDataReference(i, j);
 	}
 
+	@Override
+	public int compareTo(Group o) {
+		return this.getName().compareTo(o.getName());
+	}
 	/**
 	 * The name of this group
 	 */
@@ -489,5 +454,5 @@ public class Group implements Named, Serializable {
 	 * replaced by a linked list kind of implementation if insertion and
 	 * deletion get excessive.
 	 */
-	private Array _referenceList;
+	private ArrayList<DataReference> _referenceList;
 }

@@ -6,7 +6,7 @@ from java.lang import String
 # gets a reference with exact b part from filename
 def getReference(filename, bpart):
  g=opendss(filename)
- g.filterBy(1,PathPartPredicate(('^'+bpart+'$'),Pathname.B_PART))
+ g.filterBy(PathPartPredicate(('^'+bpart+'$'),Pathname.B_PART),1)
  return g[0]
 #
 #

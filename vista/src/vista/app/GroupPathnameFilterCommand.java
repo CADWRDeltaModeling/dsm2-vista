@@ -96,7 +96,7 @@ class GroupPathnameFilterCommand implements Command {
 		String modifierName = "";
 		// filter by pathnames
 		if (!_regExp.equals("")) {
-			_group.filterBy(_selecting, new PathnamePredicate(_regExp));
+			_group.filterBy(new PathnamePredicate(_regExp), _selecting);
 			modifierName = "< Pathname = " + _regExp + " >";
 		}
 		// group name

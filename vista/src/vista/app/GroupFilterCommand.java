@@ -107,10 +107,10 @@ class GroupFilterCommand implements Command {
 				TimeWindow window = DSSUtil.getTimeFactory().createTimeWindow(
 						_regExp[i], "ddMMMyyyy");
 				if (window != null)
-					_group.filterBy(_selecting, new TimeWindowFilter(window));
+					_group.filterBy(new TimeWindowFilter(window), _selecting);
 			} else
-				_group.filterBy(_selecting,
-						new PathPartPredicate(_regExp[i], i));
+				_group.filterBy(new PathPartPredicate(_regExp[i], i),
+						_selecting);
 		}
 		// group name
 		String groupName = _group.getName();

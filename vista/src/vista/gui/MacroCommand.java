@@ -55,10 +55,9 @@
  */
 package vista.gui;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
-import COM.objectspace.jgl.ArrayIterator;
+import java.util.ListIterator;
 
 /**
  * A macro command is a command which executes a list of commands in a certain
@@ -73,7 +72,7 @@ public class MacroCommand implements Command {
 	 * constructor private
 	 */
 	private MacroCommand() {
-		_list = new Array();
+		_list = new ArrayList<Command>();
 	}
 
 	/**
@@ -94,8 +93,8 @@ public class MacroCommand implements Command {
 	 * executes the list of commands in order of addition
 	 */
 	public void execute() throws ExecutionException {
-		for (Enumeration e = _list.elements(); e.hasMoreElements();) {
-			((Command) e.nextElement()).execute();
+		for(Command c: _list){
+			c.execute();
 		}
 	}
 
@@ -103,25 +102,27 @@ public class MacroCommand implements Command {
 	 * executes the list of commands in order of addition
 	 */
 	public void unexecute() throws ExecutionException {
-		for (ArrayIterator ai = _list.end(); ai.hasMoreElements(); ai.retreat())
-			((Command) ai.get()).unexecute();
+		ListIterator<Command> iter = _list.listIterator(_list.size());
+		while(iter.hasPrevious()){
+			iter.previous().unexecute();
+		}
 	}
 
 	/**
    *
    */
 	public boolean isUnexecutable() {
-		for (ArrayIterator ai = _list.end(); ai.hasMoreElements(); ai.retreat()) {
-			Command c = (Command) ai.get();
-			if (c.isUnexecutable()) {
-				return true;
+		ListIterator<Command> iter = _list.listIterator(_list.size());
+		while(iter.hasPrevious()){
+			if (!iter.previous().isUnexecutable()){
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	/**
 	 * list of commands held in array.
 	 */
-	private Array _list;
+	private ArrayList<Command> _list;
 }

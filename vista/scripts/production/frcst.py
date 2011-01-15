@@ -4,22 +4,22 @@ def getRefs(dssfile,bp,cp,ap=None,ep=None,fp=None):
     g=opendss(dssfile)
     if g == None:
         raise "DSS file" + dssfile + " is empty"
-    g.filterBy(1,PathPartPredicate("^"+bp+"$",Pathname.B_PART))
+    g.filterBy(PathPartPredicate("^"+bp+"$",Pathname.B_PART),1)
     if g == None:
         raise "DSS file" + dssfile + " has no data for b part = " + bp
-    g.filterBy(1,PathPartPredicate("^"+cp+"$",Pathname.C_PART))
+    g.filterBy(PathPartPredicate("^"+cp+"$",Pathname.C_PART),1)
     if g == None:
         raise "DSS file" + dssfile + " has no data for c part = " + cp
     if ap != None:
-        g.filterBy(1,PathPartPredicate("^"+ap+"$",Pathname.A_PART))
+        g.filterBy(PathPartPredicate("^"+ap+"$",Pathname.A_PART),1)
     if g == None:
         raise "DSS file" + dssfile + " has no data for a part = " + ap
     if fp != None:
-        g.filterBy(1,PathPartPredicate("^"+fp+"$",Pathname.F_PART))
+        g.filterBy(PathPartPredicate("^"+fp+"$",Pathname.F_PART),1)
     if g == None:
         raise "DSS file" + dssfile + " has no data for f part = " + fp
     if ep != None:
-        g.filterBy(1,PathPartPredicate("^"+ep+"$",Pathname.E_PART))
+        g.filterBy(PathPartPredicate("^"+ep+"$",Pathname.E_PART),1)
     if g == None:
         raise "DSS file" + dssfile + " has no data for e part = " + ep
     return g.getAllDataReferences()

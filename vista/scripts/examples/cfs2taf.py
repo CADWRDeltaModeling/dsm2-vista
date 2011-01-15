@@ -1,3 +1,4 @@
+from vutils import *
 tm = TimeFactory.getInstance().createTime(0)
 g=opendss('../testdata/sim1.dss')
 ref = g[0];

@@ -58,9 +58,7 @@ package vista.graph;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
-import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * Lays out the elements in North, South , East , West and Center positions. The
@@ -169,7 +167,7 @@ public class GEBorderLayout implements GELayoutManager {
    */
 	public Dimension getPreferredSize(String name) {
 
-		Array comp = null;
+		ArrayList<Bounded> comp = null;
 		/* Special case: treat null the same as GEBorderLayout.CENTER. */
 		if (name == null) {
 			name = GEBorderLayout.CENTER;
@@ -428,13 +426,11 @@ public class GEBorderLayout implements GELayoutManager {
 
 	/**
 	 * returns the maximum of minimum required dimensions for all graphical
-	 * elements in the array.
+	 * elements in the ArrayList<Bounded>.
 	 */
-	private Dimension getMinimumSize(Array array) {
-		Enumeration iterator = array.elements();
+	private Dimension getMinimumSize(ArrayList<Bounded> array) {
 		Dimension maxD = new Dimension(0, 0);
-		while (iterator.hasMoreElements()) {
-			Bounded ge = (Bounded) iterator.nextElement();
+		for(Bounded ge: array){
 			Dimension d = ge.getMinimumSize();
 			maxD.width = Math.max(maxD.width, d.width);
 			maxD.height = Math.max(maxD.height, d.height);
@@ -446,11 +442,9 @@ public class GEBorderLayout implements GELayoutManager {
 	 * returns the maximum of preferred required dimensions for all graphical
 	 * elements in the array.
 	 */
-	protected Dimension getPreferredSize(Array array) {
-		Enumeration iterator = array.elements();
+	protected Dimension getPreferredSize(ArrayList<Bounded> array) {
 		Dimension maxD = new Dimension(0, 0);
-		while (iterator.hasMoreElements()) {
-			Bounded ge = (Bounded) iterator.nextElement();
+		for(Bounded ge: array){
 			Dimension d = ge.getPreferredSize();
 			maxD.width = Math.max(maxD.width, d.width);
 			maxD.height = Math.max(maxD.height, d.height);
@@ -461,10 +455,8 @@ public class GEBorderLayout implements GELayoutManager {
 	/**
 	 * sets bounds to the rectangle for all graphical elements in array
 	 */
-	private void setBounds(Rectangle bounds, Array array) {
-		Enumeration iterator = array.elements();
-		while (iterator.hasMoreElements()) {
-			Bounded ge = (Bounded) iterator.nextElement();
+	private void setBounds(Rectangle bounds, ArrayList<Bounded> array) {
+		for(Bounded ge: array){
 			ge.setBounds(bounds);
 		}
 	}
@@ -494,23 +486,23 @@ public class GEBorderLayout implements GELayoutManager {
 	/**
 	 * The northern element
 	 */
-	protected Array north = new Array();
+	protected ArrayList<Bounded> north = new ArrayList<Bounded>();
 	/**
 	 * The southern element
 	 */
-	protected Array south = new Array();
+	protected ArrayList<Bounded> south = new ArrayList<Bounded>();
 	/**
 	 * The eastern element
 	 */
-	protected Array east = new Array();
+	protected ArrayList<Bounded> east = new ArrayList<Bounded>();
 	/**
 	 * The western element
 	 */
-	protected Array west = new Array();
+	protected ArrayList<Bounded> west = new ArrayList<Bounded>();
 	/**
 	 * The central element
 	 */
-	protected Array center = new Array();
+	protected ArrayList<Bounded> center = new ArrayList<Bounded>();
 	/**
 	 * if true then scale components according to the preferred and actual sizes
 	 * of the container.

@@ -55,21 +55,20 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.BinaryPredicate;
+import java.util.Comparator;
 
 /**
  * compares named objects
  * 
  * @see Named
  */
-public class EqualName implements BinaryPredicate {
+public class EqualName implements Comparator<Named> {
 	/**
 	 * execute function returns true if object1's name is lexicographically less
 	 * than object2's name
 	 */
-	public boolean execute(Object obj1, Object obj2) {
-		return ((obj1 != null) && (obj2 != null))
-				&& ((obj1 instanceof Named) && (obj2 instanceof Named))
-				&& (((Named) obj1).getName().equals(((Named) obj2).getName()));
+	@Override
+	public int compare(Named o1, Named o2) {
+		return o1.getName().compareTo(o2.getName());
 	}
 }

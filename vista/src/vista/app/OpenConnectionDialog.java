@@ -56,6 +56,7 @@
 package vista.app;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -66,7 +67,6 @@ import javax.swing.JPanel;
 import vista.db.dss.DSSUtil;
 import vista.gui.Changeable;
 import vista.gui.DialogButtonPanel;
-import COM.objectspace.jgl.Array;
 
 /**
  * A modal dialog to establish connection with server
@@ -89,10 +89,10 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 		connectionPanel.setLayout(new BorderLayout());
 		// add server panel
 		if (_serverHistory == null) {
-			_serverHistory = new Array();
+			_serverHistory = new ArrayList<String>();
 			_serverHistory.add("");
 		}
-		_serverField = new JComboBox(getObjectArray(_serverHistory));
+		_serverField = new JComboBox(_serverHistory.toArray());
 		_serverField.setEditable(true);
 		_serverField.setSelectedIndex(_serverField.getItemCount() - 1);
 		JPanel serverPanel = new JPanel();
@@ -102,10 +102,10 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 		serverPanel.add(_serverField, BorderLayout.CENTER);
 		// add directory panel
 		if (_directoryHistory == null) {
-			_directoryHistory = new Array();
+			_directoryHistory = new ArrayList<String>();
 			_directoryHistory.add(DSSUtil.getDefaultDirectory());
 		}
-		_databaseField = new JComboBox(getObjectArray(_directoryHistory));
+		_databaseField = new JComboBox(_directoryHistory.toArray());
 		_databaseField.setEditable(true);
 		_databaseField.setSelectedIndex(_databaseField.getItemCount() - 1);
 		JPanel directoryPanel = new JPanel();
@@ -121,18 +121,6 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 		super.getContentPane().add(new DialogButtonPanel(this),
 				BorderLayout.SOUTH);
 		pack();
-	}
-
-	/**
-   *
-   */
-	private Object[] getObjectArray(Array a) {
-		int n = a.size();
-		if (n == 0)
-			return null;
-		Object[] objs = new Object[n];
-		a.copyTo(objs);
-		return objs;
 	}
 
 	/**
@@ -187,5 +175,5 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 	/**
  *
  */
-	private static Array _directoryHistory, _serverHistory;
+	private static ArrayList<String> _directoryHistory, _serverHistory;
 }

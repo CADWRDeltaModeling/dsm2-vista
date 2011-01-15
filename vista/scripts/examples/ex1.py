@@ -1,3 +1,4 @@
+from vutils import *
 from java.lang import Math
 # A sample script for introduction of vista scripting
 # Creates time series data, writes them out to dss files,

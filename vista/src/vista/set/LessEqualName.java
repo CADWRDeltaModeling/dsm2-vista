@@ -55,8 +55,7 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.BinaryPredicate;
-import COM.objectspace.jgl.LessEqualString;
+import java.util.Comparator;
 
 /**
  * Compares names of Named objects and returns true if object1
@@ -65,29 +64,29 @@ import COM.objectspace.jgl.LessEqualString;
  * @author Nicky Sandhu
  * @version $Id: LessEqualName.java,v 1.2 1998/10/08 00:04:22 nsandhu Exp $
  */
-/**
-   */
-public class LessEqualName implements BinaryPredicate {
+public class LessEqualName implements Comparator<Named> {
 	/**
    *
    */
 	public LessEqualName() {
-		_stringComparator = new LessEqualString();
 	}
 
+	@Override
 	/**
 	 * execute function returns true if object1's name is lexicographically less
 	 * than object2's name
 	 */
-	public boolean execute(Object obj1, Object obj2) {
-		return ((obj1 != null) && (obj2 != null))
-				&& ((obj1 instanceof Named) && (obj2 instanceof Named))
-				&& (_stringComparator.execute(((Named) obj1).getName(),
-						((Named) obj2).getName()));
+	public int compare(Named o1, Named o2) {
+		if (o1==null){
+			return -1;
+		}
+		if (o2 == null){
+			return 1;
+		}
+		if (o1 == null && o2 == null){
+			return 0;
+		}
+		return o1.getName().compareTo(o2.getName());
 	}
 
-	/**
-	 * string comparator
-	 */
-	private LessEqualString _stringComparator;
 }

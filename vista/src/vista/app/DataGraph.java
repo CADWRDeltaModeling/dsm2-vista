@@ -395,20 +395,6 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 	}
 
 	/**
-	 * Outputs plot to PPM file.
-	 */
-	public void outputPPM() {
-		String filename = VistaUtils.getFilenameFromDialog(this,
-				FileDialog.SAVE, ".ppm", "PPM Files");
-		if (filename != null) {
-			Thread serializerThread = new Thread(new ImageSerializer(filename,
-					_gC, ImageSerializer.PPM), "PPM serializer");
-			serializerThread.setPriority(Thread.MIN_PRIORITY);
-			serializerThread.run();
-		}
-	}
-
-	/**
 	 * gets the reference to the graph canvas
 	 */
 	public GECanvas getCanvas() {
@@ -526,8 +512,6 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 
 			if (label.indexOf("post") >= 0) {
 				outputPS();
-			} else if (label.indexOf("ppm") >= 0) {
-				outputPPM();
 			} else if (label.indexOf("jpeg") >= 0) {
 				outputJpeg();
 			} else {

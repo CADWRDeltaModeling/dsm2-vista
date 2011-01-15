@@ -75,7 +75,6 @@ import vista.gui.Changeable;
 import vista.gui.DialogButtonPanel;
 import vista.gui.VistaUtils;
 import vista.set.ListDirectedPredicate;
-import vista.set.PartSort;
 
 /**
  * A modal dialog to establish connection with server
@@ -147,8 +146,12 @@ public class SortDialog extends JDialog implements Changeable, RowMovable {
 	public void applyChanges() {
 		String[] list = new String[_listV.size()];
 		_listV.copyInto(list);
-		ListDirectedPredicate ldp = new ListDirectedPredicate(list);
-		_table.getGroup().sortBy(new PartSort(ldp));
+		if (list != null && list.length > 1){
+			throw new RuntimeException("If this functionality is needed. it needs to be fixed first!");
+		}
+		//FIXME: 
+		ListDirectedPredicate ldp = new ListDirectedPredicate(list[0]);
+		_table.getGroup().sortBy(ldp);
 		_table.repaint();
 	}
 

@@ -5,9 +5,9 @@ def getReferences(g,line):
     cp = path.getPart(Pathname.C_PART)
     ep = path.getPart(Pathname.E_PART)
     gc = g.clone()
-    gc.filterBy(1,PathPartPredicate("^"+bp+"$",Pathname.B_PART))
-    gc.filterBy(1,PathPartPredicate("^"+cp+"$",Pathname.C_PART))
-    gc.filterBy(1,PathPartPredicate("^"+ep+"$",Pathname.E_PART))
+    gc.filterBy(PathPartPredicate("^"+bp+"$",Pathname.B_PART),1)
+    gc.filterBy(PathPartPredicate("^"+cp+"$",Pathname.C_PART),1)
+    gc.filterBy(PathPartPredicate("^"+ep+"$",Pathname.E_PART),1)
     return gc.getAllDataReferences()
 #
 from java.util import Date

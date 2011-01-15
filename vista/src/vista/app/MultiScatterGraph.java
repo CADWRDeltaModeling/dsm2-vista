@@ -259,24 +259,6 @@ public class MultiScatterGraph extends JFrame {
 	}
 
 	/**
-	 * Outputs plot to PPM file.
-	 */
-	public void outputPPM() {
-		FileDialog dialog = new FileDialog(this, "PPMSelectionMsg",
-				FileDialog.SAVE);
-		dialog.setFile(GraphProperties.properties.getProperty("PPM_FILE"));
-		dialog.pack();
-		dialog.show();
-
-		if (dialog.getFile() != null) {
-			Thread serializerThread = new Thread(new ImageSerializer(
-					"PPM_FILE", _gC, ImageSerializer.PPM), "PPM serializer");
-			serializerThread.setPriority(Thread.MIN_PRIORITY);
-			serializerThread.run();
-		}
-	}
-
-	/**
 	 * gets the reference to the graph canvas
 	 */
 	public GECanvas getCanvas() {
@@ -375,8 +357,6 @@ public class MultiScatterGraph extends JFrame {
 
 			if (label.indexOf("post") >= 0) {
 				outputPS();
-			} else if (label.indexOf("ppm") >= 0) {
-				outputPPM();
 			} else if (label.indexOf("jpeg") >= 0) {
 				outputJpeg();
 			} else {

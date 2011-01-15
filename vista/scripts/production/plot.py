@@ -26,15 +26,15 @@ def setCurveAttr(crv,crvNumber):
 def getRef(file,b_part,c_part,e_part,f_part=None,a_part=None):
     g=opendss(file)
     if b_part:
-	g.filterBy(1,PathPartPredicate("^"+b_part+"$", Pathname.B_PART))
+	g.filterBy(PathPartPredicate("^"+b_part+"$", Pathname.B_PART),1)
     if c_part:
-	g.filterBy(1,PathPartPredicate("^"+c_part+"$", Pathname.C_PART))
+	g.filterBy(PathPartPredicate("^"+c_part+"$", Pathname.C_PART),1)
     if e_part:
-	g.filterBy(1,PathPartPredicate("^"+e_part+"$", Pathname.E_PART))
+	g.filterBy(PathPartPredicate("^"+e_part+"$", Pathname.E_PART),1)
     if f_part:
-	g.filterBy(1,PathPartPredicate(f_part, Pathname.F_PART))
+	g.filterBy(PathPartPredicate(f_part, Pathname.F_PART),1)
     if a_part:
-	g.filterBy(1,PathPartPredicate(a_part, Pathname.A_PART))
+	g.filterBy(PathPartPredicate(a_part, Pathname.A_PART),1)
     if len(g) == 0:
 	return None
     else:

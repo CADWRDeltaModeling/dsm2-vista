@@ -55,10 +55,10 @@
  */
 package vista.db.dss;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 import vista.set.Pathname;
-import COM.objectspace.jgl.Array;
 
 /**
  * Reads a catalog (condensed if name ends in .dsd) file and creates a default
@@ -150,13 +150,12 @@ class DSSCatalogReader implements Enumeration {
 	 * Returns an array of pathnames for this catalog
 	 */
 	public Pathname[] getPathnames() {
-		Array array = new Array();
+		ArrayList<Pathname> array = new ArrayList<Pathname>();
 		while (hasMoreElements()) {
-			array.add(nextElement());
+			array.add((Pathname) nextElement());
 		}
 		Pathname[] pathnames = new Pathname[array.size()];
-		array.copyTo(pathnames);
-		return pathnames;
+		return array.toArray(pathnames);
 	}
 
 	/**

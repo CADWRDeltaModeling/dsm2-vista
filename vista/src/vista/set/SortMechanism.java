@@ -55,17 +55,16 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.BinaryPredicate;
-
-import com.sun.java.util.collections.Comparator;
+import java.util.Comparator;
 
 /**
  * Interface extension of Binary predicate
  * 
  * @author Nicky Sandhu
  * @version $Id: SortMechanism.java,v 1.1 2003/10/02 20:49:32 redwood Exp $
+ * @param <T>
  */
-public interface SortMechanism extends BinaryPredicate, Comparator {
+public interface SortMechanism<T> extends Comparator<T> {
 	/**
 	 * increasing order of sort
 	 */
@@ -85,14 +84,4 @@ public interface SortMechanism extends BinaryPredicate, Comparator {
 	 */
 	public void setAscendingOrder(boolean ascending);
 
-	/**
-	 * the sorter activated if the execute method of this one shows that first
-	 * == second.
-	 */
-	public SortMechanism getSecondarySorter();
-
-	/**
-	 * sets the secondary sort mechanism
-	 */
-	public void setSecondarySorter(SortMechanism sm);
 }

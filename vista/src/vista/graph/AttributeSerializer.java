@@ -69,12 +69,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.Properties;
-
-import COM.objectspace.jgl.GreaterString;
-import COM.objectspace.jgl.OrderedSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * This class serializes the properties of the graph to a ascii file in the
@@ -205,13 +203,7 @@ public class AttributeSerializer {
 	 * saves properties after sorting using ordered set.
 	 */
 	public synchronized void save(Properties p, OutputStream out, String header) {
-
-		OrderedSet set = new OrderedSet(new GreaterString());
-		for (Enumeration e = p.keys(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			String val = (String) p.get(key);
-			set.add(key);
-		}
+		SortedSet<Object> set = new TreeSet<Object>(p.keySet());
 
 		if (DEBUG)
 			System.out.println(set.toString());
@@ -226,8 +218,8 @@ public class AttributeSerializer {
 		prnt.write('#');
 		prnt.println(new Date());
 
-		for (Enumeration e = set.elements(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
+		for (Object obj : set) {
+			String key = (String) obj;
 			prnt.print(key);
 			prnt.write('=');
 

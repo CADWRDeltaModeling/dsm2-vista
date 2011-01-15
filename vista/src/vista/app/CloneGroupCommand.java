@@ -55,11 +55,12 @@
  */
 package vista.app;
 
+import java.util.ArrayList;
+
 import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.Group;
 import vista.set.Session;
-import COM.objectspace.jgl.Array;
 
 /**
  * Encapsulates commands implementing session related commands
@@ -71,7 +72,7 @@ class CloneGroupCommand implements Command {
 	private Session _session;
 	private int[] _gNumbers;
 	private Group _group;
-	private Array _gclones;
+	private ArrayList<Group> _gclones;
 
 	/**
 	 * opens session and sets current session to
@@ -79,7 +80,7 @@ class CloneGroupCommand implements Command {
 	public CloneGroupCommand(Session s, int[] groupNumbers) {
 		_session = s;
 		_gNumbers = groupNumbers;
-		_gclones = new Array();
+		_gclones = new ArrayList<Group>();
 	}
 
 	/**
@@ -100,9 +101,8 @@ class CloneGroupCommand implements Command {
 	 */
 	public void unexecute() throws ExecutionException {
 		int ng = _gclones.size();
-		for (java.util.Enumeration e = _gclones.elements(); e.hasMoreElements();) {
-			Group clone = (Group) e.nextElement();
-			_session.removeGroup(clone);
+		for(Group g: _gclones){
+			_session.removeGroup(g);
 		}
 	}
 

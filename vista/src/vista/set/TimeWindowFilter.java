@@ -56,7 +56,6 @@
 package vista.set;
 
 import vista.time.TimeWindow;
-import COM.objectspace.jgl.UnaryPredicate;
 
 /**
  * Filters given data reference using its time window. A data reference is
@@ -65,7 +64,7 @@ import COM.objectspace.jgl.UnaryPredicate;
  * @author Nicky Sandhu
  * @version $Id: TimeWindowFilter.java,v 1.1 2003/10/02 20:49:34 redwood Exp $
  */
-public class TimeWindowFilter implements UnaryPredicate {
+public class TimeWindowFilter implements Predicate<DataReference> {
 	/**
 	 * initializes the regular expression compilers
 	 */
@@ -81,14 +80,6 @@ public class TimeWindowFilter implements UnaryPredicate {
 	}
 
 	/**
-	 * determines filtering criteria
-	 */
-	public final boolean execute(Object first) {
-		return (first != null) && (first instanceof DataReference)
-				&& (_window.contains(((DataReference) first).getTimeWindow()));
-	}
-
-	/**
 	 * returns string representation of filter...
 	 */
 	public String toString() {
@@ -99,4 +90,10 @@ public class TimeWindowFilter implements UnaryPredicate {
 	 * The time window
 	 */
 	private TimeWindow _window;
+
+	@Override
+	public boolean apply(DataReference ref) {
+		return (ref != null) 
+		&& (_window.contains(ref.getTimeWindow()));
+	}
 }

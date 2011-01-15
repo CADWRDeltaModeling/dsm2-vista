@@ -234,12 +234,12 @@ public class DSM2SchematicData implements SchematicDataModel {
 			Channel c = (Channel) l;
 			// g.filterBy("HIST+CHAN");
 			// filter to get channelId_xxxx, e.g. 321_xxx or 005_xxx
-			g.filterBy(true, new PathPartPredicate(nf.format(c.getId()) + "_",
-					Pathname.B_PART));
+			g.filterBy(new PathPartPredicate(nf.format(c.getId()) + "_",
+					Pathname.B_PART), true);
 		} else {
 			// filter to get reservoirId_xxxx, e.g. 321_10000
-			g.filterBy(true, new PathPartPredicate(nf.format(l.getId()) + "_",
-					Pathname.B_PART));
+			g.filterBy(new PathPartPredicate(nf.format(l.getId()) + "_",
+					Pathname.B_PART), true);
 		}
 		return g;
 	}
@@ -332,12 +332,12 @@ public class DSM2SchematicData implements SchematicDataModel {
 	@Override
 	public void setScreenSize(int width, int height) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setTitleText(String str) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

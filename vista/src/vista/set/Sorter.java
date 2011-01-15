@@ -55,7 +55,8 @@
  */
 package vista.set;
 
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Interface to sorting algorithms.
@@ -63,15 +64,15 @@ import COM.objectspace.jgl.Array;
  * @author Nicky Sandhu
  * @version $Id: Sorter.java,v 1.1 2003/10/02 20:49:32 redwood Exp $
  */
-public interface Sorter {
+public interface Sorter<T> extends Comparator<T>{
 	/**
    *
    */
-	public void setSortMechanism(SortMechanism sm);
+	public void setSortMechanism(SortMechanism<T> sm);
 
 	/**
 	 * Takes an array of data references and returns a new array of sorted data
 	 * references.
 	 */
-	public Array sort(Array refs);
+	public ArrayList<? extends T> sort(ArrayList<? extends T> refs);
 }

@@ -360,27 +360,6 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 	}
 
 	/**
-	 * Outputs plot to PPM file.
-	 */
-	public void outputPPM() {
-		FileDialog dialog = new FileDialog(this, GraphProperties.properties
-				.getProperty("GraphFrame.PPMSelectionMsg"), FileDialog.SAVE);
-		dialog.setFile(GraphProperties.properties
-				.getProperty("GraphFrame.PPM_FILE"));
-		dialog.pack();
-		dialog.setVisible(true);
-
-		if (dialog.getFile() != null) {
-			Thread serializerThread = new Thread(new ImageSerializer(
-					GraphProperties.properties
-							.getProperty("GraphFrame.PPM_FILE"), _gC,
-					ImageSerializer.PPM), "PPM serializer");
-			serializerThread.setPriority(Thread.MIN_PRIORITY);
-			serializerThread.run();
-		}
-	}
-
-	/**
 	 * gets the reference to the graph canvas
 	 */
 	public GECanvas getCanvas() {
@@ -514,9 +493,6 @@ public class GraphFrame extends JFrame implements GraphFrameInterface {
 				} else if (label.equals(GraphProperties.properties
 						.getProperty("GraphFrame.SAVE2PS"))) {
 					_tg.outputPS();
-				} else if (label.equals(GraphProperties.properties
-						.getProperty("GraphFrame.SAVE2PPM"))) {
-					_tg.outputPPM();
 				} else if (label.equals(GraphProperties.properties
 						.getProperty("GraphFrame.SAVE2JPEG"))) {
 					_tg.outputJpeg();

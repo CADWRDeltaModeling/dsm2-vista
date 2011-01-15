@@ -56,9 +56,7 @@
 package vista.graph;
 
 import java.awt.Dimension;
-import java.util.Enumeration;
-
-import COM.objectspace.jgl.Array;
+import java.util.ArrayList;
 
 /**
  * Mediates between layout managers to synchronize or exchange layout
@@ -88,7 +86,7 @@ public class GEBorderLayoutMediator implements LayoutMediator {
 	 */
 	public void addLayoutManager(GELayoutManager lm) {
 		if (lm instanceof GEMultiBorderLayout)
-			_layoutGroup.add(lm);
+			_layoutGroup.add((GEMultiBorderLayout) lm);
 	}
 
 	/**
@@ -100,10 +98,7 @@ public class GEBorderLayoutMediator implements LayoutMediator {
 			System.out.println(" " + this + ":" + object);
 		if (object instanceof String) {
 			String position = (String) object;
-			Enumeration iterator = _layoutGroup.elements();
-			while (iterator.hasMoreElements()) {
-				GEMultiBorderLayout layout = (GEMultiBorderLayout) (iterator
-						.nextElement());
+			for (GEMultiBorderLayout layout : _layoutGroup) {
 				Dimension size = preferredSize;
 				size = layout.getPreferredDimensions(position);
 				// if (DEBUG) System.out.println("Layout " + layout + ":"
@@ -128,5 +123,5 @@ public class GEBorderLayoutMediator implements LayoutMediator {
 	/**
    * 
    */
-	private Array _layoutGroup = new Array();
+	private ArrayList<GEMultiBorderLayout> _layoutGroup = new ArrayList<GEMultiBorderLayout>();
 }
