@@ -11,6 +11,7 @@ import ncsa.hdf.object.HObject;
 import ncsa.hdf.object.h5.H5File;
 import vista.set.DataReference;
 import vista.set.DataReferenceMath;
+import vista.set.DataReferenceScalarMathProxy;
 import vista.set.DataReferenceVectorMathProxy;
 import vista.set.Group;
 import vista.set.GroupProxy;
@@ -92,10 +93,16 @@ public class HDF5Group extends GroupProxy {
 				if (memberNameIndex == -1) {
 					return null;
 				}
+				int channelLengthIndex = findIndexOfMemberName("length",
+						channelds);
 				Object data = channelds.getData();
 				if (data instanceof List) {
 					List list = (List) data;
 					Object object = list.get(memberNameIndex);
+					int[] channelLengthArray = null;
+					if (channelLengthIndex != -1){
+						channelLengthArray = (int[]) list.get(channelLengthIndex);
+					}
 					if (object instanceof int[]) {
 						int[] channelArray = (int[]) object;
 						for (int i = 0; i < channelArray.length; i++) {
@@ -104,17 +111,19 @@ public class HDF5Group extends GroupProxy {
 											channelArray[i] + "_upstream",
 											"flow", timeWindow.toString(),
 											timeInterval.toString(), modelRun });
-							DataReference flowUpstream = new HDF5DataReference(file,
-									"/hydro/data/channel flow", i, 0,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname);
+							DataReference flowUpstream = new HDF5DataReference(
+									file, "/hydro/data/channel flow", i, 0,
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname);
 							references.add(flowUpstream);
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_downstream",
 									"flow", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
-							DataReference flowDownstream = new HDF5DataReference(file,
-									"/hydro/data/channel flow", i, 1,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname);
+							DataReference flowDownstream = new HDF5DataReference(
+									file, "/hydro/data/channel flow", i, 1,
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname);
 							references.add(flowDownstream);
 							// references for channel stage
 							pathname = Pathname.createPathname(new String[] {
@@ -123,46 +132,82 @@ public class HDF5Group extends GroupProxy {
 									timeInterval.toString(), modelRun });
 							references.add(new HDF5DataReference(file,
 									"/hydro/data/channel stage", i, 0,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname));
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname));
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_downstream",
 									"stage", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
 							references.add(new HDF5DataReference(file,
 									"/hydro/data/channel stage", i, 1,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname));
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname));
 							// references for channel area
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_upstream",
 									"area", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
-							DataReference areaUpstream = new HDF5DataReference(file,
-									"/hydro/data/channel area", i, 0,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname);
+							DataReference areaUpstream = new HDF5DataReference(
+									file, "/hydro/data/channel area", i, 0,
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname);
 							references.add(areaUpstream);
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_downstream",
 									"area", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
-							DataReference areaDownstream = new HDF5DataReference(file,
-									"/hydro/data/channel area", i, 1,
-									timeWindow.create(), timeInterval.create(timeInterval), pathname);
+							DataReference areaDownstream = new HDF5DataReference(
+									file, "/hydro/data/channel area", i, 1,
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname);
 							references.add(areaDownstream);
+							// references for channel average area
+							pathname = Pathname.createPathname(new String[] {
+									"hydro", channelArray[i] + "", "avg_area",
+									timeWindow.toString(),
+									timeInterval.toString(), modelRun });
+							DataReference avgArea = new HDF5DataReference(file,
+									"/hydro/data/channel avg area", i, 0,
+									timeWindow.create(), timeInterval
+											.create(timeInterval), pathname);
+							references.add(avgArea);
+							// references for channel water volume
+							if (channelLengthIndex != -1) {
+								pathname = Pathname
+										.createPathname(new String[] { "hydro",
+												channelArray[i] + "", "volume",
+												timeWindow.toString(),
+												timeInterval.toString(),
+												modelRun });
+								DataReferenceScalarMathProxy volume = new DataReferenceScalarMathProxy(
+										avgArea, channelLengthArray[i],
+										DataReferenceMath.MUL,
+										DataReferenceMath.FIRST_FIRST);
+								volume.setPathname(pathname);
+								volume.setUnits("FT^3");
+								references.add(volume);
+							}
 							// references for channel velocity
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_upstream",
 									"velocity", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
-							DataReference ref = new DataReferenceVectorMathProxy(flowUpstream, areaUpstream, DataReferenceMath.DIV);
-							ref.setPathname(pathname);
-							references.add(ref);
+							DataReferenceVectorMathProxy refvmath = new DataReferenceVectorMathProxy(
+									flowUpstream, areaUpstream,
+									DataReferenceMath.DIV);
+							refvmath.setPathname(pathname);
+							refvmath.setUnits("FT/S");
+							references.add(refvmath);
 							pathname = Pathname.createPathname(new String[] {
 									"hydro", channelArray[i] + "_downstream",
 									"velocity", timeWindow.toString(),
 									timeInterval.toString(), modelRun });
-							ref = new DataReferenceVectorMathProxy(flowDownstream, areaDownstream, DataReferenceMath.DIV);
-							ref.setPathname(pathname);
-							references.add(ref);
+							refvmath = new DataReferenceVectorMathProxy(
+									flowDownstream, areaDownstream,
+									DataReferenceMath.DIV);
+							refvmath.setPathname(pathname);
+							refvmath.setUnits("FT/S");
+							references.add(refvmath);
 						}
 					} else {
 						return null;
@@ -267,13 +312,13 @@ public class HDF5Group extends GroupProxy {
 		return Group.createGroup(this.file, refs);
 	}
 
-	private String getEnvar(String varName, H5File h5file) throws Exception{
+	private String getEnvar(String varName, H5File h5file) throws Exception {
 		CompoundDS envarTable = (CompoundDS) h5file.get("/hydro/input/envvar");
 		Vector columns = (Vector) envarTable.getData();
 		String[] names = (String[]) columns.get(0);
 		String[] values = (String[]) columns.get(1);
-		for(int i=0; i < names.length; i++){
-			if (varName.equals(names[i])){
+		for (int i = 0; i < names.length; i++) {
+			if (varName.equals(names[i])) {
 				return values[i];
 			}
 		}
