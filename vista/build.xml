@@ -13,7 +13,8 @@
     </description>
 	<property name="dist.dir" location="build/dist/vista"/>
 	<property name="vista.lib" location="lib" />
-	<property name="jython.installdir" location="c:/Programs/jython2.5.1"/>
+	<property name="jython.installdir" location="d:/Programs/jython2.5.1"/>
+	<property name="jre6.installdir" location="C:\Program Files (x86)\Java\jre6"/>
 
 	<!-- ================================= 
           target: default              
@@ -62,6 +63,11 @@
 				<include name="jython.jar"/>
 				<include name="extlibs/**"/>
 				<include name="LICENSE*"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist.dir}/jre6/">
+			<fileset dir="${jre6.installdir}">
+				<include name="**/**"/>
 			</fileset>
 		</copy>
 		<jar destfile="${dist.dir}/lib/vista.jar" basedir="build/classes"></jar>
