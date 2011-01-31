@@ -88,7 +88,7 @@ def get_station_ids_from_county(county):
     result = reduce(lambda x, y: x + y, result)
     #station_infos = re.findall(re.compile('<td.*?>.*?value="(.*?)".*?</td>.*?<td.*?>.*?</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>',re.S|re.M|re.I),result)
     return re.findall(re.compile('<td.*?>.*?value=".*?".*?</td>.*?<td.*?>.*?</td>.*?<td.*?>(.*?)</td>.*?<td.*?>.*?</td>.*?<td.*?>.*?</td>',re.S|re.M|re.I),result)
-def get_data_for_station(station_id, from_map=1):
+def get_data_for_station(station_id, from_map,sdate,edate):
     if from_map == 1:
         url = 'http://www.water.ca.gov/waterdatalibrary/waterquality/station_county/select_station.cfm?URLStation=%s&source=map' % station_id
         response = urllib.urlopen(url)
@@ -101,8 +101,10 @@ def get_data_for_station(station_id, from_map=1):
     response.close()
     result = reduce(lambda x, y: x + y, result)
     boxstation_id = re.findall(re.compile('<input.*? name="boxStationID".*? value="(.*?)" .*?>', re.S | re.M | re.I), result)[0]
-    sdate = re.findall(re.compile('<input.*? name="MinDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
-    edate = re.findall(re.compile('<input.*? name="MaxDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
+    if len(sdate)<10:
+        sdate = re.findall(re.compile('<input.*? name="MinDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
+    if len(edate)<10:
+        edate = re.findall(re.compile('<input.*? name="MaxDate" value="(.*?)".*?>', re.S | re.M | re.I), result)[0]
     now = datetime.date.today()
     before = now - datetime.timedelta(10) # 10days ago
     params = {'MaxDate':edate, 'MinDate':sdate,
@@ -151,18 +153,18 @@ def writewdl(filename, result):
         its = result[key].toITS()
         writedss(filename, its.name, its)
 #
-def write_to_dss(filename, stationids, from_map=1):
+def write_to_dss(filename, stationids, from_map,sdate,edate):
     for station_id in stationids:
         print 'Getting data for station: %s'%station_id
         sys.stdout.flush()
         try:
-            data = get_data_for_station(station_id,from_map)
+            data = get_data_for_station(station_id,from_map,sdate,edate)
             result = parse_wdl_its(data)
             writewdl(filename, result)
         except:
             print "Could not get data for: %s"%station_id
 #
-def download_delta_stations_from_map(filename):
+def download_delta_stations_from_map(filename,sdate,edate):
     print 'Retrieving all station ids with Delta Map Boundaries'
     sys.stdout.flush()
     stationids=get_all_stationids(DELTA_MAP_BOUNDS)
@@ -170,16 +172,57 @@ def download_delta_stations_from_map(filename):
     sys.stdout.flush()
     print 'Downloading data to %s'%filename
     sys.stdout.flush()
-    write_to_dss(filename,stationids)
+    write_to_dss(filename,stationids,1,sdate,edate)
     print 'Done downloading data to %s'%filename
 #
-def download_counties(filename): 
-    for county_id in range(1,59):
+def download_counties(filename,idnumlst,sdate,edate): 
+    for county_id in idnumlst:  #range(1,59):
         stationids=get_station_ids_from_county(county_id)
-        write_to_dss(filename,stationids,0)
-#
+        write_to_dss(filename,stationids,0,sdate,edate)
+
+#program can be run in several ways
+#(1) by search map, by specifying county, by specifying station id
+#program first read a configuration file
 if __name__ == '__main__':
     filename='d:/temp/wdl.dss'
-    if len(sys.argv) > 1:
-        filename=sys.argv[1]
+    searchby="MAP"
+    sdate=""
+    edate=""
+    if len(sys.argv) > 1:  #search by map
+        cfgfile = sys.argv[1]
+        idnumfile = ""
+        #read configuration file 
+        fin=open(cfgfile,"r")
+        lines = fin.readlines()
+        fin.close()
+        for line in lines:
+            strlst = line.split()
+            keywd = strlst[0].upper()
+            if keywd == "DSSPATH":
+                filename = strlst[1]
+            if keywd == "SDATE":
+                sdate = strlst[1]
+            if keywd == "EDATE":
+                edate = strlst[1]
+            if keywd == "SEARCHBY":
+                searchby = strlst[1].upper()
+                if searchby == "STATIONID" or searchby == "COUNTY":
+                    idnumfile = strlst[2]
+                    if len(idnumfile)<1:  #no file specified
+                        searchby = "MAP"
+        if searchby == "MAP":
+            download_delta_stations_from_map(filename,sdate,edate)
+        else:
+            fin=open(idnumfile,"r")
+            lines = fin.readlines()
+            fin.close()
+            idnumlst = []
+            for line in lines:
+                if line.find("#") == -1:  #not use comment line
+                    idnumlst.append(line.strip()) # get rid of \n
+            if searchby == "STATIONID":
+                write_to_dss(filename,idnumlst,0,sdate,edate)
+            else:
+                download_counties(filename,idnumlst,sdate,edate)
+        print 'Done downloading data to %s'%filename
 #
