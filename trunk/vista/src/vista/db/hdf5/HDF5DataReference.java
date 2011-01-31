@@ -233,8 +233,10 @@ public class HDF5DataReference extends DataReference {
 			return "CFS";
 		} else if (part.equalsIgnoreCase("STAGE")){
 			return "FT";
-		} else if (part.equalsIgnoreCase("AREA")){
+		} else if (part.equalsIgnoreCase("AREA") || part.equalsIgnoreCase("AVG_AREA")){
 			return "FT^2";
+		} else if (part.equalsIgnoreCase("VOLUME")){
+			return "FT^3";
 		} else {
 			return "";
 		}
