@@ -144,6 +144,10 @@ public class DataReferenceScalarMathProxy extends UnaryOperationProxy {
 	private void setOperationId(int operationId) {
 		_operationId = operationId;
 	}
+	
+	public void setUnits(String units){
+		_units = units;
+	}
 
 	/**
    *
@@ -204,10 +208,15 @@ public class DataReferenceScalarMathProxy extends UnaryOperationProxy {
 	 * does the scalar operation
 	 */
 	public DataSet doOperation(DataSet ds) {
+		DataSet calc = null;
 		if (_precedence == DataReferenceMath.FIRST_LAST)
-			return VectorMath.doMathOperation(ds, _scalar, _operationId, true);
+			calc= VectorMath.doMathOperation(ds, _scalar, _operationId, true);
 		else
-			return VectorMath.doMathOperation(ds, _scalar, _operationId, false);
+			calc= VectorMath.doMathOperation(ds, _scalar, _operationId, false);
+		if (calc != null && _units != null){
+			calc.getAttributes().setYUnits(_units);
+		}
+		return calc;
 	}
 
 	/**
@@ -222,4 +231,8 @@ public class DataReferenceScalarMathProxy extends UnaryOperationProxy {
    *
    */
 	private int _precedence;
+	/**
+	 * 
+	 */
+	private String _units;
 }
