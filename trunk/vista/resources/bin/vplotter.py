@@ -3,7 +3,7 @@ import vutils; from vutils import *;
 import getopt,xgui,sys
 optlist, args = getopt.getopt(sys.argv[1:],'f:d')
 from java.lang import System
-vhome = System.getProperty('vista.home')
+vhome = System.getProperty('vista_home')
 sep = System.getProperty('file.separator')
 if vhome != None:
     func_file = vhome+sep+'lib'+sep+'Lib'+sep+'vfuncs.py'
