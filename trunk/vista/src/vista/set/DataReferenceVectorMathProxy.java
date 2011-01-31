@@ -255,6 +255,10 @@ public class DataReferenceVectorMathProxy extends DataReference {
 		_ref1 = DataReference.create(_ref1, getTimeWindow());
 		_ref2 = DataReference.create(_ref2, getTimeWindow());
 	}
+	
+	public void setUnits(String units){
+		_units = units;
+	}
 
 	/**
 	 * create a clone of itself
@@ -284,6 +288,9 @@ public class DataReferenceVectorMathProxy extends DataReference {
 				System.out.println("Getting data for Reference 1: " + _ref2);
 			DataSet d2 = _ref2.getData();
 			_dataSet = VectorMath.doMathOperation(d1, d2, _operationId);
+			if (_dataSet!= null && _units != null){
+				_dataSet.getAttributes().setYUnits(_units);
+			}
 		}
 		// System.out.println(_dataSet);
 		return _dataSet;
@@ -305,6 +312,10 @@ public class DataReferenceVectorMathProxy extends DataReference {
 	 * the operation to be performed
 	 */
 	private int _operationId;
+	/**
+	 * 
+	 */
+	private String _units;
 	/**
    *
    */
