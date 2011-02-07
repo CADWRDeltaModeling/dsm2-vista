@@ -83,7 +83,7 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     compare_mode = globals['COMPARE_MODE']
     # open files 1 and file 2 and loop over to plot
     from java.util import Date
-    dss_group0, dss_group1, dss_group2, refvar, refname = get_group_ref(globals, scalars, var_values)
+    dss_group0, dss_group1, dss_group2, refvar, refname = compare_dss_utils.get_group_ref(globals, scalars, var_values)
     output_dir = scalars['OUTDIR'].replace('"','')
     output_file = scalars['OUTFILE'].replace('"','')
     wyt_arr = write_wyt(output_dir, tw_values)  #write the water type JavaScript file
@@ -182,104 +182,105 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                 except:
                     print "**** Can't find matched time series for "+ name +" ****"
                     conti = 1
-                    
-            cpart = p.getPart(p.C_PART).encode('ascii')           
-            if conti == 0 and name in output_values: 
-                if intv < 1000:
-                    dataIndex['spec_davg_'+cpart]=dataIndex['spec_davg_'+cpart]+1
-                    dataIndex['spec_dmax_'+cpart]=dataIndex['spec_dmax_'+cpart]+1
-                    dataIndex['spec_dmin_'+cpart]=dataIndex['spec_dmin_'+cpart]+1
-                    if dataIndex['spec_davg_'+cpart]>1:
-                        fs_davg[cpart].write(",") 
-                    if dataIndex['spec_dmax_'+cpart]>1:
-                        fs_dmax[cpart].write(",")
-                    if dataIndex['spec_dmin_'+cpart]>1:
-                        fs_dmin[cpart].write(",")
-                    ref0_davg = None; ref0_dmax = None; ref0_dmin = None; ref0_mavg = None
-                    ref1_davg = None; ref1_dmax = None; ref1_dmin = None; ref1_mavg = None
-                    ref2_davg = None; ref2_dmax = None; ref2_dmin = None; ref2_mavg = None
-                    if compare_mode=='1' or compare_mode=='4' or compare_mode=='5':    
-                        ref0_godin = vtimeseries.godin(ref0)
-                        ref0_davg = vtimeseries.per_avg(ref0_godin,'1day')
-                        ref0_dmax = vtimeseries.per_max(ref0,'1day')
-                        ref0_dmin = vtimeseries.per_min(ref0,'1day')
-                    if compare_mode=='2' or compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
-                        ref1_godin = vtimeseries.godin(ref1)
-                        ref1_davg = vtimeseries.per_avg(ref1_godin,'1day')
-                        ref1_dmax = vtimeseries.per_max(ref1,'1day')
-                        ref1_dmin = vtimeseries.per_min(ref1,'1day')  
-                    if compare_mode=='3' or compare_mode=='5':
-                        ref2_godin = vtimeseries.godin(ref2)
-                        ref2_davg = vtimeseries.per_avg(ref2_godin,'1day')
-                        ref2_dmax = vtimeseries.per_max(ref2,'1day')
-                        ref2_dmin = vtimeseries.per_min(ref2,'1day')                                    
-                    write_plot_data(fs_davg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_davg,ref1_davg,ref2_davg), dataIndex['spec_davg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Average')           
-                    write_plot_data(fs_dmax[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmax,ref1_dmax,ref2_dmax), dataIndex['spec_dmax_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Maximum')           
-                    write_plot_data(fs_dmin[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmin,ref1_dmin,ref2_dmin), dataIndex['spec_dmin_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Minimum')
+                        
+            if conti == 0: 
+                cpart = p.getPart(p.C_PART).encode('ascii')
+                if name in output_values:  
+                    if intv < 1000:
+                        dataIndex['spec_davg_'+cpart]=dataIndex['spec_davg_'+cpart]+1
+                        dataIndex['spec_dmax_'+cpart]=dataIndex['spec_dmax_'+cpart]+1
+                        dataIndex['spec_dmin_'+cpart]=dataIndex['spec_dmin_'+cpart]+1
+                        if dataIndex['spec_davg_'+cpart]>1:
+                            fs_davg[cpart].write(",") 
+                        if dataIndex['spec_dmax_'+cpart]>1:
+                            fs_dmax[cpart].write(",")
+                        if dataIndex['spec_dmin_'+cpart]>1:
+                            fs_dmin[cpart].write(",")
+                        ref0_davg = None; ref0_dmax = None; ref0_dmin = None; ref0_mavg = None
+                        ref1_davg = None; ref1_dmax = None; ref1_dmin = None; ref1_mavg = None
+                        ref2_davg = None; ref2_dmax = None; ref2_dmin = None; ref2_mavg = None
+                        if compare_mode=='1' or compare_mode=='4' or compare_mode=='5':    
+                            ref0_godin = vtimeseries.godin(ref0)
+                            ref0_davg = vtimeseries.per_avg(ref0_godin,'1day')
+                            ref0_dmax = vtimeseries.per_max(ref0,'1day')
+                            ref0_dmin = vtimeseries.per_min(ref0,'1day')
+                        if compare_mode=='2' or compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
+                            ref1_godin = vtimeseries.godin(ref1)
+                            ref1_davg = vtimeseries.per_avg(ref1_godin,'1day')
+                            ref1_dmax = vtimeseries.per_max(ref1,'1day')
+                            ref1_dmin = vtimeseries.per_min(ref1,'1day')  
+                        if compare_mode=='3' or compare_mode=='5':
+                            ref2_godin = vtimeseries.godin(ref2)
+                            ref2_davg = vtimeseries.per_avg(ref2_godin,'1day')
+                            ref2_dmax = vtimeseries.per_max(ref2,'1day')
+                            ref2_dmin = vtimeseries.per_min(ref2,'1day')                                    
+                        write_plot_data(fs_davg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_davg,ref1_davg,ref2_davg), dataIndex['spec_davg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Average')           
+                        write_plot_data(fs_dmax[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmax,ref1_dmax,ref2_dmax), dataIndex['spec_dmax_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Maximum')           
+                        write_plot_data(fs_dmin[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmin,ref1_dmin,ref2_dmin), dataIndex['spec_dmin_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Minimum')
                            
-                if intv < 40000:
-                    dataIndex['spec_mavg_'+cpart]=dataIndex['spec_mavg_'+cpart]+1
-                    if dataIndex['spec_mavg_'+cpart]>1:
-                        fs_mavg[cpart].write(",")         
-                    if compare_mode=='1' or compare_mode=='4' or compare_mode=='5':      
-                        ref0_mavg = vtimeseries.per_avg(ref0,'1month')
-                    if compare_mode=='2' or compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
-                        ref1_mavg = vtimeseries.per_avg(ref1,'1month')
-                    if compare_mode=='3' or compare_mode=='5':
-                        ref2_mavg = vtimeseries.per_avg(ref2,'1month')
-                    write_plot_data(fs_mavg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_mavg,ref1_mavg,ref2_mavg), dataIndex['spec_mavg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Monthly Average')
+                    if intv < 40000:
+                        dataIndex['spec_mavg_'+cpart]=dataIndex['spec_mavg_'+cpart]+1
+                        if dataIndex['spec_mavg_'+cpart]>1:
+                            fs_mavg[cpart].write(",")         
+                        if compare_mode=='1' or compare_mode=='4' or compare_mode=='5':      
+                            ref0_mavg = vtimeseries.per_avg(ref0,'1month')
+                        if compare_mode=='2' or compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
+                            ref1_mavg = vtimeseries.per_avg(ref1,'1month')
+                        if compare_mode=='3' or compare_mode=='5':
+                            ref2_mavg = vtimeseries.per_avg(ref2,'1month')
+                        write_plot_data(fs_mavg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_mavg,ref1_mavg,ref2_mavg), dataIndex['spec_mavg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Monthly Average')
 
-            if (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='OFF') or (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='ON' and name in output_values):
-                diff_arr = []
-                if compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
-                    for i in range(len(tws)):
-                        if compare_mode=='3':        
-                            rmse_val = vdiff.rmse(ref1, ref2, tws[i])
-                            perc_rmse_val = vdiff.perc_rmse(ref1, ref2, tws[i])
-                            diff_arr.append([perc_rmse_val,rmse_val ])
-                        if compare_mode=='4':
-                            rmse_val = vdiff.rmse(ref0, ref1, tws[i])
-                            perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])
-                            diff_arr.append([perc_rmse_val,rmse_val ])
-                        if compare_mode=='5':
-                            rmse_val = vdiff.rmse(ref0, ref1, tws[i])
-                            perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])                    
-                            rmse_val2 = vdiff.rmse(ref0, ref2, tws[i])
-                            perc_rmse_val2 = vdiff.perc_rmse(ref0, ref2, tws[i])
-                            diff_arr.append([perc_rmse_val,rmse_val,perc_rmse_val2,rmse_val2 ])                                        
-                    for w in wy_types:
-                        if compare_mode=='3':
-                            diff_arr.append([vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],1)])
-                        if compare_mode=='4':
-                            diff_arr.append([vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],1)])
-                        if compare_mode=='5':
-                            diff_arr.append([vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],1), vdiff.rmse_discrete_tws(ref0,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref2,wyt_arr[w],1)])
+                if (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='OFF') or (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='ON' and name in output_values):
+                    diff_arr = []
+                    if compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
+                        for i in range(len(tws)):
+                            if compare_mode=='3':        
+                                rmse_val = vdiff.rmse(ref1, ref2, tws[i])
+                                perc_rmse_val = vdiff.perc_rmse(ref1, ref2, tws[i])
+                                diff_arr.append([perc_rmse_val,rmse_val ])
+                            if compare_mode=='4':
+                                rmse_val = vdiff.rmse(ref0, ref1, tws[i])
+                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])
+                                diff_arr.append([perc_rmse_val,rmse_val ])
+                            if compare_mode=='5':
+                                rmse_val = vdiff.rmse(ref0, ref1, tws[i])
+                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])                    
+                                rmse_val2 = vdiff.rmse(ref0, ref2, tws[i])
+                                perc_rmse_val2 = vdiff.perc_rmse(ref0, ref2, tws[i])
+                                diff_arr.append([perc_rmse_val,rmse_val,perc_rmse_val2,rmse_val2 ])                                        
+                        for w in wy_types:
+                            if compare_mode=='3':
+                                diff_arr.append([vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],1)])
+                            if compare_mode=='4':
+                                diff_arr.append([vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],1)])
+                            if compare_mode=='5':
+                                diff_arr.append([vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref1,wyt_arr[w],1), vdiff.rmse_discrete_tws(ref0,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref0,ref2,wyt_arr[w],1)])
     
-                latlng = compare_dss_utils.get_latlng(tbl_latlng,p.getPart(p.B_PART))
-                if globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='OFF':
-                    logging.debug('Working on index: %d/%d '%(dIndex+1,len(refname)))
-                else:
-                    logging.debug('Working on index: %d/%d '%(dIndex+1,len(output_values)))
-                dIndex = dIndex + 1
-                if latlng==None:
-                    latlng=['nan','nan','nan','nan']
-                    print "can't find the Lat/Lng for ",p.getPart(p.B_PART)
-                if dIndex>1: 
-                    fl.write(",")
+                    latlng = compare_dss_utils.get_latlng(tbl_latlng,p.getPart(p.B_PART))
+                    if globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='OFF':
+                        logging.debug('Working on index: %d/%d '%(dIndex+1,len(refname)))
+                    else:
+                        logging.debug('Working on index: %d/%d '%(dIndex+1,len(output_values)))
+                    dIndex = dIndex + 1
+                    if latlng==None:
+                        latlng=['nan','nan','nan','nan']
+                        print "can't find the Lat/Lng for ",p.getPart(p.B_PART)
+                    if dIndex>1: 
+                        fl.write(",")
                 
-                if  name in output_values:      
-                    write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 1, diff_arr,latlng)
-                else:
-                    write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)
+                    if  name in output_values:      
+                        write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 1, diff_arr,latlng)
+                    else:
+                        write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)
                 #if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
                 #    dataIndex['spec_orig_'+cpart]=dataIndex['spec_orig_'+cpart]+1
                 #    if dataIndex['spec_orig_'+cpart]>1:
                 #    fs_orig[cpart].write(",")
                 #    write_plot_data(fs_orig[cpart], build_data_array(ref1,ref2), dataIndex['spec_orig_'+cpart], "%s"%var_name, series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Original Time Interval')                    
                 #write_list_data(fl,p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)                
-            
-            #for i in range(len(tws)):    
-            #    ref0_tw = ref0.getData().createSlice(tws[i])
+            else:
+                logging.debug("*** Please verify the path for "+name+" ***")               
+
                 
     logging.debug('Writing end of data array')
     for i in type_arr:
@@ -359,70 +360,6 @@ def write_wyt(output_dir,tw_values):
     wyt_js.close()
     return wyt_arr
     
-def get_group_ref(globals, scalars, var_values):
-    refvar = {}
-    refnam = []
-    try:
-        dss_group0 = vutils.opendss(scalars['FILE0'])
-        dss_name0 = scalars['NAME0']
-        for ref0 in dss_group0:
-            p = ref0.pathname
-            bpart = p.getPart(p.B_PART).encode('ascii')
-            cpart = p.getPart(p.C_PART).encode('ascii')
-            epart = p.getPart(p.E_PART).encode('ascii')
-            if epart==globals['DEFAULT_TIME_INTERVAL']:
-                refnam.append(bpart+'_'+cpart)
-                refvar[bpart+'_'+cpart]=['FILE0:://'+bpart+'/'+cpart+'//'+epart+'//','NA','NA']
-    except:
-        dss_group0 = 'NA' 
-        if (globals['COMPARE_MODE']=='1' or globals['COMPARE_MODE']=='4' or globals['COMPARE_MODE']=='5'):
-            print "**** Please specify observation file for this comparison mode!!! ****"
-    try:
-        dss_group1 = vutils.opendss(scalars['FILE1'])
-        dss_name1 = scalars['NAME1']
-        for ref1 in dss_group1:
-            p = ref1.pathname
-            bpart = p.getPart(p.B_PART).encode('ascii')
-            cpart = p.getPart(p.C_PART).encode('ascii')
-            epart = p.getPart(p.E_PART).encode('ascii')
-            if epart==globals['DEFAULT_TIME_INTERVAL']:
-                refnam.append(bpart+'_'+cpart)
-                try:
-                    refvar[bpart+'_'+cpart]
-                    refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'
-                except:
-                    refvar[bpart+'_'+cpart]=['NA','NA','NA']
-                    refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'    
-    except:
-        dss_group1 = 'NA'
-        if (globals['COMPARE_MODE']=='2' or globals['COMPARE_MODE']=='3' or globals['COMPARE_MODE']=='4' or globals['COMPARE_MODE']=='5'):    
-            print "**** Please specify model dss file 1 for this comparison mode!!! ****"
-    try:
-        dss_group2 = vutils.opendss(scalars['FILE2'])
-        dss_name2 = scalars['NAME2']
-        for ref2 in dss_group2:
-            p = ref2.pathname
-            bpart = p.getPart(p.B_PART).encode('ascii')
-            cpart = p.getPart(p.C_PART).encode('ascii')
-            epart = p.getPart(p.E_PART).encode('ascii')
-            if epart==globals['DEFAULT_TIME_INTERVAL']:
-                refnam.append(bpart+'_'+cpart)
-                try:
-                    refvar[bpart+'_'+cpart]
-                    refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
-                except:
-                    refvar[bpart+'_'+cpart]=['NA','NA','NA']
-                    refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
-    except:
-        dss_group2 = 'NA'
-        if (globals['COMPARE_MODE']==3 or globals['COMPARE_MODE']==5):
-            print "**** Please specify model dss file 2 for this comparison mode!!! ****"
-    nvar_values = var_values.size()
-    for i in range(nvar_values):
-        refvar[var_values[i][0].encode('ascii')] = [var_values[i][1].encode('ascii'),var_values[i][2].encode('ascii'),var_values[i][3].encode('ascii')]
-        refnam.append(var_values[i][0].encode('ascii'))
-    refname = compare_dss_utils.select_distinct(refnam)
-    return dss_group0, dss_group1, dss_group2, refvar, refname
     
 def write_summary_table(fh, dss_group1,dss_group2,globals,scalars,tw_values, var_values, output_values):
     import vtimeseries
