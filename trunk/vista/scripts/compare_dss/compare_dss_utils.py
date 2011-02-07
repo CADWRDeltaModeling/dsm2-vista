@@ -159,6 +159,77 @@ def get_cpart_from_output(output_values):
                 cpart.append(b)
     return cpart                 
 
+def get_group_ref(globals, scalars, var_values):
+    refvar = {}
+    refnam = []
+    if (globals['COMPARE_MODE']=='1' or globals['COMPARE_MODE']=='4' or globals['COMPARE_MODE']=='5'):
+        try:
+            dss_group0 = vutils.opendss(scalars['FILE0'])
+            dss_name0 = scalars['NAME0']
+            for ref0 in dss_group0:
+                p = ref0.pathname
+                bpart = p.getPart(p.B_PART).encode('ascii')
+                cpart = p.getPart(p.C_PART).encode('ascii')
+                epart = p.getPart(p.E_PART).encode('ascii')
+                if epart==globals['DEFAULT_TIME_INTERVAL']:
+                    refnam.append(bpart+'_'+cpart)
+                    refvar[bpart+'_'+cpart]=['FILE0:://'+bpart+'/'+cpart+'//'+epart+'//','NA','NA']
+        except:
+            dss_group0 = 'NA' 
+            print "**** Please specify observation file for this comparison mode!!! ****"
+    else:
+        dss_group0 = 'NA'
+    if globals['COMPARE_MODE']!='0':           
+        try:
+            dss_group1 = vutils.opendss(scalars['FILE1'])
+            dss_name1 = scalars['NAME1']
+            for ref1 in dss_group1:
+                p = ref1.pathname
+                bpart = p.getPart(p.B_PART).encode('ascii')
+                cpart = p.getPart(p.C_PART).encode('ascii')
+                epart = p.getPart(p.E_PART).encode('ascii')
+                if epart==globals['DEFAULT_TIME_INTERVAL']:
+                    refnam.append(bpart+'_'+cpart)
+                    try:
+                        refvar[bpart+'_'+cpart]
+                        refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'
+                    except:
+                        refvar[bpart+'_'+cpart]=['NA','NA','NA']
+                        refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'    
+        except:
+            dss_group1 = 'NA'        
+            print "**** Please specify model dss file 1 for this comparison mode!!! ****"
+    else:
+        dss_group1 = 'NA'
+    if globals['COMPARE_MODE']=='3' or globals['COMPARE_MODE']=='5':     
+        try:
+            dss_group2 = vutils.opendss(scalars['FILE2'])
+            dss_name2 = scalars['NAME2']
+            for ref2 in dss_group2:
+                p = ref2.pathname
+                bpart = p.getPart(p.B_PART).encode('ascii')
+                cpart = p.getPart(p.C_PART).encode('ascii')
+                epart = p.getPart(p.E_PART).encode('ascii')
+                if epart==globals['DEFAULT_TIME_INTERVAL']:
+                    refnam.append(bpart+'_'+cpart)
+                    try:
+                        refvar[bpart+'_'+cpart]
+                        refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
+                    except:
+                        refvar[bpart+'_'+cpart]=['NA','NA','NA']
+                        refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
+        except:
+            dss_group2 = 'NA'
+            print "**** Please specify model dss file 2 for this comparison mode!!! ****"
+    else:
+        dss_group2 = 'NA'       
+    nvar_values = var_values.size()
+    for i in range(nvar_values):
+        refvar[var_values[i][0].encode('ascii')] = [var_values[i][1].encode('ascii'),var_values[i][2].encode('ascii'),var_values[i][3].encode('ascii')]
+        refnam.append(var_values[i][0].encode('ascii'))
+    refname = select_distinct(refnam)
+    return dss_group0, dss_group1, dss_group2, refvar, refname
+
 def get_name_of_ref(ref):
     if ref != None:
         p=ref.pathname
@@ -240,34 +311,41 @@ def get_not_sort_refname(refname,output_values):
     return output_values+new_not_out
 
 def get_series_str(scalars,refvar):
-    series0 = get_filename_from_refvar(refvar[0],scalars)+"::"+get_bpart_from_refvar(refvar[0])+"_"+get_cpart_from_refvar(refvar[0])
-    series1 = get_filename_from_refvar(refvar[1],scalars)+"::"+get_bpart_from_refvar(refvar[1])+"_"+get_cpart_from_refvar(refvar[1])
-    series2 = get_filename_from_refvar(refvar[2],scalars)+"::"+get_bpart_from_refvar(refvar[2])+"_"+get_cpart_from_refvar(refvar[2])
-    return series0, series1, series2                   
+    series_arr = []
+    for i in range(3):
+        if refvar[i]!='NA':
+            series_arr.append(get_filename_from_refvar(refvar[i],scalars)+"::"+get_bpart_from_refvar(refvar[i])+"_"+get_cpart_from_refvar(refvar[i]))
+        else:
+            series_arr.append('NA')
+    return series_arr                   
 
 def get_series_name(mode,scalars,refvar):
-    if refvar[0][4]=='0' and refvar[1][4]=='1' and refvar[2][4]=='2':
-        if get_bpart_from_refvar(refvar[0])==get_bpart_from_refvar(refvar[1]) and get_bpart_from_refvar(refvar[1])==get_bpart_from_refvar(refvar[2]):
-            if get_cpart_from_refvar(refvar[0])==get_cpart_from_refvar(refvar[1]) and get_cpart_from_refvar(refvar[1])==get_cpart_from_refvar(refvar[2]):
-                series0 = scalars['NAME0']
-                series1 = scalars['NAME1']
-                series2 = scalars['NAME2']
-            else:
-                series0, series1, series2  = get_series_str(scalars,refvar)
-        else:
-            series0, series1, series2  = get_series_str(scalars,refvar)
-    else:
-        series0, series1, series2  = get_series_str(scalars,refvar)
+    series_arr = get_series_str(scalars,refvar)
     if mode=='1':
-        return [series0,"",""]
+        if refvar[0][4]=='0':
+            return [scalars['NAME0'],"",""]
+        else: 
+            return [series_arr[0],"",""]
     if mode=='2':
-        return ["",series1,""]
+        if refvar[1][4]=='1':
+            return ["",scalars['NAME1'],""]
+        else:
+            return ["",series_arr[1],""]
     if mode=='3':
-        return ["",series1,series2]
+        if refvar[1][4]=='1' and refvar[2][4]=='2':
+            return ["",scalars['NAME1'],scalars['NAME2']]
+        else:
+            return ["",series_arr[1],series_arr[2]]
     if mode=='4':
-        return [series0,series1,""]        
+        if refvar[0][4]=='0' and refvar[1][4]=='1':
+            return [scalars['NAME0'],scalars['NAME1'],""]
+        else:
+            return [series_arr[0],series_arr[1],""]        
     if mode=='5':
-        return [series0,series1,series2]
+        if refvar[0][4]=='0' and refvar[1][4]=='1' and refvar[2][4]=='2':
+            return [scalars['NAME0'],scalars['NAME1'],scalars['NAME2']]
+        else:
+            return [series_arr[0],series_arr[1],series_arr[2]] 
         
 def get_filename_from_refvar(refvar,scalars):
     return scalars['NAME'+refvar[4]]
