@@ -81,6 +81,7 @@ def parse_template_file(template_file):
 
 def do_processing(globals, scalars, var_values, output_values, tw_values):
     compare_mode = globals['COMPARE_MODE']
+    time_interval = globals['DEFAULT_TIME_INTERVAL']
     # open files 1 and file 2 and loop over to plot
     from java.util import Date
     dss_group0, dss_group1, dss_group2, refvar, refname = compare_dss_utils.get_group_ref(globals, scalars, var_values)
@@ -234,20 +235,20 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                     diff_arr = []
                     if compare_mode=='3' or compare_mode=='4' or compare_mode=='5':
                         for i in range(len(tws)):
-                            if compare_mode=='3':        
-                                rmse_val = vdiff.rmse(ref1, ref2, tws[i])
-                                perc_rmse_val = vdiff.perc_rmse(ref1, ref2, tws[i])
+                            if compare_mode=='3':   
+                                rmse_val = vdiff.rmse(ref1, ref2, tws[i], time_interval)
+                                perc_rmse_val = vdiff.perc_rmse(ref1, ref2, tws[i], time_interval)
                                 diff_arr.append([perc_rmse_val,rmse_val ])
                             if compare_mode=='4':
-                                rmse_val = vdiff.rmse(ref0, ref1, tws[i])
-                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])
+                                rmse_val = vdiff.rmse(ref0, ref1, tws[i], time_interval)
+                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i], time_interval)
                                 diff_arr.append([perc_rmse_val,rmse_val ])
                             if compare_mode=='5':
-                                rmse_val = vdiff.rmse(ref0, ref1, tws[i])
-                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i])                    
-                                rmse_val2 = vdiff.rmse(ref0, ref2, tws[i])
-                                perc_rmse_val2 = vdiff.perc_rmse(ref0, ref2, tws[i])
-                                diff_arr.append([perc_rmse_val,rmse_val,perc_rmse_val2,rmse_val2 ])                                        
+                                rmse_val = vdiff.rmse(ref0, ref1, tws[i], time_interval)
+                                perc_rmse_val = vdiff.perc_rmse(ref0, ref1, tws[i], time_interval)                    
+                                rmse_val2 = vdiff.rmse(ref0, ref2, tws[i], time_interval)
+                                perc_rmse_val2 = vdiff.perc_rmse(ref0, ref2, tws[i], time_interval)
+                                diff_arr.append([perc_rmse_val,rmse_val,perc_rmse_val2,rmse_val2 ])         
                         for w in wy_types:
                             if compare_mode=='3':
                                 diff_arr.append([vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],0), vdiff.rmse_discrete_tws(ref1,ref2,wyt_arr[w],1)])

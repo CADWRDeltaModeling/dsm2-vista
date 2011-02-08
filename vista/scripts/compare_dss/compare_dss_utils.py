@@ -381,17 +381,7 @@ def is_match(b_arr,c_arr,search_b,search_c):
         if b_arr[i]==search_b and c_arr[i]==search_c:
             return 1
             break
-    return 0
-  
-def ref2ds(ref,tw=None,time_interval=None):
-    if isinstance(ref, DataReference):
-        ds = ref.getData()
-    else:
-        ds = ref
-    if not isinstance(ds,RegularTimeSeries):
-        print ref, " is not a regular time-series data set and has been converted to a regular time series."
-        ds = toreg(ds,tw,time_interval)
-    return ds     
+    return 0  
     
 def sum(data, tw):
     try:
