@@ -3,24 +3,35 @@ from vutils import *
 from math import sqrt
 import xyz
 from xyz import *
+import logging
     
 def ref2ds(ref,tw=None,time_interval=None):
+    logging.basicConfig(level=logging.DEBUG)
     if isinstance(ref, DataReference):
         ds = ref.getData()
     else:
         ds = ref
     if tw!=None:
         ds = ds.createSlice(tw)
-    if not isinstance(ds,RegularTimeSeries):
+        #if ds==None:
+        #    logging.debug("No data within the time window specified for "+str(ref))
+    if not isinstance(ds,RegularTimeSeries) and ds!=None:
         print ref, " is not a regular time-series data set and has been converted to a regular time series."
-        ds = toreg(ds,tw,time_interval)
+        ds = its2rts(ds,tw,time_interval)
     return ds     
     
 def rmse(ref1,ref2,tw=None,time_interval=None):
     ''' return the root mean square error from two references '''
-    sumsqrt, n = segm_sqrt(ref1,ref2,tw,time_interval)
-    root_mse = get_sign(sumsqrt) * sqrt(abs(sumsqrt)/n)
-    return root_mse
+    if chk_two_ds(ref1,ref2,tw,time_interval=None)==True:
+        sumsqrt, n = segm_sqrt(ref1,ref2,tw,time_interval)
+        if n > 0:
+            root_mse = get_sign(sumsqrt) * sqrt(abs(sumsqrt)/n)
+        else:
+            root_mse = 0
+    else:
+        root_mse = 0
+        logging.debug(" No data within time window "+str(tw)+" for "+str(ref1)+" and "+str(ref2))
+    return root_mse 
 
 def perc_rmse(ref1,ref2,tw=None,time_interval=None):
     ''' return the root mean square error of percentage difference from two references '''    
@@ -28,7 +39,7 @@ def perc_rmse(ref1,ref2,tw=None,time_interval=None):
     ds1amp = amplitude(ds1)   
     tw_new=timewindow(str(tw))
     sumsqrt, n = segm_sqrt(ref1,ref2,tw_new,time_interval)
-    if ds1amp > 0:
+    if ds1amp > 0 and n > 0:
         root_mse = get_sign(sumsqrt) * sqrt(abs(sumsqrt)/n)/ds1amp*100
     else:
         root_mse = 0
@@ -43,33 +54,46 @@ def rmse_discrete_tws(ref1,ref2,tw_arr,percentage):
     total_n = 0
     for timew in tw_arr: 
         tw = timewindow(timew)
-        ref1p = DataReference.create(ref1,tw)
-        ref2p = DataReference.create(ref2,tw)
-        sumsqrt, n = segm_sqrt(ref1p,ref2p)
-        total_n+= n
-        if percentage==0:
-            ds1p = ref2ds(ref1p)
-            ds1pamp = amplitude(ds1p)
-            if ds1pamp > 0:
-                total_sumsqrt += abs(sumsqrt)/(ds1pamp*ds1pamp)*10000
-                total_sign += sumsqrt/(ds1pamp*ds1pamp)
-        else:     
-            total_sumsqrt+= abs(sumsqrt)
-            total_sign += sumsqrt
+        if chk_two_ds(ref1,ref2,tw)==True:
+            ref1p = DataReference.create(ref1,tw)
+            ref2p = DataReference.create(ref2,tw)
+            sumsqrt, n = segm_sqrt(ref1p,ref2p)
+            total_n+= n
+            if percentage==0:
+                ds1p = ref2ds(ref1p)
+                ds1pamp = amplitude(ds1p)
+                if ds1pamp > 0:
+                    total_sumsqrt += abs(sumsqrt)/(ds1pamp*ds1pamp)*10000
+                    total_sign += sumsqrt/(ds1pamp*ds1pamp)
+            else:     
+                total_sumsqrt+= abs(sumsqrt)
+                total_sign += sumsqrt
     if total_n>0:
         rmse = get_sign(total_sign) * sqrt(total_sumsqrt/total_n)
     else:
         rmse = 0
     return rmse
+
+def chk_two_ds(ref1,ref2,tw,time_interval=None):
+    ds1 = ref2ds(ref1,tw,time_interval)
+    ds2 = ref2ds(ref2,tw,time_interval)
+    if ds1!=None and ds2!=None:
+        return True
+    else:
+        return False
     
 def segm_sqrt(ref1,ref2,tw=None,time_interval=None):
     ds1 = ref2ds(ref1,tw,time_interval)
     ds2 = ref2ds(ref2,tw,time_interval)
-    ds3 = ds2 - ds1
-    ds4 = ds3 * ds3
-    sign = get_sign(Stats.total(ds3))
-    sum_mse = sign * Stats.total(ds4)
-    return sum_mse, len(ds3)
+    try:
+        ds3 = ds2 - ds1
+        ds4 = ds3 * ds3
+        sign = get_sign(Stats.total(ds3))
+        sum_mse = sign * Stats.total(ds4)
+        return sum_mse, len(ds3)
+    except:
+        #logging.debug("There is no matched period for "+str(ds1)+" and "+str(ds2))
+        return 0, 0
     
 def get_sign(num):
     if num < 0: 
