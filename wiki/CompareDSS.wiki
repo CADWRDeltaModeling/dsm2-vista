@@ -1,0 +1,142 @@
+#summary One-sentence summary of this page.
+#labels DSScomparison,DSM2studies,reportgenerator
+
+= Introduction =
+This tool automates the comparison process and produces report to share with others. It reduces duplicate effort for routine procedures, avoids human operation errors, and provides a systematic way for result comparison. The tool reads DSS files and generates a HTML report based on instructions in a configuration file. There are five modes available for output options. They are 1) observed data only 2) modeled data only 3) two model comparison 4) calibration and 5) calibration comparison for two model outputs. The interactive time series plot gives users the options to adjust time windows, overlay water year types and view the differences. 
+
+= Basic Setup ==
+1. Open a new folder and prepare a configuration file inside this folder. For example, dsm2_output.inp.<br>
+2. Run command prompt from this folder and type:
+{{{
+   > compare_dss dsm2_output.inp
+}}}
+3. All the output files will be generated in the directory specified in SCALAR::OUTDIR. 
+
+= Configuration File =
+Here is the instruction for how to prepare the configuration file.<br>
+There are 5 blocks inside the configuration file. They are:
+{{{
+ * GLOBAL_CONTROL
+ * SCALAR
+ * VARIABLE
+ * OUTPUT
+ * TIME_PERIODS
+}}}
+
+== GLOBAL_CONTROL ==
+Two columns: CONTROLLER, MODE
+
+*_PLOT_ORIGINAL_TIME_INTERVAL (default: OFF)_*<br>
+By default, data with time interval less than one day will be converted to daily as minimum time interval. This is an option for users who want to display the original data in the original time scales, such as 15 minutes.  Note that this is not recommended for more than half year simulation.
+
+*_CALCULATE_SPECIFIED_RMSE_ONLY  (default: OFF)_*    <br>
+By default, RMS differences for all the matched time series in two DSS file will be calculated. Turn this on if users only have interest in the location specified in the OUTPUT block.
+
+*_DONOT_SORT_STATION_NAME (default: OFF)_*     <br>
+By default, station names are sorted alphabetically. If users want the plot presented as the order in OUTPUT block, please turn this on. 
+
+*_DEFAULT_TIME_INTERVAL (default: 15MIN)_*<br>
+In case of multiple time interval for same location, this is a filter for PART E.
+
+*_COMPARE_MODE_* <br>
+{{{
+1: observation only
+2: one model output only
+3: two model comparison
+4: one model output calibration
+5: two model output calibration comparison
+}}}
+For example,
+{{{
+GLOBAL_CONTROL
+CONTROLLER                           MODE
+PLOT_ORIGINAL_TIME_INTERVAL           OFF
+CALCULATE_SPECIFIED_RMSE_ONLY         OFF
+DONOT_SORT_STATION_NAME               OFF
+COMPARE_MODE                          2
+DEFAULT_TIME_INTERVAL                 15MIN
+END 
+}}}
+== SCALAR ==
+Two columns: NAME, VALUE
+{{{
+*_FILE0:_*   Full path for observed DSS file
+*_NAME0:_*   A brief name for the observed data
+*_FILE1:_*   Full path for modeled DSS file
+*_NAME1:_*   A brief name for the modeled output
+*_FILE2:_*   Full path for the other modeled DSS file
+*_NAME2:_*   A brief name for the other modeled output
+*_OUTDIR:_*  Report output directory
+*_OUTFILE:_* Output HTML report name
+*_NOTE:_*    Notes for this report
+*_ASSUMPTIONS:_* Assumptions for this report
+*_MODELER_*:_* Name for the modeler  
+}}}
+For example,
+{{{
+SCALAR
+NAME		VALUE
+FILE0		D:/delta/dsm2_v8/report/dssfiles/Apple.dss #input file 1
+NAME0		Observation
+FILE1		D:/delta/dsm2_v8/report/dssfiles/Apple.dss #input file 1
+NAME1		Apple
+FILE2		D:/delta/dsm2_v8/report/dssfiles/Banana.dss # input file 2
+NAME2		Banana
+OUTDIR      D:/delta/dsm2_v8/report/case2
+OUTFILE		DSM2_compare.html
+NOTE		"A long funny note"
+ASSUMPTIONS "I am assuming this is defined"
+MODELER 	Monkey
+END
+}}}
+
+== VARIABLE ==
+Four columns: NAME, REF0, REF1, REF2
+
+For example,
+{{{
+VARIABLE 
+NAME                         REF0                                REF1                                         REF2
+TEST1   FILE2:://RMID040/FLOW//15MIN//   FILE1:://RMID040/FLOW//15MIN//  FILE2:://RMID040/FLOW//15MIN//
+TEST2   FILE1:://RMID015/FLOW//15MIN//   FILE1:://ROLD034/FLOW//15MIN//  FILE2:://ROLD024/FLOW//15MIN//
+TEST3   FILE1:://ROLD024/FLOW//15MIN//   FILE2:://ROLD024/FLOW//15MIN//  FILE2:://ROLD024/EC//15MIN//   
+END
+}}}
+
+== OUTPUT ==
+One column: NAME
+
+
+For example,
+{{{
+OUTPUT
+NAME
+TEST1
+TEST2
+TEST3
+ROLD024_FLOW
+ROLD034_FLOW
+RMID015_FLOW
+RMID040_FLOW
+RSAC054_STAGE
+RSAC075_STAGE
+RSAC081_STAGE
+RSAN018_EC
+RSAN032_EC
+ROLD024_EC
+END
+}}}
+
+== TIME_PERIODS ==
+Two columns: NAME, TIMEWINDOW
+
+
+For example,
+{{{
+TIME_PERIODS
+NAME			TIMEWINDOW
+"Long Term"		"01OCT1974 0100 - 30SEP1982 2400"
+"Period 1"	"01OCT1974 0100 - 30SEP1978 2400"
+"Period 2"	"01OCT1978 0100 - 30SEP1982 2400"
+END
+}}}
