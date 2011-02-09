@@ -162,7 +162,8 @@ def get_cpart_from_output(output_values):
 def get_group_ref(globals, scalars, var_values):
     refvar = {}
     refnam = []
-    if (globals['COMPARE_MODE']=='1' or globals['COMPARE_MODE']=='4' or globals['COMPARE_MODE']=='5'):
+    compare_mode = globals['COMPARE_MODE']
+    if (compare_mode=='1' or compare_mode=='4' or compare_mode=='5'):
         try:
             dss_group0 = vutils.opendss(scalars['FILE0'])
             dss_name0 = scalars['NAME0']
@@ -179,7 +180,7 @@ def get_group_ref(globals, scalars, var_values):
             print "**** Please specify observation file for this comparison mode!!! ****"
     else:
         dss_group0 = 'NA'
-    if globals['COMPARE_MODE']!='0':           
+    if compare_mode!='0':           
         try:
             dss_group1 = vutils.opendss(scalars['FILE1'])
             dss_name1 = scalars['NAME1']
@@ -201,7 +202,7 @@ def get_group_ref(globals, scalars, var_values):
             print "**** Please specify model dss file 1 for this comparison mode!!! ****"
     else:
         dss_group1 = 'NA'
-    if globals['COMPARE_MODE']=='3' or globals['COMPARE_MODE']=='5':     
+    if compare_mode=='3' or compare_mode=='5':     
         try:
             dss_group2 = vutils.opendss(scalars['FILE2'])
             dss_name2 = scalars['NAME2']
@@ -222,7 +223,16 @@ def get_group_ref(globals, scalars, var_values):
             dss_group2 = 'NA'
             print "**** Please specify model dss file 2 for this comparison mode!!! ****"
     else:
-        dss_group2 = 'NA'       
+        dss_group2 = 'NA'
+    '''delete time series without a matched entry'''
+    for name in refnam:
+        if (compare_mode=='1' and refvar[name][0]=='NA') or \
+        (compare_mode=='2' and refvar[name][1]=='NA') or \
+        (compare_mode=='3' and (refvar[name][1]=='NA' or refvar[name][2]=='NA')) or \
+        (compare_mode=='4' and (refvar[name][0]=='NA' or refvar[name][1]=='NA')) or \
+        (compare_mode=='5' and (refvar[name][0]=='NA' or refvar[name][1]=='NA' or refvar[name][2]=='NA')): 
+            del(refvar[name])
+            refnam.remove(name)
     nvar_values = var_values.size()
     for i in range(nvar_values):
         refvar[var_values[i][0].encode('ascii')] = [var_values[i][1].encode('ascii'),var_values[i][2].encode('ascii'),var_values[i][3].encode('ascii')]
