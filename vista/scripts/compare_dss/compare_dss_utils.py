@@ -226,13 +226,18 @@ def get_group_ref(globals, scalars, var_values):
         dss_group2 = 'NA'
     '''delete time series without a matched entry'''
     for name in refnam:
-        if (compare_mode=='1' and refvar[name][0]=='NA') or \
-        (compare_mode=='2' and refvar[name][1]=='NA') or \
-        (compare_mode=='3' and (refvar[name][1]=='NA' or refvar[name][2]=='NA')) or \
-        (compare_mode=='4' and (refvar[name][0]=='NA' or refvar[name][1]=='NA')) or \
-        (compare_mode=='5' and (refvar[name][0]=='NA' or refvar[name][1]=='NA' or refvar[name][2]=='NA')): 
-            del(refvar[name])
+        try:
+            if (compare_mode=='1' and refvar[name][0]=='NA') or \
+            (compare_mode=='2' and refvar[name][1]=='NA') or \
+            (compare_mode=='3' and (refvar[name][1]=='NA' or refvar[name][2]=='NA')) or \
+            (compare_mode=='4' and (refvar[name][0]=='NA' or refvar[name][1]=='NA')) or \
+            (compare_mode=='5' and (refvar[name][0]=='NA' or refvar[name][1]=='NA' or refvar[name][2]=='NA')): 
+                del(refvar[name])
+                refnam.remove(name)
+        except Exception,e:
             refnam.remove(name)
+            logging.error("Error building name for %s"%(name))
+            continue
     nvar_values = var_values.size()
     for i in range(nvar_values):
         refvar[var_values[i][0].encode('ascii')] = [var_values[i][1].encode('ascii'),var_values[i][2].encode('ascii'),var_values[i][3].encode('ascii')]
@@ -244,7 +249,12 @@ def get_name_of_ref(ref):
     if ref != None:
         p=ref.pathname
         return p.getPart(p.B_PART)
-
+    
+def get_output_name_of_ref(ref):
+    if ref != None:
+        p=ref.pathname
+        return p.getPart(p.B_PART)+"_"+p.getPart(p.C_PART)  
+    
 def get_name(ref1,ref2):
     if ref1==None:
         if ref2==None:
@@ -253,6 +263,7 @@ def get_name(ref1,ref2):
             return get_name_of_ref(ref2)
     else:
         return get_name_of_ref(ref1)
+    
 def get_prop_of_ref(ref):
     intv = get_interval_of_ref(ref)
     var_name = get_name_of_ref(ref)
@@ -304,8 +315,6 @@ def get_path_of_file(dssfile_full_path):
     print a.replace(dssfile_full_path,a[len(a)-1]) 
     return a.replace(dssfile_full_path,a[len(a)-1])
         
-    
-        
 def get_latlng(tbl,searchfor):
     for row in tbl:
         if searchfor.upper()==row[1]:
@@ -319,6 +328,27 @@ def get_not_sort_refname(refname,output_values):
         if name not in output_values:
             new_not_out.append(name)
     return output_values+new_not_out
+
+def get_ref_list(compare_mode,dss_group0,dss_group1,output_values):
+    if compare_mode=='1':
+        use_group = dss_group0
+    else:
+        use_group = dss_group1
+    new_output_values = []
+    for item in output_values:
+        if item[-1]=='*':
+            look4bpart = item[0:-2]
+            g = vdss.findparts(use_group,b=look4bpart)
+            for ref in g:
+                new_output_values.append(get_output_name_of_ref(ref).encode('ascii'))
+        elif item[0]=='*':
+            look4cpart = item[2:]
+            g = vdss.findparts(use_group,c=look4cpart)
+            for ref in g:
+                new_output_values.append(get_output_name_of_ref(ref).encode('ascii'))
+        else:
+            new_output_values.append(item)
+    return select_distinct(new_output_values)
 
 def get_series_str(scalars,refvar):
     series_arr = []

@@ -85,6 +85,8 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     # open files 1 and file 2 and loop over to plot
     from java.util import Date
     dss_group0, dss_group1, dss_group2, refvar, refname = compare_dss_utils.get_group_ref(globals, scalars, var_values)
+    # obtain the new output list modified for *_ or _* cases
+    output_values = compare_dss_utils.get_ref_list(compare_mode,dss_group0,dss_group1,output_values) 
     output_dir = scalars['OUTDIR'].replace('"','')
     output_file = scalars['OUTFILE'].replace('"','')
     wyt_arr = write_wyt(output_dir, tw_values)  #write the water type JavaScript file
@@ -142,11 +144,15 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     refname = compare_dss_utils.sort_alphabetically(refname)
     if globals['DONOT_SORT_STATION_NAME']=='OFF':
         output_values = compare_dss_utils.sort_alphabetically(output_values)
-    else:
-        refname = compare_dss_utils.get_not_sort_refname(refname,output_values)
+    #else:
+    #    refname = compare_dss_utils.get_not_sort_refname(refname,output_values)
         
     for name in refname:
-        series_name = compare_dss_utils.get_series_name(compare_mode,scalars,refvar[name])
+        try:
+            series_name = compare_dss_utils.get_series_name(compare_mode,scalars,refvar[name])
+        except Exception,e:
+            logging.error("Error building name for :%s and error is %s"%(name,e))
+            continue
         if (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='OFF') or (globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='ON' and name in output_values):
             conti = 0 
             str_refvar = compare_dss_utils.get_str_refvar(refvar[name],compare_mode)
@@ -524,8 +530,9 @@ def write_js_block(fh,globals,scalars):
            tbl_head='<table class="alt-highlight" id="tbl_sel'+i+'" style="border-bottom-style: hidden;"><tr><th colspan=9>DSM2 Output Comparison - RMSE Statistics (<a href="#" onClick="initialize(this)"> View Map </a>)<br>This is calculated from the original time series in dss file based on its output time interval.'
            tbl_head+='<br><img src="js/up.png" align=middle> : %s is higher than %s; <img src="js/down.png" align=middle> : %s is lower than %s';
     """%(scalars['NAME2'],scalars['NAME1'],scalars['NAME2'],scalars['NAME1'])
-        print >> fh,"""    
-       legend='<img src="js/icon16.png" width="33%">: > 100% <br><img src="js/icon16.png" width="27%">: 80% - 100% <br><img src="js/icon16.png" width="23%">: 60% - 80% <br><img src="js/icon16.png" width="19%">: 40% - 60% <br><img src="js/icon16.png" width="16%">: 20% - 40% <br><img src="js/icon16.png" width="11%">: 10% - 20% <br><img src="js/icon16.png" width="7%">: 0% - 10% <br>';
+        print >> fh,"""
+       legend='Percentage RMS Diff<br>';    
+       legend+='<img src="js/icon16.png" width="33%">: > 100% <br><img src="js/icon16.png" width="27%">: 80% - 100% <br><img src="js/icon16.png" width="23%">: 60% - 80% <br><img src="js/icon16.png" width="19%">: 40% - 60% <br><img src="js/icon16.png" width="16%">: 20% - 40% <br><img src="js/icon16.png" width="11%">: 10% - 20% <br><img src="js/icon16.png" width="7%">: 0% - 10% <br>';
        legend+='<img src="js/icon49.png" width="7%">: 0% - -10% <br><img src="js/icon49.png" width="11%">: -10% - -20% <br> <img src="js/icon49.png" width="16%">: -20% - -40% <br> <img src="js/icon49.png" width="19%">: -40% - -60% <br><img src="js/icon49.png" width="23%">: -60% - -80% <br><img src="js/icon49.png" width="27%">: -80% - -100% <br><img src="js/icon49.png" width="33%">: < -100% <br>';
        tbl_head+='<br><center><table class="list"><tr><td><div id="map_canvas'+tab_name+'" style="width: 500px; height: 450px;display:none"></div></td><td valign=top><div id="map_'+tab_name+'" style="display:none">'+legend+'</div></td></tr></table></center></th></tr></table>'; k1=0;
        $("#"+dt_arr[i]+"_p").append(tbl_head);

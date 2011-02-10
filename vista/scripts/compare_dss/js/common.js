@@ -118,10 +118,11 @@
        });
        return marker;
       }
+      period_index = document.getElementById('time-window-select').selectedIndex;
       for(i=0; i < data_list.length; i++) {
 	   if (data_list[i].data_type==tab_name && data_list[i].latitude!='nan') {	 
          var latlng = new GLatLng(data_list[i].latitude,data_list[i].longitude);
-         map.addOverlay(createMarker(latlng,data_list[i].diff[0].perc_rmse,data_list[i].output));
+         map.addOverlay(createMarker(latlng,data_list[i].diff[period_index].perc_rmse,data_list[i].output));
 	   }
       }
     }	
