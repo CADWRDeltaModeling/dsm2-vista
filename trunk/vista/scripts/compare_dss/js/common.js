@@ -85,7 +85,7 @@
       document.getElementById("map_canvas"+tab_name).style.display=document.getElementById("map_canvas"+tab_name).style.display==''?'none':'';
 	  document.getElementById("map_"+tab_name).style.display=document.getElementById("map_"+tab_name).style.display==''?'none':'';
       var map = new GMap2(document.getElementById("map_canvas"+tab_name));
-      map.setCenter(new GLatLng(38.17, -121.6), 9);
+      map.setCenter(new GLatLng(38.16, -121.6), 10);
       map.setUIToDefault();
       var bounds = map.getBounds();
       var southWest = bounds.getSouthWest();

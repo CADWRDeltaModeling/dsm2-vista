@@ -348,7 +348,7 @@ def get_ref_list(compare_mode,dss_group0,dss_group1,output_values):
                 new_output_values.append(get_output_name_of_ref(ref).encode('ascii'))
         else:
             new_output_values.append(item)
-    return select_distinct(new_output_values)
+    return select_distinct_wt_sort(new_output_values)
 
 def get_series_str(scalars,refvar):
     series_arr = []
@@ -500,6 +500,13 @@ def select_distinct(input_arr):
     if x not in output_arr:
       output_arr.append(x)
   output_arr.sort()
+  return output_arr
+
+def select_distinct_wt_sort(input_arr):
+  output_arr = []
+  for x in input_arr:
+    if x not in output_arr:
+      output_arr.append(x)
   return output_arr
 
 def timewindow_option_value(tw):

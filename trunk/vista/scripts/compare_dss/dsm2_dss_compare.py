@@ -141,11 +141,11 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     js_data_list.write_begin_data_array(fl)
     
     wy_types = ['W','AN','BN','D','C']
-    refname = compare_dss_utils.sort_alphabetically(refname)
     if globals['DONOT_SORT_STATION_NAME']=='OFF':
         output_values = compare_dss_utils.sort_alphabetically(output_values)
-    #else:
-    #    refname = compare_dss_utils.get_not_sort_refname(refname,output_values)
+        refname = compare_dss_utils.sort_alphabetically(refname)
+    else:
+        refname = compare_dss_utils.get_not_sort_refname(refname,output_values)
         
     for name in refname:
         try:
@@ -488,7 +488,7 @@ def write_js_block(fh,globals,scalars):
             var div_id = "fig"+"_"+data[i].output;
             if (data[i]==null) continue;
             if ($("#"+div_id).length==0){
-                $("#"+data[i].data_type).append('<a href="#'+div_id+'" title="'+data[i].refvar+'"><div class="plot" id="'+div_id+'"></div></a>');
+                $("#"+data[i].data_type).append('<a href="#'+div_id+'" title="'+data[i].refvar+'"><div class="plot" id="'+div_id+'"></div></a><img width=20 height=20 src="js/csv.gif" onClick="downloadcsv(\\''+data[i].output+'\\')">');
             }
             if (data[i].plot_type=="timeseries"){ 
                if (plot_wyt==1){ 
@@ -534,7 +534,7 @@ def write_js_block(fh,globals,scalars):
        legend='Percentage RMS Diff<br>';    
        legend+='<img src="js/icon16.png" width="33%">: > 100% <br><img src="js/icon16.png" width="27%">: 80% - 100% <br><img src="js/icon16.png" width="23%">: 60% - 80% <br><img src="js/icon16.png" width="19%">: 40% - 60% <br><img src="js/icon16.png" width="16%">: 20% - 40% <br><img src="js/icon16.png" width="11%">: 10% - 20% <br><img src="js/icon16.png" width="7%">: 0% - 10% <br>';
        legend+='<img src="js/icon49.png" width="7%">: 0% - -10% <br><img src="js/icon49.png" width="11%">: -10% - -20% <br> <img src="js/icon49.png" width="16%">: -20% - -40% <br> <img src="js/icon49.png" width="19%">: -40% - -60% <br><img src="js/icon49.png" width="23%">: -60% - -80% <br><img src="js/icon49.png" width="27%">: -80% - -100% <br><img src="js/icon49.png" width="33%">: < -100% <br>';
-       tbl_head+='<br><center><table class="list"><tr><td><div id="map_canvas'+tab_name+'" style="width: 500px; height: 450px;display:none"></div></td><td valign=top><div id="map_'+tab_name+'" style="display:none">'+legend+'</div></td></tr></table></center></th></tr></table>'; k1=0;
+       tbl_head+='<br><center><table class="list"><tr><td><div id="map_canvas'+tab_name+'" style="width: 800px; height: 800px;display:none"></div></td><td valign=top><div id="map_'+tab_name+'" style="display:none">'+legend+'</div></td></tr></table></center></th></tr></table>'; k1=0;
        $("#"+dt_arr[i]+"_p").append(tbl_head);
        // write the table
        num_stat=get_obj_size(data_list[0].diff[0]);
@@ -554,8 +554,17 @@ def write_js_block(fh,globals,scalars):
          for(k=0;k<period_name.length;k++) tbl_sel[z]+='<td class="timewindow" colspan='+multiplier+'>'+period_name[k]+'</td>';
          tbl_sel[z]+='<td class="timewindow" colspan='+5*multiplier+'>Water Year Type</td></tr><tr><td></td>';
          for(k=0;k<period_name.length;k++) tbl_sel[z]+='<td class="timewindow" colspan='+multiplier+'>'+period_range[k]+'</td>';
-         for(k=0;k<5;k++) tbl_sel[z]+='<td class="timewindow" width=80 colspan='+multiplier+'>'+wyt_txt[k]+'</td>';
+         for(k=0;k<5;k++) tbl_sel[z]+='<td class="timewindow" colspan='+multiplier+'>'+wyt_txt[k]+'</td>';
          tbl_sel[z]+='</tr>';
+       """
+        if(globals['COMPARE_MODE']=='5'):
+            print >> fh, """
+         tbl_sel[z]+='<tr><td></td>';
+         for(k=0;k<period_name.length;k++) tbl_sel[z]+='<td class="timewindow" title="%s vs %s">M1</td><td class="timewindow" title="%s vs %s">M2</td>';
+         for(k=0;k<5;k++) tbl_sel[z]+='<td class="timewindow" title="%s vs %s">M1</td><td class="timewindow" title="%s vs %s">M2</td>';
+         tbl_sel[z]+='</tr>';
+        """%(scalars['NAME0'],scalars['NAME1'],scalars['NAME0'],scalars['NAME2'],scalars['NAME0'],scalars['NAME1'],scalars['NAME0'],scalars['NAME2'])
+        print >> fh, """
          tbl_unsel[z]='<div id="all_perc'+i+z+'" style="display:none"><table class="alt-highlight" id="tbl_unsel'+i+z+'"><tr><td colspan='+8*multiplier+'></td></tr>';k2=0;
          for(j=0;j<ns;j++){
           if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='1'){ k1++;
