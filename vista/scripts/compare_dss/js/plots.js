@@ -428,7 +428,7 @@ for (i=0;i<ts.length;i++){
    if (ts[i].type=='dot'){
     vis.add(pv.Dot)
 	    .data(function() {return data.values})
-		.visible(function(d){if (d.x>=sdate && d.x<=edate) return isNaN(d.x)? false: true;})
+		.visible(function(d){if (d.x>=sdate && d.x<=edate) return isNaN(d.y0)? false: true;})
 	    .left(function(d) {if (d.x>=sdate && d.x<=edate) return x(d.x)})
 	    .bottom(function(d) {if (d.x>=sdate && d.x<=edate) return y(d.y0)})
 	    .shapeRadius(dots[i].size)
