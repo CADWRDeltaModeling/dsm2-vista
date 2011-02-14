@@ -488,7 +488,7 @@ def write_js_block(fh,globals,scalars):
             var div_id = "fig"+"_"+data[i].output;
             if (data[i]==null) continue;
             if ($("#"+div_id).length==0){
-                $("#"+data[i].data_type).append('<a href="#'+div_id+'" title="'+data[i].refvar+'"><div class="plot" id="'+div_id+'"></div></a><img width=20 height=20 src="js/csv.gif" onClick="downloadcsv(\\''+data[i].output+'\\')">');
+                $("#"+data[i].data_type).append('<a href="#'+div_id+'" title="'+data[i].refvar+'"><div class="plot" id="'+div_id+'"></div></a><!--<img width=20 height=20 src="js/csv.gif" onClick="downloadcsv(\\''+data[i].output+'\\')">-->');
             }
             if (data[i].plot_type=="timeseries"){ 
                if (plot_wyt==1){ 
