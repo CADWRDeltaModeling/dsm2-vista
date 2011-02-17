@@ -18,7 +18,10 @@ def timewindow(twstr):
     timewindow(tm)
     creates a time window object from a string
     """
-    return TimeFactory.getInstance().createTimeWindow(twstr)
+    if ( isinstance(twstr,TimeWindow)):
+        return TimeFactory.getInstance().createTimeWindow(twstr.getStartTime(), twstr.getEndTime())
+    else:
+        return TimeFactory.getInstance().createTimeWindow(twstr)
 #
 def time(tmstr,pattern=None):
     """
@@ -300,15 +303,21 @@ def taf2cfs(ref):
     ds.getAttributes().setYUnits("CFS")
     return ds
 #
-def its2rts(irts,tw=None,tis='1hour'):
+def its2rts(irts,tw=None,tis=None):
     """
     its2rts(irts,tw=None,tis='1hour'):
     Converts irregular time series to regular time series with
     a time window and time interval.
     """
+    if irts==None:
+        return None
+    if tis==None:
+        tis='1hour'
     ti = timeinterval(tis)
+    got_ref=false
     if isinstance(irts,DataReference):
         irts = irts.getData()
+        got_ref=true
     if tw == None:
 	   tw = irts.getTimeWindow()
     else:
@@ -359,7 +368,10 @@ def its2rts(irts,tw=None,tis='1hour'):
     # create a new time series with values, flags and attr with
     # the correct start time and time interval
     rts = RegularTimeSeries(name,st,ti,yvals,flags,attr)
-    return rts
+    if got_ref:
+        return wrap_data(rts, "", "", name)
+    else:
+        return rts
 #
 def nearest_index(ds,timeinst,ndxHint=0):
     """
