@@ -69,7 +69,7 @@ import vista.time.TimeWindow;
  * @author Nicky Sandhu
  * @version $Id: DataReference.java,v 1.1 2003/10/02 20:49:19 redwood Exp $
  */
-public abstract class DataReference implements Named, Serializable {
+public abstract class DataReference implements Comparable, Named, Serializable {
 	/**
 	 * reloads data
 	 */
@@ -111,6 +111,16 @@ public abstract class DataReference implements Named, Serializable {
 				&& (ref.getServername().equals(getServername()))
 				&& (ref.getPathname().equals(getPathname()));
 	}
+	
+	@Override
+	public int compareTo(Object o) {
+		if (!(o instanceof DataReference)){
+			return -1;
+		}
+		DataReference other = (DataReference) o;
+		return this.getName().compareTo(other.getName());
+	}
+
 
 	/**
 	 * creates a data reference similar to the given reference in all respects

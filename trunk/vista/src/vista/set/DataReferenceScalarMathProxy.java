@@ -216,6 +216,9 @@ public class DataReferenceScalarMathProxy extends UnaryOperationProxy {
 		if (calc != null && _units != null){
 			calc.getAttributes().setYUnits(_units);
 		}
+		if (this.getPathname() != null){
+			calc.setName(this.getPathname().getFullPath());
+		}
 		return calc;
 	}
 
