@@ -721,7 +721,8 @@ def fireup(html):
         os.system('cmd /c start "'+html+'"')
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    LOG_FILENAME = 'example.log'
+    logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
     if len(sys.argv) != 2:
         logging.debug(" **** Please specify the report inp file! ****")
         #template_file = 'D:/delta/dsm2_v8/report/case2/dsm2_output.inp'
