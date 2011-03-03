@@ -59,6 +59,15 @@
        }
        return size;
 	}
+	function downloadcsv(output){
+	    //data="";
+        //popdata(data);
+		alert("under construction");
+	}
+	function popdata(data){
+	    window.location='data:text/csv;charset=utf8,' + encodeURIComponent(data);
+        return true;	
+	}
 	function shift_month(date_fields){
        if (date_fields[1]>1) return [date_fields[0],date_fields[1]-1,date_fields[2]];
 	   else return [date_fields[0]-1,12,date_fields[2]];
@@ -114,7 +123,7 @@
        markerOptions = { icon:letteredIcon, title:info };
        var marker = new GMarker(point, markerOptions);
        GEvent.addListener(marker, "click", function() {
-       marker.openInfoWindowHtml('<a href="#fig_'+info+'" font size=2>' + info + '</font></a>');
+       marker.openInfoWindowHtml('<a href="#fig_'+info+'" font size=2>' + info + '</font></a><br>Percentage RMS Diff: '+index+'%');
        });
        return marker;
       }
@@ -125,5 +134,13 @@
          map.addOverlay(createMarker(latlng,data_list[i].diff[period_index].perc_rmse,data_list[i].output));
 	   }
       }
-    }	
-	
+    }
+    /* this function is tempporarily used for Asilomar presentation in order to 
+	   show Google Map without internet connection. */	
+    function show_img_for_asilomar(e){
+      tab_name = document.getElementById('ta').value; 
+	  document.getElementById("map_canvas"+tab_name).innerHTML='<img src="js/gmap.JPG">';
+      e.innerHTML=document.getElementById("map_canvas"+tab_name).style.display==''?'View Map':'Hide Map';
+      document.getElementById("map_canvas"+tab_name).style.display=document.getElementById("map_canvas"+tab_name).style.display==''?'none':'';
+	  document.getElementById("map_"+tab_name).style.display=document.getElementById("map_"+tab_name).style.display==''?'none':'';  
+	}	

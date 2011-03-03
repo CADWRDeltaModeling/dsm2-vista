@@ -163,67 +163,63 @@ def get_group_ref(globals, scalars, var_values):
     refvar = {}
     refnam = []
     compare_mode = globals['COMPARE_MODE']
-    if (compare_mode=='1' or compare_mode=='4' or compare_mode=='5'):
-        try:
-            dss_group0 = vutils.opendss(scalars['FILE0'])
-            dss_name0 = scalars['NAME0']
-            for ref0 in dss_group0:
-                p = ref0.pathname
-                bpart = p.getPart(p.B_PART).encode('ascii')
-                cpart = p.getPart(p.C_PART).encode('ascii')
-                epart = p.getPart(p.E_PART).encode('ascii')
-                if epart==globals['DEFAULT_TIME_INTERVAL']:
-                    refnam.append(bpart+'_'+cpart)
-                    refvar[bpart+'_'+cpart]=['FILE0:://'+bpart+'/'+cpart+'//'+epart+'//','NA','NA']
-        except:
-            dss_group0 = 'NA' 
+    dss_group0 = 'NA'
+    dss_group1 = 'NA'
+    dss_group2 = 'NA'
+    try:
+        dss_group0 = vutils.opendss(scalars['FILE0'])
+        dss_name0 = scalars['NAME0']
+        for ref0 in dss_group0:
+            p = ref0.pathname
+            bpart = p.getPart(p.B_PART).encode('ascii')
+            cpart = p.getPart(p.C_PART).encode('ascii')
+            epart = p.getPart(p.E_PART).encode('ascii')
+            if epart==globals['DEFAULT_TIME_INTERVAL']:
+                refnam.append(bpart+'_'+cpart)
+                refvar[bpart+'_'+cpart]=['FILE0:://'+bpart+'/'+cpart+'//'+epart+'//','NA','NA']
+    except:
+        if (compare_mode=='1' or compare_mode=='4' or compare_mode=='5'): 
             print "**** Please specify observation file for this comparison mode!!! ****"
-    else:
-        dss_group0 = 'NA'
-    if compare_mode!='0':           
-        try:
-            dss_group1 = vutils.opendss(scalars['FILE1'])
-            dss_name1 = scalars['NAME1']
-            for ref1 in dss_group1:
-                p = ref1.pathname
-                bpart = p.getPart(p.B_PART).encode('ascii')
-                cpart = p.getPart(p.C_PART).encode('ascii')
-                epart = p.getPart(p.E_PART).encode('ascii')
-                if epart==globals['DEFAULT_TIME_INTERVAL']:
-                    refnam.append(bpart+'_'+cpart)
-                    try:
-                        refvar[bpart+'_'+cpart]
-                        refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'
-                    except:
-                        refvar[bpart+'_'+cpart]=['NA','NA','NA']
-                        refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'    
-        except:
-            dss_group1 = 'NA'        
+    try:
+        dss_group1 = vutils.opendss(scalars['FILE1'])
+        dss_name1 = scalars['NAME1']
+        for ref1 in dss_group1:
+            p = ref1.pathname
+            bpart = p.getPart(p.B_PART).encode('ascii')
+            cpart = p.getPart(p.C_PART).encode('ascii')
+            epart = p.getPart(p.E_PART).encode('ascii')
+            if epart==globals['DEFAULT_TIME_INTERVAL']:
+                refnam.append(bpart+'_'+cpart)
+                try:
+                    refvar[bpart+'_'+cpart]
+                    refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'
+                except:
+                    refvar[bpart+'_'+cpart]=['NA','NA','NA']
+                    refvar[bpart+'_'+cpart][1]='FILE1:://'+bpart+'/'+cpart+'//'+epart+'//'    
+    except:
+        if compare_mode!='0':
             print "**** Please specify model dss file 1 for this comparison mode!!! ****"
-    else:
-        dss_group1 = 'NA'
-    if compare_mode=='3' or compare_mode=='5':     
-        try:
-            dss_group2 = vutils.opendss(scalars['FILE2'])
-            dss_name2 = scalars['NAME2']
-            for ref2 in dss_group2:
-                p = ref2.pathname
-                bpart = p.getPart(p.B_PART).encode('ascii')
-                cpart = p.getPart(p.C_PART).encode('ascii')
-                epart = p.getPart(p.E_PART).encode('ascii')
-                if epart==globals['DEFAULT_TIME_INTERVAL']:
-                    refnam.append(bpart+'_'+cpart)
-                    try:
-                        refvar[bpart+'_'+cpart]
-                        refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
-                    except:
-                        refvar[bpart+'_'+cpart]=['NA','NA','NA']
-                        refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
-        except:
-            dss_group2 = 'NA'
+ 
+    try:
+        dss_group2 = vutils.opendss(scalars['FILE2'])
+        dss_name2 = scalars['NAME2']
+        for ref2 in dss_group2:
+            p = ref2.pathname
+            bpart = p.getPart(p.B_PART).encode('ascii')
+            cpart = p.getPart(p.C_PART).encode('ascii')
+            epart = p.getPart(p.E_PART).encode('ascii')
+            if epart==globals['DEFAULT_TIME_INTERVAL']:
+                refnam.append(bpart+'_'+cpart)
+                try:
+                    refvar[bpart+'_'+cpart]
+                    refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
+                except:
+                    refvar[bpart+'_'+cpart]=['NA','NA','NA']
+                    refvar[bpart+'_'+cpart][2]='FILE2:://'+bpart+'/'+cpart+'//'+epart+'//'
+    except:
+        if compare_mode=='3' or compare_mode=='5':
             print "**** Please specify model dss file 2 for this comparison mode!!! ****"
-    else:
-        dss_group2 = 'NA'
+        
     '''delete time series without a matched entry'''
     for name in refnam:
         try:
