@@ -16,10 +16,44 @@ def ref2ds(ref,tw=None,time_interval=None):
         #if ds==None:
         #    logging.debug("No data within the time window specified for "+str(ref))
     if not isinstance(ds,RegularTimeSeries) and ds!=None:
-        print ref, " is not a regular time-series data set and has been converted to a regular time series."
+        logging.debug(ref + " is not a regular time-series data set and has been converted to a regular time series.")
         ds = its2rts(ds,tw,time_interval)
     return ds     
     
+def amplitude_avg(ds):
+    '''get the average amplitude for time series ds'''
+    sump = 0
+    sumn = 0
+    lenp = 0
+    lenn = 0
+    avg_amplitude = 0 
+    ds = ds.YArray
+    for x in ds:
+        if x <> -901.0:
+            if x >=0: 
+                sump = sump + x
+                lenp = lenp + 1
+            else: 
+                sumn = sumn + x
+                lenn = lenn + 1
+    if lenp > 0: 
+        avg_amplitude = sump/lenp
+    if lenn > 0:
+        avg_amplitude = avg_amplitude + abs(sumn/lenn)
+    return avg_amplitude
+
+def amplitude_maxmin(ds):
+    '''get the amplitude by max-min for time series ds'''
+    max_amp = -99999999
+    min_amp = 99999999
+    ds = ds.YArray
+    for x in ds:
+        if x!=-901.0 and x < min_amp:
+            min_amp = x
+        if x!=-901.0 and x > max_amp:
+            max_amp = x
+    return max_amp - min_amp
+
 def rmse(ref1,ref2,tw=None,time_interval=None):
     ''' return the root mean square error from two references '''
     if chk_two_ds(ref1,ref2,tw,time_interval=None)==True:
@@ -33,7 +67,7 @@ def rmse(ref1,ref2,tw=None,time_interval=None):
         logging.debug(" No data within time window "+str(tw)+" for "+str(ref1)+" and "+str(ref2))
     return root_mse 
 
-def perc_rmse(ref1,ref2,tw=None,time_interval=None):
+def perc_rmse(ref1,ref2,tw=None,time_interval=None,amplitude=amplitude_maxmin):
     ''' return the root mean square error of percentage difference from two references '''    
     ds1 = ref2ds(ref1)
     ds1amp = amplitude(ds1)   
@@ -45,7 +79,7 @@ def perc_rmse(ref1,ref2,tw=None,time_interval=None):
         root_mse = 0
     return root_mse
     
-def rmse_discrete_tws(ref1,ref2,tw_arr,percentage):
+def rmse_discrete_tws(ref1,ref2,tw_arr,percentage,amplitude=amplitude_maxmin):
     '''return RMSE for specified discrete time windows
        set percentage = 0 to obtain percentage RMS Diff; otherwise, returns RMS Diff
     '''
@@ -115,7 +149,7 @@ def daily_rmse(ref1,ref2):
     root_mse = sqrt(sum_mse)    
     return root_mse
 
-def daily_perc_rmse(ref1,ref2):
+def daily_perc_rmse(ref1,ref2,amplitude=amplitude_maxmin):
     ''' return the daily root mean square error of percentage difference from two references '''    
     ref1 = godin(ref1)
     ref1 = per_avg(ref1,'1day')
@@ -258,24 +292,4 @@ def get_name_from_path(pathname):
     a = pathname.split('/')
     return a[2] 
 
-def amplitude(ds):
-    '''get the average amplitude for time series ds'''
-    sump = 0
-    sumn = 0
-    lenp = 0
-    lenn = 0
-    avg_amplitude = 0 
-    ds = ds.YArray
-    for x in ds:
-        if x <> -901.0:
-            if x >=0: 
-                sump = sump + x
-                lenp = lenp + 1
-            else: 
-                sumn = sumn + x
-                lenn = lenn + 1
-    if lenp > 0: 
-        avg_amplitude = sump/lenp
-    if lenn > 0:
-        avg_amplitude = avg_amplitude + abs(sumn/lenn)
-    return avg_amplitude
+
