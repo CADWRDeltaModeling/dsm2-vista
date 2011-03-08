@@ -115,10 +115,20 @@ public abstract class DataReference implements Comparable, Named, Serializable {
 	@Override
 	public int compareTo(Object o) {
 		if (!(o instanceof DataReference)){
-			return -1;
+			return 1;
 		}
 		DataReference other = (DataReference) o;
-		return this.getName().compareTo(other.getName());
+		if (this.getName() == null){
+			return -1;
+		}
+		if (other.getName() == null){
+			return 1;
+		}
+		int compareTo =  this.getName().compareTo(other.getName());
+		if (compareTo==0){
+			System.out.println("compareTo == 0 :: this.getName(): "+this.getName()+" & other.getName(): "+other.getName());
+		}
+		return compareTo;
 	}
 
 
