@@ -63,6 +63,7 @@ public class HDF5DataReference extends DataReference {
 		setTimeWindow(tw);
 		setTimeInterval(ti);
 		setPathname(pathname);
+		setName(file+"::"+pathname);
 	}
 
 	@Override
