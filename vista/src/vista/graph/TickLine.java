@@ -55,6 +55,7 @@
  */
 package vista.graph;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -99,7 +100,11 @@ public class TickLine extends GraphicElement {
 	 * implements the draw method
 	 */
 	public void Draw() {
-
+		/*
+		Rectangle bounds = getBounds();
+		getGraphics().setColor(Color.GREEN);
+		getGraphics().drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+		*/
 		Rectangle area = getInsetedBounds();
 		setTickDimensions(area);
 		Graphics gc = getGraphics();

@@ -55,6 +55,7 @@
  */
 package vista.graph;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -244,6 +245,11 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * order in which they are added (for now).
 	 */
 	public void Draw() {
+		/*
+		Rectangle bounds = getBounds();
+		getGraphics().setColor(Color.BLUE);
+		getGraphics().drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+		*/
 	}
 
 	/**

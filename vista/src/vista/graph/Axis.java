@@ -133,6 +133,10 @@ public class Axis extends GEContainer implements FontResizable {
 			setName("Right");
 		}
 	}
+	
+	public void Draw(){
+		super.Draw();
+	}
 
 	/**
 	 * Sets the tick generator. One caveat is that it does not affect previous
@@ -204,22 +208,21 @@ public class Axis extends GEContainer implements FontResizable {
 		labelTextLine.setName("Label");
 		int position = ((AxisAttr) getAttributes())._position;
 
+
+		if (position == AxisAttr.TOP || position == AxisAttr.LEFT) {
+			add("Before", labelTextLine);
+		} else {
+			add("After", labelTextLine);
+		}
 		if (position == AxisAttr.LEFT || position == AxisAttr.RIGHT) {
 			TextLineAttr tla = (TextLineAttr) labelTextLine.getAttributes();
 			if (GraphUtils.isJDK2()) {
 				tla._orientation = tla.VERTICAL;
 				tla._textArrangement = TextLineAttr.SIDE_BY_SIDE;
-				drawFirst(labelTextLine);
 			} else {
 				tla._textArrangement = TextLineAttr.TOP_ON_TOP;
 			}
 		}
-
-		if (position == AxisAttr.TOP || position == AxisAttr.LEFT) {
-			add("Before", labelTextLine);
-		} else
-			add("After", labelTextLine);
-
 		labelTextLine.setText(s);
 	}
 
@@ -242,7 +245,7 @@ public class Axis extends GEContainer implements FontResizable {
 				|| ((AxisAttr) getAttributes())._position == AxisAttr.RIGHT)
 			getAttributes()._orientation = AxisAttr.VERTICAL;
 	}
-
+	
 	/**
 	 * gets the position of axis top,left,bottom or right?
 	 */
