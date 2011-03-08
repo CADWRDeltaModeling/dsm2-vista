@@ -264,7 +264,7 @@ public class Group implements Named, Serializable, Comparable<Group> {
 		// make copies of reference list and sort by hash code
 		TreeSet<DataReference> refs = new TreeSet<DataReference>();
 		refs.addAll(this._referenceList);
-		refs.addAll(group._referenceList);
+		refs.addAll(Arrays.asList(group.getAllDataReferences()));
 		Group groupUnion = new Group();
 		groupUnion._name = name;
 		groupUnion._referenceList = new ArrayList<DataReference>(refs);
