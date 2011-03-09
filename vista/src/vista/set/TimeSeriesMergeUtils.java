@@ -141,7 +141,7 @@ public class TimeSeriesMergeUtils {
 			if (si >=0 && si < size) {
 				origPos = 0;
 				newPos = si;
-				origLen = Math.min(origy.length, size-si+1);
+				origLen = Math.min(origy.length, size-si);
 			} 
 			if (si  < 0 && ei > 0){
 				origPos = -si;
@@ -150,7 +150,7 @@ public class TimeSeriesMergeUtils {
 			}
 
 			
-			System.arraycopy(origy, origPos, newy, newPos, origLen);
+ 			System.arraycopy(origy, origPos, newy, newPos, origLen);
 			if (origflags != null) {
 				System.arraycopy(origflags, origPos, newflags, newPos, origLen);
 			}
