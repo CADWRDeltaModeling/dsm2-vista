@@ -166,8 +166,9 @@ public class GroupTable extends JPanel implements RowMovable, View {
 		}
 		updateInfoPanel();
 		if (this.isVisible()) {
-			if (this.getGraphics() != null)
-				this.paintAll(this.getGraphics());
+			if (this.getGraphics() != null){
+				this.repaint();
+			}
 		}
 	}
 
