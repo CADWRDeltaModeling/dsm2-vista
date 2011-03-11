@@ -327,5 +327,5 @@ public abstract class PeriodOperationProxy extends DataReference {
 	/**
    *
    */
-	private ElementFilter _filter = Constants.DEFAULT_FILTER;
+	private ElementFilter _filter = Constants.DEFAULT_FLAG_FILTER;
 }
