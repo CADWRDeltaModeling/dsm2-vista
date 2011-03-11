@@ -103,37 +103,25 @@ import vista.set.SetUtils;
  * @author Nicky Sandhu
  * @version $Id: DataTable.java,v 1.1 2003/10/02 20:48:27 redwood Exp $
  */
-public class DataTable extends DefaultFrame {
+public class DataTableFrame extends DefaultFrame {
 	private JLabel pathnameLabel;
 
 	/**
     *
     */
-	public DataTable(DataReference ref) {
+	public DataTableFrame(DataReference ref) {
 		this(ref, true);
 	}
 
 	/**
 	 * Construct a table
 	 */
-	public DataTable(DataReference ref, boolean visibleOnStart) {
+	public DataTableFrame(DataReference ref, boolean visibleOnStart) {
 		super();
 		setIconImage(Toolkit.getDefaultToolkit().createImage(
 				VistaUtils.getImageAsBytes("/vista/planning.gif")));
 		_ref = ref;
-		try {
-			_dataModel = new DataSetTableModel(ref.getData());
-		} catch (DataRetrievalException dre) {
-			VistaUtils.displayException(this._table, dre);
-		}
-		_table = new JTable(_dataModel);
-		_table.setGridColor(Color.blue);
-		_table.setVisible(true);
-		_table.getTableHeader().addMouseMotionListener(
-				new TableHeaderToolTipRenderer(_table, ""));
-		_table.setShowVerticalLines(true);
-		_table.setShowHorizontalLines(true);
-		new ExcelAdapter(_table);
+		_table = new DataSetTable(ref.getData());
 		//
 		JPanel infoPanel = new JPanel();
 		infoPanel.setLayout(new GridLayout(5, 1));
@@ -141,7 +129,7 @@ public class DataTable extends DefaultFrame {
 		infoPanel.add(new JLabel(ref.getFilename()));
 		infoPanel.add(pathnameLabel = new JLabel(ref.getPathname().toString()));
 		infoPanel.add(new JLabel("Number of data points: "
-				+ _dataModel.getRowCount()));
+				+ _table.getRowCount()));
 		if (ref.getTimeWindow() != null) {
 			infoPanel.add(new JLabel(ref.getTimeWindow().toString()));
 		}
@@ -170,25 +158,13 @@ public class DataTable extends DefaultFrame {
 		if (isFlagged(_ref)) {
 			mbar.add(createFlagMenu());
 			// editor for flags
-			JComboBox flagEditor = new JComboBox();
-			flagEditor.addItem("                ");
-			flagEditor.addItem(FlagUtils
-					.getQualityFlagName(FlagUtils.UNSCREENED_FLAG));
-			flagEditor.addItem(FlagUtils.getQualityFlagName(FlagUtils.OK_FLAG));
-			flagEditor.addItem(FlagUtils
-					.getQualityFlagName(FlagUtils.QUESTIONABLE_FLAG));
-			flagEditor.addItem(FlagUtils
-					.getQualityFlagName(FlagUtils.REJECT_FLAG));
-			DefaultCellEditor dce = new DefaultCellEditor(flagEditor);
-			_table.getColumn("Flag Value").setCellEditor(dce);
-
 		}
 		getRootPane().setJMenuBar(mbar);
 		//
 		this.setTitle(ref.getPathname().toString());
 		// set size according to flag/ no flag display
-		int columnCount = _dataModel.getColumnCount();
-		setSize(150 * columnCount, 750);
+		int columnCount = _table.getColumnCount();
+		setSize(170 * columnCount, 750);
 		//
 		this.setVisible(visibleOnStart);
 	}
@@ -197,7 +173,7 @@ public class DataTable extends DefaultFrame {
 	 * gets the complete table after construction.
 	 */
 	public JTable getTable() {
-		return _table;
+		return _table.getTable();
 	}
 
 	/**
@@ -226,15 +202,8 @@ public class DataTable extends DefaultFrame {
 		JMenuItem markAsReject = new JMenuItem("Mark selected as reject");
 		JMenuItem markAsOK = new JMenuItem("Mark selected as ok");
 		JMenuItem markAsUS = new JMenuItem("Unmark selected");
-		TableModel model = _table.getModel();
-		DataSetTableModel dstm = null;
-		if (model instanceof DataSetTableModel) {
-			dstm = (DataSetTableModel) model;
-		}
 		JMenuItem flagOverride = null;
-		if (dstm != null)
-			flagOverride = new JCheckBoxMenuItem("Override flags ?", dstm
-					.isFlagOveridden());
+		flagOverride = new JCheckBoxMenuItem("Override flags ?", _table.isFlagOverride());
 		flagMenu.add(markAsOK);
 		flagMenu.add(markAsMissing);
 		flagMenu.add(markAsQuestionable);
@@ -375,110 +344,49 @@ public class DataTable extends DefaultFrame {
 	/**
    *
    */
-	private void updateTable(int beginRow, int endRow) {
-		_table.tableChanged(new TableModelEvent(_table.getModel(), beginRow,
-				endRow));
-		_table.repaint();
-	}
-
-	/**
-   *
-   */
 	public void setFlagOverride(ActionEvent evt) {
 		if (evt.getSource() instanceof JCheckBoxMenuItem) {
 			JCheckBoxMenuItem mi = (JCheckBoxMenuItem) evt.getSource();
-			((DataSetTableModel) _table.getModel()).setFlagOveridden(mi
-					.isSelected());
+			_table.setFlagOverride(mi.isSelected());
 		} else {
 			return;
 		}
 	}
 
+
 	/**
-   *
-   */
+	 *
+	 */
 	public void markAsUS(ActionEvent evt) {
-		int[] rows = _table.getSelectedRows();
-		if (rows == null)
-			return;
-		if (rows.length <= 0)
-			return;
-		for (int i = 0; i < rows.length; i++) {
-			_table.setValueAt(FlagUtils
-					.getQualityFlagName(FlagUtils.UNSCREENED_FLAG), rows[i], 2);
-		}
-		updateTable(rows[0] - 1, rows[rows.length - 1] + 1);
+		_table.markAs(FlagUtils.UNSCREENED_FLAG);
 	}
 
 	/**
-   *
-   */
+	 *
+	 */
 	public void markAsOK(ActionEvent evt) {
-		int[] rows = _table.getSelectedRows();
-		if (rows == null)
-			return;
-		if (rows.length <= 0)
-			return;
-		for (int i = 0; i < rows.length; i++) {
-			_table.setValueAt(FlagUtils.getQualityFlagName(FlagUtils.OK_FLAG),
-					rows[i], 2);
-		}
-		updateTable(rows[0] - 1, rows[rows.length - 1] + 1);
+		_table.markAs(FlagUtils.OK_FLAG);
 	}
 
 	/**
    *
    */
 	public void markAsMissing(ActionEvent evt) {
-		int[] rows = _table.getSelectedRows();
-		if (rows == null)
-			return;
-		if (rows.length <= 0)
-			return;
-		for (int i = 0; i < rows.length; i++) {
-			Object value = _table.getValueAt(rows[i], 1);
-			if (value.equals(DataSetTableModel.MV)
-					|| value.equals(DataSetTableModel.MR)) {
-				_table
-						.setValueAt(FlagUtils
-								.getQualityFlagName(FlagUtils.MISSING_FLAG),
-								rows[i], 2);
-			}
-		}
-		updateTable(rows[0] - 1, rows[rows.length - 1] + 1);
+		_table.markAs(FlagUtils.MISSING_FLAG);
 	}
 
 	/**
    *
    */
 	public void markAsQuestionable(ActionEvent evt) {
-		int[] rows = _table.getSelectedRows();
-		if (rows == null)
-			return;
-		if (rows.length <= 0)
-			return;
-		for (int i = 0; i < rows.length; i++) {
-			_table.setValueAt(FlagUtils
-					.getQualityFlagName(FlagUtils.QUESTIONABLE_FLAG), rows[i],
-					2);
-		}
-		updateTable(rows[0] - 1, rows[rows.length - 1] + 1);
+		_table.markAs(FlagUtils.QUESTIONABLE_FLAG);
 	}
 
 	/**
    *
    */
 	public void markAsReject(ActionEvent evt) {
-		int[] rows = _table.getSelectedRows();
-		if (rows == null)
-			return;
-		if (rows.length <= 0)
-			return;
-		for (int i = 0; i < rows.length; i++) {
-			_table.setValueAt(FlagUtils
-					.getQualityFlagName(FlagUtils.REJECT_FLAG), rows[i], 2);
-		}
-		updateTable(rows[0] - 1, rows[rows.length - 1] + 1);
+		_table.markAs(FlagUtils.REJECT_FLAG);
 	}
 
 	/**
@@ -487,7 +395,7 @@ public class DataTable extends DefaultFrame {
 	public void reloadData(ActionEvent evt) {
 		_ref.reloadData();
 		try {
-			updateTable(0, _ref.getData().size());
+			_table.updateTable(0, _ref.getData().size());
 		} catch (DataRetrievalException dre) {
 			VistaUtils.displayException(this._table, dre);
 		}
@@ -518,10 +426,7 @@ public class DataTable extends DefaultFrame {
 	 * show flag
 	 */
 	public void toggleFlagDisplay(ActionEvent evt) {
-		if (_dataModel.isFlagDisplayed())
-			_dataModel.setFlagDisplayed(false);
-		else
-			_dataModel.setFlagDisplayed(true);
+		_table.toggleFlagDisplay();
 	}
 
 	/**
@@ -612,7 +517,7 @@ public class DataTable extends DefaultFrame {
 			DSSUtil.writeData(saveFilename, _ref.getPathname().toString(), _ref
 					.getData());
 		} catch (Exception ioe) {
-			VistaUtils.displayException(this._table, ioe);
+			VistaUtils.displayException(this, ioe);
 		}
 	}
 
@@ -622,10 +527,8 @@ public class DataTable extends DefaultFrame {
 	public void dispose() {
 		super.dispose();
 		_table = null;
-		_tableScrollPane = null;
 		_graphFrame = null;
 		_ref = null;
-		_dataModel = null;
 		_lineNumberField = null;
 	}
 
@@ -636,7 +539,7 @@ public class DataTable extends DefaultFrame {
 	/**
 	 * the table
 	 */
-	private JTable _table;
+	private DataSetTable _table;
 	/**
 	 * the graph fram
 	 */
@@ -645,10 +548,6 @@ public class DataTable extends DefaultFrame {
 	 * the data reference containing the data
 	 */
 	private DataReference _ref;
-	/**
-	 * the data set table model
-	 */
-	private DataSetTableModel _dataModel;
 	/**
 	 * the goto line number field
 	 */
@@ -671,22 +570,23 @@ public class DataTable extends DefaultFrame {
 				value = new Double(field.getText()).doubleValue();
 			} catch (NumberFormatException nfe) {
 				String text = field.getText();
-				
-				Pattern pattern = Pattern.compile(text, Pattern.CASE_INSENSITIVE);
+
+				Pattern pattern = Pattern.compile(text,
+						Pattern.CASE_INSENSITIVE);
 				int cpos = scrollBar.getValue();
 				int nearestValue = (int) Math.round(cpos
-						* _dataModel.getRowCount() / scrollBar.getMaximum());
+						* _table.getRowCount() / scrollBar.getMaximum());
 				value = nearestValue;
 				boolean gotMatch = false;
 				boolean forwardSearch = true;
 				int column = 0;
 				while (!gotMatch) {
-					if (nearestValue >= _dataModel.getRowCount()
+					if (nearestValue >= _table.getRowCount()
 							&& forwardSearch)
 						break;
 					if (nearestValue < 0 && !forwardSearch)
 						break;
-					Object obj = _dataModel.getValueAt(nearestValue, column);
+					Object obj = _table.getValueAt(nearestValue, column);
 					if (!(obj instanceof String)) {
 						if (forwardSearch)
 							nearestValue++;
@@ -704,7 +604,7 @@ public class DataTable extends DefaultFrame {
 				if (gotMatch)
 					value = nearestValue;
 			}
-			value = (value * scrollBar.getMaximum()) / _dataModel.getRowCount();
+			value = (value * scrollBar.getMaximum()) / _table.getRowCount();
 			scrollBar.setValue((int) value);
 		}
 

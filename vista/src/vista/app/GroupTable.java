@@ -126,7 +126,7 @@ public class GroupTable extends JPanel implements RowMovable, View {
 	private JCheckBoxMenuItem _showFilterPanel, _showMathPanel, _showInfoPanel;
 	private PathnameFilterPanel _filterPanel;
 	private JPanel _infoPanel, _mathPanel;
-	private DataTable _dataTable;
+	private DataTableFrame _dataTable;
 	public JTable _table;
 	private Group _group;
 	private JTextField _timeWindowField;

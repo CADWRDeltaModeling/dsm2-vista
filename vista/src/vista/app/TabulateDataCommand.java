@@ -87,7 +87,7 @@ class TabulateDataCommand implements Command {
 		if (_rNumbers == null || _rNumbers.length == 0)
 			return;
 		if (_rNumbers.length == 1) {
-			new DataTable(_group.getDataReference(_rNumbers[0]));
+			new DataTableFrame(_group.getDataReference(_rNumbers[0]));
 		} else {
 			DataReference[] refs = new DataReference[_rNumbers.length];
 			for (int i = 0; i < _rNumbers.length; i++)
