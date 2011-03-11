@@ -127,6 +127,7 @@ public class Executor {
 	private static Stack _historyView = new Stack();
 	private static Cursor waitCursor = Cursor
 			.getPredefinedCursor(Cursor.WAIT_CURSOR);
+	private static boolean DO_IN_BACKGROUND = false;
 
 	/**
 	 * executes the command
@@ -142,7 +143,11 @@ public class Executor {
 			}
 			BackgroundExecutor worker = new BackgroundExecutor(com, view,
 					oldCursor);
-			worker.execute();
+			if (DO_IN_BACKGROUND){
+				worker.execute();
+			} else {
+				worker.doInBackground();
+			}
 		} catch (Exception e) {
 			SwingUtilities.getRootPane((JComponent) view).setCursor(
 					oldCursor);
