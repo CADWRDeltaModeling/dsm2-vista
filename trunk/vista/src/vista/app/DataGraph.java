@@ -655,7 +655,7 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 			}
 		}
 		if (refArray.length == 1)
-			new DataTable(refArray[0]);
+			new DataTableFrame(refArray[0]);
 		else
 			new MultiDataTable(refArray);
 	}
@@ -835,7 +835,7 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		finishMergeMenu.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DataTable table = new DataTable(new DefaultReference(merger.getMergedData()));
+				DataTableFrame table = new DataTableFrame(new DefaultReference(merger.getMergedData()));
 				table.toFront();
 				startMergeMenu.setEnabled(true);
 				cancelMergeMenu.setEnabled(false);

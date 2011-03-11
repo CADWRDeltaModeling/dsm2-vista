@@ -16,7 +16,7 @@ public class TestDataTable extends TestCase{
 		DataSetAttr attr = new DataSetAttr(DataType.REGULAR_TIME_SERIES, "TIME", "CFS", "", "INST-VAL");
 		RegularTimeSeries rts = new RegularTimeSeries("/A/B/C//15MIN/F/","01JAN2000 0100", "15MIN", data, null, attr);
 		DataReference ref = DSSUtil.createDataReference("", "", "/AP/BP/CP///FP/", rts);
-		DataTable dataTable = new DataTable(ref);
+		DataTableFrame dataTable = new DataTableFrame(ref);
 		dataTable.show();
 	}
 }

@@ -231,7 +231,6 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 		} else if (dssfiles != null) {
 			// open session with local and directory
 			String server = "local";
-			System.out.println("dssfiles[0]: " + dssfiles[0]);
 			String directory = null;
 			int dindex = dssfiles[0].lastIndexOf("/");
 			if (dindex >= 0)
@@ -242,37 +241,12 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 				System.out.println("Opening local directory " + directory);
 			Executor.execute(new OpenConnectionSessionCommand(MainGUI
 					.getContext(), server, directory, true), _sessionView);
-			// select the files in dss files from the directory listing
-			TableModel tm = ((SessionTable) _sessionView).getTable().getModel();
-			int count = tm.getRowCount();
-			Vector vrows = new Vector();
-			// System.out.println("Row count: = " + count);
-			for (int i = 0; i < count; i++) {
-				String file = (String) tm.getValueAt(i, 1);
-				// System.out.println("file: " + file);
-				for (int j = 0; j < dssfiles.length; j++) {
-					if (dssfiles[j] == null)
-						continue;
-					if (file.indexOf(dssfiles[j]) >= 0)
-						vrows.addElement(new Integer(i));
-				}
+			for (int j = 0; j < dssfiles.length; j++) {
+				if (dssfiles[j] == null)
+					continue;
+				Executor.execute(new OpenDSSFileCommand(MainGUI.getContext(), dssfiles[j], _sessionView), _sessionView);
 			}
-			System.out.println("vrows size: " + vrows.size());
-			if (vrows.size() > 0) {
-				int[] rows = new int[vrows.size()];
-				for (int i = 0; i < rows.length; i++) {
-					rows[i] = ((Integer) vrows.elementAt(i)).intValue();
-					// System.out.println("rows["+i+"]="+rows[i]);
-				}
-				// then open and display the file in question
-				Executor.execute(new OpenGroupCommand(MainGUI.getContext(),
-						MainGUI.getContext().getCurrentSession(), rows),
-						_sessionView);
-			} else {
-				// do nothing other than make session start as if nothing
-				// happened
-				dssfiles = null;
-			}
+			dssfiles=null;
 		}
 		setVisible(true);
 		// if dss files then send it to the back
@@ -537,25 +511,17 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	 */
 	private void setLookAndFeel() {
 		/*
-		try {
-		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-		        if ("Nimbus".equals(info.getName())) {
-		            UIManager.setLookAndFeel(info.getClassName());
-		            return;
-		        }
-		    }
-		} catch (UnsupportedLookAndFeelException e) {
-		    // handle exception
-		} catch (ClassNotFoundException e) {
-		    // handle exception
-		} catch (InstantiationException e) {
-		    // handle exception
-		} catch (IllegalAccessException e) {
-		    // handle exception
-		}
-	*/
+		 * try { for (LookAndFeelInfo info :
+		 * UIManager.getInstalledLookAndFeels()) { if
+		 * ("Nimbus".equals(info.getName())) {
+		 * UIManager.setLookAndFeel(info.getClassName()); return; } } } catch
+		 * (UnsupportedLookAndFeelException e) { // handle exception } catch
+		 * (ClassNotFoundException e) { // handle exception } catch
+		 * (InstantiationException e) { // handle exception } catch
+		 * (IllegalAccessException e) { // handle exception }
+		 */
 		String laf = MainProperties.getProperty("gui.lookAndFeel");
-		
+
 		if (laf.indexOf("vista") >= 0) {
 			VistaUtils.setLookAndFeel(this, "metal.MetalLookAndFeel");
 		} else if (laf.indexOf("motif") >= 0) {
@@ -733,13 +699,18 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 					List list = (List) tr.getTransferData(flavors[i]);
 					for (int j = 0; j < list.size(); j++) {
 						Object item = list.get(j);
-						if (item instanceof File){
-							File file =(File)item;
+						if (item instanceof File) {
+							File file = (File) item;
 							String absolutePath = file.getAbsolutePath();
-							if (absolutePath.toLowerCase().contains(".dss")){
-								((SessionTable)_sessionView).getSession().addGroup(DSSUtil.createGroup("local", absolutePath));
-							} else if (absolutePath.toLowerCase().contains(".h5")) {
-								((SessionTable)_sessionView).getSession().addGroup(new HDF5Group(absolutePath));								
+							if (absolutePath.toLowerCase().contains(".dss")) {
+								((SessionTable) _sessionView).getSession()
+										.addGroup(
+												DSSUtil.createGroup("local",
+														absolutePath));
+							} else if (absolutePath.toLowerCase().contains(
+									".h5")) {
+								((SessionTable) _sessionView).getSession()
+										.addGroup(new HDF5Group(absolutePath));
 							}
 							_sessionView.updateView();
 						}
@@ -749,15 +720,15 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 				} else if (flavors[i].isFlavorSerializedObjectType()) {
 					dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
 					Object o = tr.getTransferData(flavors[i]);
-					System.out.println("add Object: "+o);
+					System.out.println("add Object: " + o);
 					dtde.dropComplete(true);
 					return;
 				} else if (flavors[i].isRepresentationClassInputStream()) {
 					dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-					
+
 					System.out.println(new InputStreamReader((InputStream) tr
-							.getTransferData(flavors[i])) + 
-							"from system clipboard");
+							.getTransferData(flavors[i]))
+							+ "from system clipboard");
 					dtde.dropComplete(true);
 					return;
 				}

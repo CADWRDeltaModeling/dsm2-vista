@@ -16,9 +16,9 @@ public class PathnameEditor extends JDialog implements Changeable{
 
 	private DataReference ref;
 	private JTable table;
-	private DataTable dataTable;
+	private DataTableFrame dataTable;
 
-	public PathnameEditor(DataTable dataTable, DataReference ref){
+	public PathnameEditor(DataTableFrame dataTable, DataReference ref){
 		if (ref==null || ref.getPathname()==null){
 			throw new IllegalArgumentException("Reference is null or pathname is null!");
 		}
