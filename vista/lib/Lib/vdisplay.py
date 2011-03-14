@@ -1,5 +1,5 @@
-from vista.app import DataGraph, DataTable, MultiDataTable, GroupFrame, \
-     SessionFrame, DefaultGraphBuilder
+from vista.app import DataGraph, DataTableFrame, MultiDataTable, GroupFrame, \
+     SessionFrame, DefaultGraphBuilder, CurveFactory
 from vista.graph import GECanvas, GraphUtils, SymbolFactory, \
      Graph, GraphAttr, Plot, PlotAttr, \
      Axis, AxisAttr, GELineLayout, \
@@ -44,7 +44,7 @@ def tabulate(*ref) :
 	if hasattr(ref[0],'__len__'):
 	    MultiDataTable(ref[0])
 	else: 
-	    DataTable(ref[0])
+	    DataTableFrame(ref[0])
     else:
 	MultiDataTable(ref)
 # define function to graph a given set of data references.
