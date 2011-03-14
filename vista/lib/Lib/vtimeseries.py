@@ -1,17 +1,14 @@
-from vista.set import ProxyFactory, TimeSeriesMath, \
-     MovingAverageProxy, Constants, Stats, DataReference, \
-     RegularTimeSeries, IrregularTimeSeries, FlagUtils
-from vdss import wrap_data
+import string, jarray
+from jarray import zeros
 from datetime import *
-import jarray,string,re
 from java.lang import Math
-from jarray import zeros, array
-from string import split, strip, lower
-from vista.set import ProxyFactory, MovingAverageProxy,\
-     DataReference, RegularTimeSeries, IrregularTimeSeries, \
-     Constants, Pathname, DataType, Stats, FlagUtils 
-from vista.time import *
+#from string import split, strip, lower
 from vdss import wrap_data
+from vista.time import *
+from vista.set import Constants, DataReference, DataType, FlagUtils, \
+     IrregularTimeSeries, MovingAverageProxy, Pathname, ProxyFactory, \
+     RegularTimeSeries, Stats, TimeSeriesMath
+from vista.db.dss import DSSUtil
 #
 def timewindow(twstr):
     """
@@ -248,10 +245,10 @@ def where(ts, conditional):
     
 def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
     """
-    where_missing(ts,filter=Constants.DEFAULT_FLAG_FILTER):
+    where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
      returns a time series with a 1 where missing or not acceptable with filter
      and 0 otherwise
-     where ts is a regular time series and
+     where rts is a regular time series and
           filter is of type vista.set.ElementFilter e.g. Constants.DEFAULT_FLAG_FILTER
     """
     xa = zeros(len(rts),'d')
@@ -314,10 +311,10 @@ def its2rts(irts,tw=None,tis=None):
     if tis==None:
         tis='1hour'
     ti = timeinterval(tis)
-    got_ref=false
+    got_ref=False
     if isinstance(irts,DataReference):
         irts = irts.getData()
-        got_ref=true
+        got_ref=True
     if tw == None:
 	   tw = irts.getTimeWindow()
     else:
@@ -341,11 +338,11 @@ def its2rts(irts,tw=None,tis=None):
     next_time = time(long(itrtr_irts.getElement().getX()))
     # get starting time of regular time series
     time_val = time(st)
-    # loop over ts to fill values
+    # loop over rts to fill values
     # loop takes care of filling the regular time series
     # with last irts value and flag
     while index < nvals:
-	# if time value of ts is >= irts then update values
+	# if time value of rts is >= irts then update values
 	if not itrtr_irts.atEnd() and time_val.compare(next_time) >= 0:
 	    # initialize last val and last flag value
 	    last_val = itrtr_irts.getElement().getY()
@@ -823,7 +820,7 @@ def do_period_op(ds, ti, OPER):
         dsOp.getAttributes().setYType('INST-VAL')
     elif OPER == TimeSeriesMath.PERIOD_MIN:
         dsOp.getAttributes().setYType('INST-VAL')
-    return ITS2RTS(dsOp,None,str(ti))
+    return its2rts(dsOp,None,str(ti))
 #
 def per_oper(dsref, oper, interval):
     """
@@ -882,17 +879,69 @@ def per_max(ds, interval='1mon'):
 def per_min(ds, interval='1mon'):
     return per_oper(ds, 'min', interval)
 #
-def mov_avg(ts, backLength, forwardLength):
+#def mov_avg(ts, backLength, forwardLength):
+#    '''
+#    mov_avg(ts,backLength,forwardLength):
+#    Does a moving average of the time series (dataset or ref) with 
+#    backLength previous points and forwardLength future points and
+#    the present point. Returns the result as a new time series.
+#    '''
+#    if isinstance(ts, DataReference):
+#        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
+#    else:
+#        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
+#  
+def mov_avg(dsref, backLength, forwardLength):
     '''
     mov_avg(ts,backLength,forwardLength):
     Does a moving average of the time series (dataset or ref) with 
     backLength previous points and forwardLength future points and
     the present point. Returns the result as a new time series.
     '''
-    if isinstance(ts, DataReference):
-        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
+    filter = Constants.DEFAULT_FLAG_FILTER
+    if isinstance(dsref, DataReference):
+        ds = dsref.getData()
+        ref = dsref
+        isRef = True
+    else:   # dataset
+        if isinstance(dsref, RegularTimeSeries):    #RTS
+            ds = dsref
+        else:       # ITS
+            ds = IrregularTimeSeries(dsref)
+            ds.setAttributes(dsref.getAttributes())
+        isRef = False
+    # first fill a list with back and forward y values
+    # then MAs are then computed by
+    # adding the newest value, removing the oldest,
+    # divide by the number of good values in the vector
+    smallNumber = 1.e-10
+    totLength = backLength + forwardLength + 1
+    vecY = jarray.zeros(totLength, 'd')
+    for ndx in range(totLength - 1):
+        el1 = ds.getElementAt(ndx)
+        if filter.isAcceptable(el1): vecY[ndx + 1] = el1.getY()
+        else: vecY[ndx + 1] = smallNumber
+    for ndx in range(ds.size()):
+        el1 = ds.getElementAt(ndx)  # element now
+        if ndx < backLength or ndx >= (ds.size() - forwardLength):
+            el1.setY(Constants.MISSING_VALUE)
+        else:   # compute the MA centered at ndx
+            el2 = ds.getElementAt(ndx + forwardLength)    # farthest future element
+            # update vector with new value
+            if filter.isAcceptable(el2): vecY.append(el2.getY())
+            else: vecY.append(smallNumber)
+            vecY.pop(0)
+            if vecY.count(smallNumber) < totLength:
+                aveY = sum(vecY) / (totLength - vecY.count(smallNumber))
+            else:
+                aveY = Constants.MISSING_VALUE
+            el1.setY(aveY)
+        ds.putElementAt(ndx, el1)
+    if isRef:
+        return wrap_data(ds,filename=dsref.getFilename(),pathname=str(dsref.getPathname()))
     else:
-        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
+        return ds
+#  
 def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     """
     merge(args,filter=Constants.DEFAULT_FLAG_FILTER):
@@ -1044,7 +1093,7 @@ def spline(ref,outint,offset=0):
     15minutes. Since there are are 96 15min samples per 24 hours
     offset = 0.5*96 = 48.
     
-    Output is a regular time series (ts).
+    Output is a regular time series (rts).
     
     Reference: Huynh, HT "Accurate Monotone Cubic Interpolation",
     SIAM J. Numer. Analysis V30 No. 1 pp 57-100 
@@ -1088,7 +1137,6 @@ def spline(ref,outint,offset=0):
                 count = count + 1
                 if Constants.DEFAULT_FLAG_FILTER.isAcceptable(el):           
                     y4 = el.getY();
-                 
                     #
                     ss3 = y4-y3
                     d3 = ss3 - ss2
@@ -1179,88 +1227,83 @@ from vista.set import DataReference, Pathname, PathnamePredicate,\
      RegularTimeSeries,Constants
 #
 
-def linear(ref,myfilter=Constants.DEFAULT_FLAG_FILTER):
+def linear(ref, myfilter=Constants.DEFAULT_FLAG_FILTER):
     '''
     Linearly interpolate missing data in a time series
     Eli Ateljevich 9/27/99
 
     '''
-    got_ref = 0
     if isinstance(ref, DataReference):
         data = ref.getData()
-        got_ref = 1
     else:
         data = ref
-        got_ref = 0
     # check for regular time series
-    if not isinstance(data,RegularTimeSeries):
+    if not isinstance(data, RegularTimeSeries):
         print ref, " is not a regular time-series data set"
         return None
-    
+
     yt = data.getIterator()
     st = data.getStartTime()
     et = data.getEndTime()
     ti = data.getTimeInterval()
     dsi = data.getIterator()
-    n = st.getExactNumberOfIntervalsTo(et,ti) + 1
+    n = st.getExactNumberOfIntervalsTo(et, ti) + 1
 
     from jarray import zeros
-    vals = zeros(n,'d')
-    vals=map(lambda x: -901.0, vals)
-    i=0
+    vals = zeros(n, 'd')
+    vals = map(lambda x:-901.0, vals)
+    i = 0
     if myfilter.isAcceptable(dsi.getElement()):
-        firstmissing=0
+        firstmissing = 0
     else:
-        firstmissing=1
+        firstmissing = 1
 
     while not dsi.atEnd():
-         el=dsi.getElement()
-         if el:
-             if myfilter.isAcceptable(el):
-                 vals[i]=el.getY()
-                 lasty=vals[i]
-                 lasti=i
-             else:
-                 while not dsi.atEnd():
-                     el=dsi.getElement()
-                     if myfilter.isAcceptable(el):
-                         nexty=el.getY()
-                         nexti=i
-                         if not firstmissing:    # no interpolation at begin or end of record
-                             for ii in range(lasti,nexti):
-                                 vals[ii]=lasty + (ii-lasti)*(nexty-lasty)/(nexti-lasti)
-                         vals[nexti]=nexty       # this one gets filled even at beginning of record.
-                         firstmissing=0
-                         break
-                     else:
-                         i=i+1
-                         dsi.advance()
-                        
-                 #
-         else:
-             if not firstmissing: break
-             #
-         #
-         dsi.advance()
-         i=i+1
-    #
-
+        el = dsi.getElement()
+        if el:
+            if myfilter.isAcceptable(el):
+                vals[i] = el.getY()
+                lasty = vals[i]
+                lasti = i
+            else:
+                while not dsi.atEnd():
+                    el = dsi.getElement()
+                    if myfilter.isAcceptable(el):
+                        nexty = el.getY()
+                        nexti = i
+                        if not firstmissing:    # no interpolation at begin or end of record
+                            for ii in range(lasti, nexti):
+                                vals[ii] = lasty + (ii - lasti) * (nexty - lasty) / (nexti - lasti)
+                        vals[nexti] = nexty       # this one gets filled even at beginning of record.
+                        firstmissing = 0
+                        break
+                    else:
+                        i = i + 1
+                        dsi.advance()
+                #
+        else:
+            if not firstmissing: break
+        #
+        dsi.advance()
+        i = i + 1
+    # end while
     rts = RegularTimeSeries(data.getName(),
                 data.getStartTime().toString(),
-                data.getTimeInterval().toString(),vals)
- 
+                data.getTimeInterval().toString(), vals)
+
     return rts
+
 #
-def testlinear():
-    from vutils import opendss, findpath, timewindow, tabulate
-    infile='h:/data/dss/IEP/hydro.dss'
-    inpath='/RLTM\+CHAN/RSAC155/FLOW//1HOUR/CDEC/'
-    tw_str='16JAN1999 1200 - 21JAN1999 1600'
-    g=opendss(infile)
-    ref = findpath(g,inpath)[0]
-    ref = DataReference.create(ref,timewindow(tw_str))
-    rts=interplinear(ref)
-    tabulate(rts,ref.getData())
+#def testlinear():
+#    from vutils import opendss, findpath, timewindow, tabulate
+#    infile='h:/data/dss/IEP/hydro.dss'
+#    inpath='/RLTM\+CHAN/RSAC155/FLOW//1HOUR/CDEC/'
+#    tw_str='16JAN1999 1200 - 21JAN1999 1600'
+#    g=opendss(infile)
+#    ref = findpath(g,inpath)[0]
+#    ref = DataReference.create(ref,timewindow(tw_str))
+#    rts=interplinear(ref)
+#    tabulate(rts,ref.getData())
 
 
 
@@ -1274,4 +1317,43 @@ def testspline():
     ref = DataReference.create(ref,timewindow(tw_str))
     rts=interpolate(ref,outint='15min',offset=48)
     tabulate(rts)
+#
+def dsIndex(ds,timeinst,ndxHint=0):
+    """
+    dsIndex(ds, timeinst):
+    Returns the nearest index of the dataset that includes timeinst,
+    or None if the timeinst is not in the dataset. With optional ndxHint,
+    start at that index.
+    """
+    if isinstance(ds, DataReference):
+        ds = ds.getData()
+    if isinstance(timeinst, str):
+        timeinst = TimeFactory.getInstance().createTime(timeinst)
+    tii = timeinst.getTimeInMinutes()
+    if isinstance(ds,RegularTimeSeries):
+        # get index by calculation, not search
+        ndx = long((float(tii) - ds.getElementAt(0).getX()) / \
+            float(ds.getTimeInterval().getIntervalInMinutes(ds.getStartTime())) + 0.5)
+        #t = TimeFactory.getInstance().createTime(long(ds.getElementAt(ndx).getX()))
+        return ndx
+    if ndxHint >= 0 and ndxHint < len(ds):
+        if long(ds.getElementAt(len(ds)-1).getX()) < tii: return None
+        # check each time element for the first one equal to or greater than timeinst
+        if long(ds.getElementAt(ndxHint).getX()) > tii: ndxStart = 0
+        else: ndxStart = ndxHint
+        ndxEnd = len(ds)
+        for ndx in range(ndxStart,ndxEnd,1):
+            if long(ds.getElementAt(ndx).getX()) >= tii:
+                return ndx
+        return None
+    else:   # backwards
+        if long(ds.getElementAt(0).getX()) > tii: return None
+        ndxEnd = -1
+        if long(ds.getElementAt(abs(ndxHint)).getX()) < tii or \
+            abs(ndxHint) > len(ds): ndxStart = len(ds) - 1
+        else: ndxStart = abs(ndxHint)
+        for ndx in range(ndxStart,ndxEnd,-1):
+            if long(ds.getElementAt(ndx).getX()) <= tii:
+                return ndx
+        return None
 #
