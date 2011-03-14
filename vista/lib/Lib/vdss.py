@@ -343,3 +343,27 @@ def make_dss_path(pathname, a_part='', b_part='', f_part=''):
     if len(pn) > 80: pn = pn[:80]
     if isinstance(pathname, Pathname): return Pathname.createPathname(pn)
     else: return pn
+#
+def dsAddFlags(dataset):
+    """
+    dsAddFlags(dataset)
+    Add UNSCREENED_FLAG to dataset that does not have any flags
+    """
+    if dataset.isFlagged(): return dataset
+    # create copy of incoming dataset but with flags
+    import jarray
+    fa = jarray.zeros(len(dataset), 'i')
+    if dataset.getAttributes().getType() == DataType.REGULAR_TIME_SERIES:    #RTS
+        datasetFlagged = RegularTimeSeries(dataset.getName(), str(dataset.getStartTime()), \
+                             str(dataset.getTimeInterval()), dataset.getYArray(), \
+                             fa, dataset.getAttributes())
+    else:   # ITS
+        xa = jarray.zeros(len(dataset), 'd')
+        ya = jarray.zeros(len(dataset), 'd')
+        for i in range(len(dataset)):
+            xa[i] = dataset[i].getX()
+            ya[i] = dataset[i].getY()
+        datasetFlagged = IrregularTimeSeries(
+            dataset.getName(), xa, ya, fa, dataset.getAttributes())
+    return datasetFlagged
+#
