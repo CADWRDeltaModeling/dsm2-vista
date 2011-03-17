@@ -224,10 +224,6 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 				&& dssfiles == null) {
 			String server = MainProperties.getProperty("default.server");
 			String directory = MainProperties.getProperty("default.dir");
-			Executor.execute(new OpenConnectionSessionCommand(MainGUI
-					.getContext(), server, directory, true), _sessionView);
-			if (DEBUG)
-				System.out.println("connecting to " + server + directory);
 		} else if (dssfiles != null) {
 			// open session with local and directory
 			String server = "local";
@@ -239,8 +235,6 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 				directory = "./";
 			if (DEBUG)
 				System.out.println("Opening local directory " + directory);
-			Executor.execute(new OpenConnectionSessionCommand(MainGUI
-					.getContext(), server, directory, true), _sessionView);
 			for (int j = 0; j < dssfiles.length; j++) {
 				if (dssfiles[j] == null)
 					continue;
@@ -623,7 +617,7 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	 * opens connection to server
 	 */
 	private void openConnection(ActionEvent evt) {
-		new OpenConnectionDialog(this, _sessionView).show();
+		Executor.execute(new OpenConnectionSessionCommand(MainGUI.getContext()), _sessionView);
 		_statusBar.setText("Opened connection");
 	}
 

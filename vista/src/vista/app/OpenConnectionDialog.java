@@ -153,8 +153,6 @@ public class OpenConnectionDialog extends JDialog implements Changeable {
 			_serverHistory.add(server);
 		if (!_directoryHistory.contains(server))
 			_directoryHistory.add(dir);
-		Executor.execute(new OpenConnectionSessionCommand(MainGUI.getContext(),
-				server, dir, true), _view);
 	}
 
 	/**
