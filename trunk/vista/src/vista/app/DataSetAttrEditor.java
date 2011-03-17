@@ -79,8 +79,8 @@ import vista.set.DataType;
  */
 public class DataSetAttrEditor extends JDialog implements Changeable {
 	private JTextField _groupField, _locationField, _typeField, _sourceField;
-	private JTextField _xtf, _xuf, _ytf, _yuf;
-	private JComboBox _typeBox;
+	private JTextField _xtf, _xuf, _yuf;
+	private JComboBox _typeBox, _ytf;
 	private DataSet ds;
 
 	public DataSetAttrEditor(DataSet ds) {
@@ -146,7 +146,10 @@ public class DataSetAttrEditor extends JDialog implements Changeable {
 		JPanel yp = new JPanel();
 		yp.setLayout(new FlowLayout());
 		yp.add(new JLabel("Y Type:"));
-		yp.add(_ytf = new JTextField(attr.getYType(), 10));
+		_ytf = new JComboBox(new String[]{"INST-VAL","PER-AVER"});
+		_ytf.setEditable(true);
+		_ytf.setSelectedItem(attr.getYType());
+		yp.add(_ytf);
 		yp.add(new JLabel("Y Units:"));
 		yp.add(_yuf = new JTextField(attr.getYUnits(), 10));
 		//
@@ -201,7 +204,7 @@ public class DataSetAttrEditor extends JDialog implements Changeable {
 		type = DataType.getType((String) _typeBox.getSelectedItem());
 		xt = _xtf.getText();
 		xu = _xuf.getText();
-		yt = _ytf.getText();
+		yt = _ytf.getSelectedItem().toString();
 		yu = _yuf.getText();
 		DataSetAttr newAttr = new DataSetAttr(gn, ln, tn, sn, type, xu, yu, xt,
 				yt);
