@@ -10,17 +10,17 @@ END
 
 SCALAR
 NAME		VALUE
-FILE0		D:/delta/dsm2_v8/report/dssfiles/Apple.dss #input file 1
-NAME0		Observation
-FILE1		D:/delta/dsm2_v8/report/dssfiles/Apple.dss #input file 1
-NAME1		Apple
-FILE2		D:/delta/dsm2_v8/report/dssfiles/Banana.dss # input file 2
-NAME2		Banana
+FILE0		D:/delta/dsm2_v8/report/dssfiles/observed.dss #input file 0
+NAME0		"Observation"
+FILE1		D:/delta/dsm2_v8/report/dssfiles/model_1.dss  #input file 1
+NAME1		"Model 1"
+FILE2		D:/delta/dsm2_v8/report/dssfiles/model_2.dss  #input file 2
+NAME2		"Model 2"
 OUTDIR      D:/delta/dsm2_v8/report/case5
 OUTFILE		DSM2_compare.html
 NOTE		"A long funny note"
 ASSUMPTIONS "I am assuming this is defined"
-MODELER 	Monkey
+MODELER 	BDO
 END
 
 VARIABLE 

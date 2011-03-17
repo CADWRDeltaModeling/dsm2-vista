@@ -25,8 +25,11 @@ def copy_basic_files(output_path):
         if not os.path.isdir(output_path+"//data"):
             os.mkdir(output_path+"//data")
         vista_home = str(os.getenv('VISTA_HOME'))
-        copytree(vista_home+"\scripts\compare_dss\js",str(output_path)+"\js",[])
-
+        try:
+            copytree(vista_home+"\scripts\compare_dss\js",output_path+"\js",[])
+        except:
+            copytree(vista_home+"\scripts\compare_dss\js",output_path+"//js",[])
+            
 def get_output_html(template_file):
     from gov.ca.dsm2.input.parser import Parser
     p = Parser()                                 
@@ -402,7 +405,7 @@ Use Defined Time Window: <select name="tw" id="time-window-select">
     print >> fh, """ 
 </select> 
 <div>
-Customize the Time Window:
+Customize Time Window:
 """
     twstr = compare_dss_utils.timewindow_option_value(vtimeseries.timewindow(tw_values[0][1].replace('"',''))).split("-")
     a1=twstr[0].split(",")
