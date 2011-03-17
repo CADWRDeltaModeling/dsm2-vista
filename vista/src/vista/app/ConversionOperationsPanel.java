@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import vista.db.dss.DSSUtil;
 import vista.set.DataReference;
 import vista.set.DataSet;
+import vista.set.DefaultReference;
 import vista.set.IrregularTimeSeries;
 import vista.set.Pathname;
 import vista.set.RegularTimeSeries;
@@ -39,7 +40,7 @@ public class ConversionOperationsPanel extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBorder(BorderFactory.createTitledBorder(BorderFactory
 				.createEtchedBorder(),
-		"Convert timeseries to regular by either snap or interpolate"));
+				"Convert timeseries to regular by either snap or interpolate"));
 		setToolTipText("Select time series from table view below and then select appropriate options and click convert");
 		JPanel panel = new JPanel();
 		panel.setMaximumSize(new Dimension(32767, 20));
@@ -127,8 +128,8 @@ public class ConversionOperationsPanel extends JPanel {
 								+ "-SNAP");
 						pathname.setPart(Pathname.E_PART, snap
 								.getTimeInterval().toString());
-						DataReference newRef = DSSUtil.createDataReference(
-								"local", ref.getFilename(),
+						snap.setName(pathname.toString());
+						DataReference newRef = new DefaultReference("", "",
 								pathname.toString(), snap);
 						addReferenceToGroup(newRef);
 					} else if (modeBox.getSelectedItem().equals("SAMPLE")) {
@@ -162,8 +163,8 @@ public class ConversionOperationsPanel extends JPanel {
 								+ "-SAMPLE");
 						pathname.setPart(Pathname.E_PART, sampled
 								.getTimeInterval().toString());
-						DataReference newRef = DSSUtil.createDataReference(
-								"local", ref.getFilename(),
+						sampled.setName(pathname.toString());
+						DataReference newRef = new DefaultReference("", "",
 								pathname.toString(), sampled);
 						addReferenceToGroup(newRef);
 					}
