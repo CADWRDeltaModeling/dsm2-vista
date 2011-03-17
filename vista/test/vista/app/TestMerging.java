@@ -2,7 +2,7 @@ package vista.app;
 import junit.framework.TestCase;
 import vista.app.DataGraph;
 import vista.app.DefaultGraphBuilder;
-import vista.app.MultiDataTable;
+import vista.app.MultiDataTableFrame;
 import vista.db.dss.DSSUtil;
 import vista.graph.Graph;
 import vista.set.DataReference;

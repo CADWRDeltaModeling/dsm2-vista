@@ -50,7 +50,7 @@ public class DataSetTable extends JPanel {
 		}
 
 		this.setLayout(new BorderLayout());
-		this.add(_tableScrollPane = new JScrollPane(_table));
+		this.add(new JScrollPane(_table));
 
 	}
 
@@ -122,10 +122,6 @@ public class DataSetTable extends JPanel {
 		return _table;
 	}
 
-	/**
-	 * the scroll pane
-	 */
-	private JScrollPane _tableScrollPane;
 	/**
 	 * the table
 	 */
