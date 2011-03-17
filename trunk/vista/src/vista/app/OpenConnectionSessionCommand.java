@@ -55,9 +55,8 @@
  */
 package vista.app;
 
-import vista.db.dss.DSSUtil;
 import vista.db.jdbc.bdat.BDATGroup;
-import vista.db.jdbc.bdat.BDATSession;
+import vista.db.jdbc.bdat.BDATConnection;
 import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.Session;
@@ -70,47 +69,36 @@ import vista.set.Session;
  *          redwood Exp $
  */
 class OpenConnectionSessionCommand implements Command {
-	private String _server, _directory;
 	private SessionContext _app;
-	private boolean _addOn;
-	private Session _previousSession;
 
 	/**
 	 * opens session and sets current session to
 	 */
-	public OpenConnectionSessionCommand(SessionContext app, String server,
-			String directory, boolean addOn) {
+	public OpenConnectionSessionCommand(SessionContext app) {
 		_app = app;
-		_server = server;
-		_directory = directory;
-		_addOn = addOn;
 	}
 
 	/**
 	 * executes command
 	 */
 	public void execute() throws ExecutionException {
-		Session s = new Session();
-		s.addGroup(new BDATGroup());
-		_previousSession = _app.getCurrentSession();
-		if (_addOn)
-			_app.setCurrentSession(s.createUnion(_previousSession));
-		else
-			_app.setCurrentSession(s);
+		Session s = _app.getCurrentSession();
+		BDATConnectionDialog dialog = new BDATConnectionDialog();
+		BDATConnection connection = dialog.getConnection();
+		s.addGroup(new BDATGroup(connection));
 	}
 
 	/**
 	 * unexecutes command or throws exception if not unexecutable
 	 */
 	public void unexecute() throws ExecutionException {
-		_app.setCurrentSession(_previousSession);
 	}
 
 	/**
 	 * checks if command is executable.
 	 */
 	public boolean isUnexecutable() {
-		return true;
+		return false;
 	}
 
 	/**

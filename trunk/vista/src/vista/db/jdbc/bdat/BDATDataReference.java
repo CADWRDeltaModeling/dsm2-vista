@@ -44,15 +44,18 @@ public class BDATDataReference extends DataReference {
 	 * The data set contained by this reference. Don't save data on serializing
 	 */
 	private transient SoftReference<DataSet> dataset;
+	private BDATConnection connection;
 
-	public BDATDataReference(int requestId) {
+	public BDATDataReference(BDATConnection connection, int requestId) {
+		this.connection=connection;
 		this.resultId = requestId;
 	}
 
-	public BDATDataReference(int resultId, String abbreviation,
+	public BDATDataReference(BDATConnection connection, int resultId, String abbreviation,
 			String constituentName, String aggregateName, String intervalName,
 			String readingTypeName, String rankName, String probeDepth,
 			Date startDate, Date endDate) {
+		this.connection=connection;
 		this.resultId = resultId;
 		this.setAbbreviation(abbreviation);
 		this.constituentName = constituentName;
@@ -105,7 +108,7 @@ public class BDATDataReference extends DataReference {
 
 	@Override
 	protected DataReference createClone() {
-		return new BDATDataReference(this.resultId);
+		return new BDATDataReference(this.connection, this.resultId);
 	}
 
 	@Override
@@ -154,10 +157,9 @@ public class BDATDataReference extends DataReference {
 		int[] flags = new int[100000];
 		Connection connection = null;
 		try {
-			BDATSession session = new BDATSession();
-			connection = session.getConnection();
+			connection=this.connection.getConnection();
 			PreparedStatement preparedStatement = connection
-					.prepareStatement("select * from emp_cms.result_raw_data "
+					.prepareStatement("select * from emp_cms.emp_raw_result "
 							+ " where result_id=? order by time asc");
 			preparedStatement.setInt(1, this.resultId);
 			ResultSet rs = preparedStatement.executeQuery();

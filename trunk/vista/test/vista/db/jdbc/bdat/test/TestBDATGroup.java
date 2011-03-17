@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 
 public class TestBDATGroup extends TestCase{
 	public void testGetGroup(){
-		BDATGroup g = new BDATGroup();
+		BDATGroup g = new BDATGroup(null);
 		int count = g.getNumberOfDataReferences();
 		GroupFrame gf = new GroupFrame(g);
 		assertTrue(count > 1000);
