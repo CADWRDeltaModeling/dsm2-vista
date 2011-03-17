@@ -114,8 +114,7 @@ public class TimeSeriesMerger implements RangeActor{
 	 */
 	public boolean checkTimeSeriesAreMergable(TimeSeries[] tsList) {
 		if (tsList==null || tsList.length==0){
-			JOptionPane.showConfirmDialog(null, "Time Series are incompatible", "Time series merge", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE);
-			return false;
+			throw new RuntimeException("No time series or selection is empty?");
 		}
 		if (tsList.length == 1){
 			int showConfirmDialog = JOptionPane.showConfirmDialog(null, "Only one time series to merge ?", "Time series merge", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -134,12 +133,22 @@ public class TimeSeriesMerger implements RangeActor{
 					int compare = rts.getTimeInterval().compare(ti);
 					if (compare != 0){
 						String msg = "Time Series: " +rts.getName() + "with time interval: "+rts.getTimeInterval()+" does not have expected time interval "+ti+" as others in merge list";
-						JOptionPane.showConfirmDialog(null, msg, "Time Series Merge", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE);
-						return false;
+						throw new RuntimeException(msg);
 					}
 				}
 			}
 		}
+		// check units
+		String units = null;
+		for(int i=0; i < tsList.length; i++){
+			TimeSeries ts = tsList[i];
+			String yUnits = ts.getAttributes().getYUnits();
+			if (units==null){
+				units=yUnits;
+			} else if (!units.equalsIgnoreCase(yUnits)){
+				throw new RuntimeException("Units are incompatible: "+units+" vs "+yUnits+" on "+ts.getName());
+			}
+		}		
 		return true;
 	}
 	

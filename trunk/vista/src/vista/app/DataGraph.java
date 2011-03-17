@@ -657,7 +657,7 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 		if (refArray.length == 1)
 			new DataTableFrame(refArray[0]);
 		else
-			new MultiDataTable(refArray);
+			new MultiDataTableFrame(refArray);
 	}
 
 	/**
@@ -827,7 +827,11 @@ public class DataGraph extends JFrame implements GraphFrameInterface {
 				try{
 					merger = new TimeSeriesMerger(_gC);
 				}catch(Exception ex){
-					JOptionPane.showConfirmDialog(DataGraph.this, ex.getMessage());
+					JOptionPane.showMessageDialog(DataGraph.this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					ex.printStackTrace();
+					startMergeMenu.setEnabled(true);
+					cancelMergeMenu.setEnabled(false);
+					finishMergeMenu.setEnabled(false);
 				}
 			}
 		});

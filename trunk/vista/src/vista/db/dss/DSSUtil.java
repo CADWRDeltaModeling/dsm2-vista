@@ -845,7 +845,7 @@ public class DSSUtil {
 		} else {
 			String blockInterval = ((IrregularTimeSeries) ts)
 					.getBlockInterval();
-			String interval = blockInterval.substring(blockInterval
+			String interval = "1"+blockInterval.substring(blockInterval
 					.indexOf("-") + 1, blockInterval.length());
 			ti = TimeFactory.getInstance().createTimeInterval(interval);
 		}

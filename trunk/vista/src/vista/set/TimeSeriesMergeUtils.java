@@ -1,7 +1,5 @@
 package vista.set;
 
-import java.util.ArrayList;
-
 import vista.time.TimeInterval;
 import vista.time.TimeWindow;
 
@@ -188,9 +186,11 @@ public class TimeSeriesMergeUtils {
 				newXArray[newXArray.length - 1] = tw.getStartTime()
 						.getTimeInMinutes();
 				System.arraycopy(xArray, 0, newXArray, 0, xArray.length);
+				xArray = newXArray;
 				double[] newYArray = new double[yArray.length + 1];
 				newYArray[newYArray.length - 1] = Constants.MISSING_VALUE;
 				System.arraycopy(yArray, 0, newYArray, 0, yArray.length);
+				yArray=newYArray;
 				if (flagArray != null) {
 					int[] newFlagArray = new int[flagArray.length + 1];
 					newFlagArray[newYArray.length - 1] = 0;
@@ -247,7 +247,7 @@ public class TimeSeriesMergeUtils {
 		double[] y = new double[INITIAL_SIZE];
 		int[] flags = new int[INITIAL_SIZE];
 		double[] x = null;
-		if (isAllRegular) {
+		if (!isAllRegular) {
 			x = new double[INITIAL_SIZE];
 		}
 		int index = 0;
@@ -270,7 +270,6 @@ public class TimeSeriesMergeUtils {
 			flags[index] = e.getFlag();
 			iterator.advance();
 		}
-		index++;
 		if (x != null) {
 			x = resizeTo(x, index);
 		}

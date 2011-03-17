@@ -97,8 +97,8 @@ public class VectorMath {
 	 */
 	public static DataSet doMathOperation(DataSet d1, double scalar,
 			int operationId, boolean reverseArgs) {
-		check(d1, d1);
-		RegularTimeSeries ts = (RegularTimeSeries) d1;
+		check(d1);
+		TimeSeries ts = (TimeSeries) d1;
 		switch (operationId) {
 		case DataReferenceMath.ADD:
 			return TimeSeriesMath.doBinaryOperation(ts, scalar,
@@ -121,9 +121,9 @@ public class VectorMath {
 	 * check viability of operation on data sets
 	 */
 	public static void check(DataSet d1, DataSet d2) {
-		if (d1 == null || d2 == null) {
-			throw new IllegalArgumentException("Data Set may be null");
-		} else if (!(d1 instanceof RegularTimeSeries)
+		check(d1);
+		check(d2);
+		if (!(d1 instanceof RegularTimeSeries)
 				&& !(d2 instanceof RegularTimeSeries)) {
 			throw new IllegalArgumentException(
 					"Math defined only between regular time series");
@@ -131,4 +131,13 @@ public class VectorMath {
 			return;
 		}
 	}
+	
+	public static void check(DataSet d){
+		if (d == null) 
+			throw new IllegalArgumentException("Data Set may be null");
+		if (!(d instanceof TimeSeries)){
+			throw new IllegalArgumentException("Data set needs to be a time series");
+		}
+	}
+	
 }

@@ -1,7 +1,7 @@
 package vista.set;
 
 import junit.framework.TestCase;
-import vista.app.MultiDataTable;
+import vista.app.MultiDataTableFrame;
 
 public class TestTimeSeriesMergeUtils extends TestCase {
 
@@ -42,7 +42,7 @@ public class TestTimeSeriesMergeUtils extends TestCase {
 		RegularTimeSeries rts2 = new RegularTimeSeries("replacer",
 				"01JAN1990 0500", "15MIN", values2, flags2, attr2);
 		TimeSeries merge = TimeSeriesMergeUtils.merge(new TimeSeries[]{rts1,rts2}, rts1.getTimeWindow().union(rts2.getTimeWindow()));
-		MultiDataTable table = new MultiDataTable(new DataReference[]{new DefaultReference(rts1), new DefaultReference(rts2), new DefaultReference(merge)});
+		MultiDataTableFrame table = new MultiDataTableFrame(new DataReference[]{new DefaultReference(rts1), new DefaultReference(rts2), new DefaultReference(merge)});
 		table.show();
 	}
 

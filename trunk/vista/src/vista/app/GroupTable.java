@@ -57,7 +57,6 @@ package vista.app;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.FileDialog;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -104,13 +103,10 @@ import vista.set.DataSet;
 import vista.set.Group;
 import vista.set.GroupTableModel;
 import vista.set.PartNamePredicate;
-import vista.set.PathPartPredicate;
 import vista.set.Pathname;
-import vista.set.PathnamePredicate;
 import vista.set.RegularTimeSeries;
 import vista.set.SetUtils;
 import vista.set.SortMechanism;
-import vista.time.TimeFactory;
 
 /**
  * This class displays the group information as a table by implementing the
@@ -120,21 +116,19 @@ import vista.time.TimeFactory;
  * @author Nicky Sandhu
  * @version $Id: GroupTable.java,v 1.1 2003/10/02 20:48:31 redwood Exp $
  */
+@SuppressWarnings("serial")
 public class GroupTable extends JPanel implements RowMovable, View {
 	private MathOperationsListener _mathListener;
 	private JLabel _groupLabel, _nRefLabel;
 	private JCheckBoxMenuItem _showFilterPanel, _showMathPanel, _showInfoPanel;
 	private PathnameFilterPanel _filterPanel;
 	private JPanel _infoPanel, _mathPanel;
-	private DataTableFrame _dataTable;
 	public JTable _table;
 	private Group _group;
 	private JTextField _timeWindowField;
 	private static final boolean DEBUG = false;
-	private DataGraph _dataGraph;
 	private GraphBuilder _graphBuilder;
 	private static JProgressBar _progressBar;
-	private TimeFactory _tf = TimeFactory.getInstance();
 	private boolean _initShowMath = true, _initShowFilter = true;
 
 	/**
@@ -308,52 +302,6 @@ public class GroupTable extends JPanel implements RowMovable, View {
 			}
 		});
 		//
-		_showFilterPanel = new JCheckBoxMenuItem("Show Filter Panel",
-				_initShowFilter);
-		_showMathPanel = new JCheckBoxMenuItem("Show Math Panel", _initShowMath);
-		_showInfoPanel = new JCheckBoxMenuItem("Show Info Panel", true);
-		JMenuItem showSortDialog = new JMenuItem("Show Sort Dialog");
-		JMenuItem treeItem = new JMenuItem("Show Group As Tree");
-		JMenuItem schematicItem = new JMenuItem("Show Group As Schematic");
-		_showFilterPanel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showFilterPanel(evt);
-			}
-		});
-		_showMathPanel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showMathPanel(evt);
-			}
-		});
-		_showInfoPanel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showInfoPanel(evt);
-			}
-		});
-		showSortDialog.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showSortDialog(evt);
-			}
-		});
-		treeItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showGroupTree(evt);
-			}
-		});
-		schematicItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				showGroupSchematic(evt);
-			}
-		});
-		//
-		JMenu optionsMenu = new JMenu("Options");
-		optionsMenu.add(_showFilterPanel);
-		optionsMenu.add(_showMathPanel);
-		optionsMenu.add(_showInfoPanel);
-		optionsMenu.add(showSortDialog);
-		optionsMenu.addSeparator();
-		optionsMenu.add(treeItem);
-		optionsMenu.add(schematicItem);
 		//
 		JMenu animationMenu = new JMenu("Animation");
 		JMenuItem profileItem = new JMenuItem("Profile Animation");
@@ -391,15 +339,13 @@ public class GroupTable extends JPanel implements RowMovable, View {
 		//
 		mbar.add(dataMenu);
 		mbar.add(animationMenu);
-		mbar.add(optionsMenu);
-
 	}
 
 	/**
    *
    */
 	public void showFilterPanel(ActionEvent evt) {
-		boolean show = _showFilterPanel.getState();
+		boolean show = _showFilterPanel.isSelected();
 		if (show) {
 			_infoPanel.add(_filterPanel);
 			_infoPanel.setLayout(new GridLayout(_infoPanel.getComponentCount(),
@@ -425,19 +371,6 @@ public class GroupTable extends JPanel implements RowMovable, View {
    */
 	public void showGroupTree(ActionEvent evt) {
 		new GroupTreeFrame(_group);
-	}
-
-	/**
-   *
-   */
-	public void showGroupSchematic(ActionEvent evt) {
-		throw new RuntimeException("Not in use anymore: See DSVP instead");
-		/*
-		 * SchematicDataModel sdm = new DSM2SchematicData
-		 * (VistaUtils.getResourceAsStream("/vista/app/net.data"), _group);
-		 * SchematicFrame sf = new SchematicFrame(new Schematic( new GEAttr(),
-		 * sdm)); sf.setSize(440,690); sf.setVisible(true);
-		 */
 	}
 
 	/**

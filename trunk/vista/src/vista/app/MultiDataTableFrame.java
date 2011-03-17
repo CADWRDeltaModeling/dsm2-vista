@@ -101,20 +101,20 @@ import vista.time.TimeFactory;
  * @author Nicky Sandhu
  * @version $Id: MultiDataTable.java,v 1.1 2003/10/02 20:48:35 redwood Exp $
  */
-public class MultiDataTable extends DefaultFrame {
+public class MultiDataTableFrame extends DefaultFrame {
 	private DataReference[] _refs;
 
 	/**
     *
     */
-	public MultiDataTable(DataReference[] refs) {
+	public MultiDataTableFrame(DataReference[] refs) {
 		this(refs, true);
 	}
 
 	/**
 	 * Construct a table
 	 */
-	public MultiDataTable(DataReference[] refs, boolean visibleOnStart) {
+	public MultiDataTableFrame(DataReference[] refs, boolean visibleOnStart) {
 		super();
 		setIconImage(Toolkit.getDefaultToolkit().createImage(
 				VistaUtils.getImageAsBytes("/vista/planning.gif")));

@@ -92,7 +92,7 @@ class TabulateDataCommand implements Command {
 			DataReference[] refs = new DataReference[_rNumbers.length];
 			for (int i = 0; i < _rNumbers.length; i++)
 				refs[i] = _group.getDataReference(_rNumbers[i]);
-			new MultiDataTable(refs);
+			new MultiDataTableFrame(refs);
 		}
 	}
 
