@@ -281,15 +281,19 @@ public class TimeSeriesMath {
 		int size = d1.size();
 		int index = 0;
 		double[] y = new double[size];
+		int[] flags = null;
+		if (d1.isFlagged() || d2.isFlagged()) {
+			flags = new int[size];
+		}
 		DataSetIterator dsi1 = d1.getIterator();
 		DataSetIterator dsi2 = d2.getIterator();
 		while (!dsi1.atEnd()) {
 			DataSetElement dse1 = dsi1.getElement();
 			DataSetElement dse2 = dsi2.getElement();
+			index = dsi1.getIndex();
 			if (_filter.isAcceptable(dse1) && _filter.isAcceptable(dse2)) {
 				double y1 = dse1.getY();
 				double y2 = dse2.getY();
-				index = dsi1.getIndex();
 				if (operationId == ADD)
 					y[index] = y1 + y2;
 				else if (operationId == SUB)
@@ -302,16 +306,25 @@ public class TimeSeriesMath {
 					throw new IllegalArgumentException(
 							"Unknown operation on time series, Operation Id: "
 									+ operationId);
+				if (flags != null) {
+					if (d1.isFlagged()) {
+						flags[index] = dse1.getFlag();
+					} else if (d2.isFlagged()) {
+						flags[index] = dse2.getFlag();
+					}
+				}
 			} else {
-				y[dsi1.getIndex()] = Constants.MISSING_VALUE;
+				y[index] = Constants.MISSING_VALUE;
+				flags[index] = 0;
 			}
 			dsi1.advance();
 			dsi2.advance();
 		}
+
 		DataSetAttr attr = createAttributes(d1, d2, operationId);
 		RegularTimeSeries result = new RegularTimeSeries(d1.getName()
 				+ getOperationName(operationId) + d2.getName(), d1
-				.getStartTime(), d1.getTimeInterval(), y, null, attr);
+				.getStartTime(), d1.getTimeInterval(), y, flags, attr);
 		return result;
 	}
 
@@ -325,6 +338,10 @@ public class TimeSeriesMath {
 		if (d1 instanceof IrregularTimeSeries)
 			xarray = new double[size];
 		double[] y = new double[size];
+		int[] flags = null;
+		if (d1.isFlagged()) {
+			flags = new int[size];
+		}
 		DataSetIterator dsi1 = d1.getIterator();
 		while (!dsi1.atEnd()) {
 			DataSetElement dse1 = dsi1.getElement();
@@ -353,8 +370,14 @@ public class TimeSeriesMath {
 					throw new IllegalArgumentException(
 							"Unknown operation on time series"
 									+ ", Operation Id: " + operationId);
+				if (flags != null) {
+					flags[index] = dse1.getFlag();
+				}
 			} else {
 				y[index] = Constants.MISSING_VALUE;
+				if (flags != null) {
+					flags[index] = 0;
+				}
 			}
 			dsi1.advance();
 		}
@@ -364,10 +387,10 @@ public class TimeSeriesMath {
 			RegularTimeSeries ts = (RegularTimeSeries) d1;
 			result = new RegularTimeSeries(ts.getName()
 					+ getOperationName(operationId) + d, ts.getStartTime(), ts
-					.getTimeInterval(), y, null, attr);
+					.getTimeInterval(), y, flags, attr);
 		} else {
 			result = new IrregularTimeSeries(d1.getName()
-					+ getOperationName(operationId) + d, xarray, y, null, attr);
+					+ getOperationName(operationId) + d, xarray, y, flags, attr);
 		}
 		return result;
 	}
@@ -1371,12 +1394,13 @@ public class TimeSeriesMath {
 				if (ts.isFlagged()) {
 					element.setFlag(elementAt.getFlag());
 				}
-			} else if (sampleType == LINEAR){
-				if (_filter.isAcceptable(elementAt)){
+			} else if (sampleType == LINEAR) {
+				if (_filter.isAcceptable(elementAt)) {
 					elementAt = (TimeElement) elementAt.createClone();
 					TimeElement nextElement = (TimeElement) iter2.getElement();
-					if (_filter.isAcceptable(nextElement)){
-						element.setY(calculateLinearlyInterpolatedValue(element,elementAt, nextElement));
+					if (_filter.isAcceptable(nextElement)) {
+						element.setY(calculateLinearlyInterpolatedValue(
+								element, elementAt, nextElement));
 						element.setFlag(elementAt.getFlag());
 					}
 				} else {
@@ -1399,10 +1423,10 @@ public class TimeSeriesMath {
 		double x2 = nextElement.getX();
 		double y2 = nextElement.getY();
 		double x = element.getX();
-		if (x2==x1){
+		if (x2 == x1) {
 			return y1;
 		}
-		return (y2-y1)/(x2-x1)*(x-x1)+y1;
+		return (y2 - y1) / (x2 - x1) * (x - x1) + y1;
 	}
 
 	/**
