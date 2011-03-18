@@ -315,6 +315,14 @@ public class DefaultDataSet implements DataSet {
 		}
 	}
 
+	@Override
+	public void addFlags() {
+		if(_flagArray != null) return;
+		if (_xArray!= null){
+			_flagArray = new int[_xArray.length];
+		}
+	}
+
 	/**
 	 * array of x and y values.
 	 */
@@ -327,10 +335,6 @@ public class DefaultDataSet implements DataSet {
 	 * name of data set
 	 */
 	private String _name;
-	/**
-	 * true if flagged elements are contained in data set
-	 */
-	private boolean _isFlagged;
 	/**
 	 * attributes of this data
 	 */
@@ -540,4 +544,5 @@ public class DefaultDataSet implements DataSet {
    */
 		private DataSetElement _maximum, _minimum;
 	}
+
 }

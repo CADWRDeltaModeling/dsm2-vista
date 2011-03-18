@@ -113,4 +113,8 @@ public interface DataSet extends Named, java.io.Serializable {
 	 * true if data set is flagged
 	 */
 	public boolean isFlagged();
+	/**
+	 * adds flags to the data set only if the data set is not flagged.
+	 */
+	public void addFlags();
 }

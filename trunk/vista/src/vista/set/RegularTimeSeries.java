@@ -246,6 +246,12 @@ public class RegularTimeSeries extends TimeSeries {
 		return (_flagArray != null);
 	}
 
+	@Override
+	public void addFlags() {
+		if (_flagArray != null) return;
+		_flagArray = new int[this.size()];
+	}
+
 	/**
 	 * returns the number of elements in the dataset
 	 */

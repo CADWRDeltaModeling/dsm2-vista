@@ -165,6 +165,13 @@ public class IndexedDataSet implements DataSet {
 		return (_flagArray != null);
 	}
 
+	@Override
+	public void addFlags() {
+		if (_flagArray != null) return;
+		int dataCount = (int) ((_xFinal - _xInitial) / _step + 1);
+		_flagArray = new int[dataCount];
+	}
+
 	/**
 	 * returns the number of elements in the dataset
 	 */
@@ -463,4 +470,5 @@ public class IndexedDataSet implements DataSet {
    */
 		private DataSetElement _maximum, _minimum;
 	}
+
 }
