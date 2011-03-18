@@ -65,6 +65,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import vista.app.commands.GroupPathnameFilterCommand;
 import vista.set.Group;
 import vista.set.Pathname;
 

@@ -96,6 +96,12 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.table.TableModel;
 
+import vista.app.commands.OpenConnectionSessionCommand;
+import vista.app.commands.OpenDSSFileCommand;
+import vista.app.commands.OpenHydroTideFileCommand;
+import vista.app.commands.OpenSessionCommand;
+import vista.app.commands.SaveSessionCommand;
+import vista.app.commands.SetNewSessionCommand;
 import vista.db.dss.DSSUtil;
 import vista.db.hdf5.HDF5Group;
 import vista.gui.Command;
