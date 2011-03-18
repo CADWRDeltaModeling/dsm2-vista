@@ -153,8 +153,6 @@ public class DefaultGraphFactory implements GraphFactory {
    */
 	public Color getNextColor() {
 		_colorIndex++;
-		// System.out.println("Using color " + (_colorIndex%_colorTable.length)
-		// );
 		return _colorTable[_colorIndex % _colorTable.length];
 	}
 

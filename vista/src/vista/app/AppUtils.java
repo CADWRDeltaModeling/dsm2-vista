@@ -111,8 +111,8 @@ public class AppUtils {
 
 	private static int _colorTableIndex = 0, _symbolTableIndex = 0;
 	static Color[] _colorTable = { Color.red, Color.green, Color.blue,
-			Color.pink, Color.yellow, Color.cyan, Color.orange, Color.magenta,
-			Color.gray, new Color(0, 206, 209), // Dark Turquoise
+			Color.pink, Color.cyan, Color.orange, Color.magenta,
+			new Color(0, 206, 209), // Dark Turquoise
 			new Color(85, 107, 47), // Dark Olive Green
 			new Color(176, 48, 96), // maroon
 			new Color(95, 158, 160), // Cadet Blue
