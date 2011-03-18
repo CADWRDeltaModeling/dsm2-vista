@@ -1,5 +1,6 @@
 package vista.app;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -50,6 +51,7 @@ public class TimeSeriesMerger implements RangeActor{
 		merged = TimeSeriesMergeUtils.merge(timeSeries, tw);
 		DataReference mergedReference = new DefaultReference(merged);
 		mergedCurve = CurveFactory.createCurve(mergedReference, ((Curve)curves[0]).getXAxis().getPosition(), ((Curve)curves[0]).getYAxis().getPosition(), "Merged");
+		mergedCurve.getAttributes()._foregroundColor = Color.gray;
 		plot.addCurve(mergedCurve);
 		graph.getLegend().add(mergedLegendItem = new LegendItem(mergedCurve));
 		canvas.redoNextPaint();

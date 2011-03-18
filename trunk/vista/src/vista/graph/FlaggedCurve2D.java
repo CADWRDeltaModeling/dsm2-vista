@@ -124,6 +124,7 @@ public class FlaggedCurve2D extends Curve implements Shape {
 	 */
 	public void setQuestionableSymbol(Symbol s) {
 		_curve.setQuestionableSymbol(s);
+		s.getAttributes()._foregroundColor=_curve.getAttributes()._foregroundColor;
 	}
 
 	/**
@@ -131,6 +132,7 @@ public class FlaggedCurve2D extends Curve implements Shape {
 	 */
 	public void setRejectSymbol(Symbol s) {
 		_curve.setRejectSymbol(s);
+		s.getAttributes()._foregroundColor=_curve.getAttributes()._foregroundColor;
 	}
 
 	/**
