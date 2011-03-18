@@ -75,6 +75,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import vista.app.schematic.DSMGridElement;
+import vista.app.schematic.FluxElement;
+import vista.app.schematic.GridLabelElement;
+import vista.app.schematic.Network;
+import vista.app.schematic.ParticleElement;
+import vista.app.schematic.TimeDisplayElement;
 import vista.graph.AnimationObservable;
 import vista.graph.AnimationObserver;
 import vista.graph.Animator;
@@ -270,7 +276,7 @@ public class PTMDualAnimator implements AnimationObserver {
    *
    */
 	public void update(AnimationObservable observable, Object args) {
-		if (pelement.fileStatus == true) {
+		if (pelement.isFileStatus() == true) {
 			EndOfFileEncounter();
 		} else {
 			_mc1.update(observable, args);

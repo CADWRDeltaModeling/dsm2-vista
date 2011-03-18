@@ -77,6 +77,14 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import vista.app.commands.AddNewGroupCommand;
+import vista.app.commands.CloneGroupCommand;
+import vista.app.commands.MoveGroupCommand;
+import vista.app.commands.OpenGroupCommand;
+import vista.app.commands.RemoveGroupCommand;
+import vista.app.commands.SetSessionNameCommand;
+import vista.app.commands.SortSessionCommand;
+import vista.app.commands.UnionGroupCommand;
 import vista.gui.VistaUtils;
 import vista.set.Group;
 import vista.set.GroupSortMechanism;

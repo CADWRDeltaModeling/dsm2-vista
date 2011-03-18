@@ -62,6 +62,11 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.Vector;
 
+import vista.app.schematic.ChannelData;
+import vista.app.schematic.ChannelElement;
+import vista.app.schematic.DSMGridElement;
+import vista.app.schematic.Network;
+import vista.app.schematic.TimeDisplayElement;
 import vista.graph.Animator;
 import vista.graph.AnimatorCanvas;
 import vista.graph.AnimatorFrame;
