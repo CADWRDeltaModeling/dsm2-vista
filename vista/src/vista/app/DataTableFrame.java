@@ -86,6 +86,8 @@ import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 
+import com.sun.xml.internal.bind.v2.model.core.Ref;
+
 import vista.db.dss.DSSUtil;
 import vista.graph.Graph;
 import vista.gui.ExcelAdapter;
@@ -105,6 +107,7 @@ import vista.set.SetUtils;
  */
 public class DataTableFrame extends DefaultFrame {
 	private JLabel pathnameLabel;
+	private JMenuBar mbar;
 
 	/**
     *
@@ -153,7 +156,7 @@ public class DataTableFrame extends DefaultFrame {
 		contentPane.add(tablePanel, BorderLayout.CENTER);
 		contentPane.add(gotoPanel, BorderLayout.SOUTH);
 		//
-		JMenuBar mbar = new JMenuBar();
+		mbar = new JMenuBar();
 		mbar.add(createDataMenu());
 		if (isFlagged(_ref)) {
 			mbar.add(createFlagMenu());
@@ -252,10 +255,11 @@ public class DataTableFrame extends DefaultFrame {
    *
    */
 	private JMenu createDataMenu() {
-		JMenu dataMenu = new JMenu("Data");
+		final JMenu dataMenu = new JMenu("Data");
 		JMenuItem showAsGraphItem = new JMenuItem("Show As Graph");
 		JMenuItem showFlagsItem = new JCheckBoxMenuItem("Show Flags",
 				isFlagged(_ref));
+		final JMenuItem addFlagsItem = new JMenuItem("Add Flags");
 		JMenuItem showStatsItem = new JMenuItem("Show Attributes & Stats");
 		JMenuItem editAttrItem = new JMenuItem("Edit Attributes");
 		JMenuItem editPathnameItem = new JMenuItem("Edit Pathname");
@@ -274,6 +278,9 @@ public class DataTableFrame extends DefaultFrame {
 		JMenuItem quitItem = new JMenuItem("Quit Window");
 		dataMenu.add(showAsGraphItem);
 		dataMenu.add(showFlagsItem);
+		if (!isFlagged(_ref)){
+			dataMenu.add(addFlagsItem);
+		}
 		dataMenu.add(showStatsItem);
 		dataMenu.add(editAttrItem);
 		dataMenu.add(editPathnameItem);
@@ -290,6 +297,15 @@ public class DataTableFrame extends DefaultFrame {
 		showFlagsItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				toggleFlagDisplay(evt);
+			}
+		});
+		addFlagsItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addFlags(e);
+				dataMenu.remove(addFlagsItem);
+				mbar.add(createFlagMenu());
 			}
 		});
 		showStatsItem.addActionListener(new ActionListener() {
@@ -427,6 +443,11 @@ public class DataTableFrame extends DefaultFrame {
 	 */
 	public void toggleFlagDisplay(ActionEvent evt) {
 		_table.toggleFlagDisplay();
+	}
+	
+	public void addFlags(ActionEvent e){
+		_ref.getData().addFlags();
+		toggleFlagDisplay(e);
 	}
 
 	/**
