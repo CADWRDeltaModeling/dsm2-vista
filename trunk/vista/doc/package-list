@@ -1,10 +1,3 @@
 com.ibm.util
-vista.app
-vista.db.dss
-vista.db.hdf5
-vista.db.jdbc.bdat
-vista.graph
 vista.gui
 vista.report
-vista.set
-vista.time
