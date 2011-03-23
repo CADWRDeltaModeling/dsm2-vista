@@ -146,12 +146,13 @@ public abstract class DataReference implements Comparable, Named, Serializable {
 		if (ref.getTimeInterval() == null)
 			return null; // a non-time series reference
 		TimeWindow newTW = null;
+		TimeWindow oldTW = ref.getTimeWindow();
 		// if irregular don't round window
 		if (ref.getPathname().getPart(Pathname.E_PART).indexOf("IR-") >= 0) {
-			newTW = ref.getTimeWindow().intersection(tw);
+			newTW = oldTW == null ? tw : oldTW.intersection(tw);
 		} else { // round of regular window to ceiling / floor (expanding time
 					// window)
-			newTW = ref.getTimeWindow().intersection(
+			newTW = oldTW == null ? tw : oldTW.intersection(
 					TimeFactory.createRoundedTimeWindow(tw, ref
 							.getTimeInterval()));
 		}

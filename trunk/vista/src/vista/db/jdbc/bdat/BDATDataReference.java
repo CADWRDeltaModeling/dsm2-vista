@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,6 +79,7 @@ public class BDATDataReference extends DataReference {
 			endDate = new Date();
 		}
 		this.endDate = endDate;
+		setName("BDAT: "+resultId);
 		Time st = TF.createTime(startDate);
 		Time et = TF.createTime(endDate);
 		TimeWindow timeWindow = null;
@@ -108,7 +110,10 @@ public class BDATDataReference extends DataReference {
 
 	@Override
 	protected DataReference createClone() {
-		return new BDATDataReference(this.connection, this.resultId);
+		return new BDATDataReference(this.connection, this.resultId, this.abbreviation,
+				this.constituentName, this.aggregateName, this.intervalName,
+				this.readingTypeName, this.rankName, this.probeDepth,
+				this.startDate, this.endDate);
 	}
 
 	@Override
@@ -138,6 +143,24 @@ public class BDATDataReference extends DataReference {
 		System.arraycopy(x, 0, nx, 0, x.length);
 		return nx;
 	}
+	
+	private double[] trim(double[] x, int size){
+		if (x==null){
+			return null;
+		}
+		double[] nx = new double[size];
+		System.arraycopy(x,0,nx,0,Math.min(size, x.length));
+		return nx;
+	}
+
+	private int[] trim(int[] x, int size){
+		if (x==null){
+			return null;
+		}
+		int[] nx = new int[size];
+		System.arraycopy(x,0,nx,0,Math.min(size, x.length));
+		return nx;
+	}
 	@Override
 	public void reloadData() {
 		if (dataset != null) {
@@ -156,19 +179,35 @@ public class BDATDataReference extends DataReference {
 		double[] y = new double[100000];
 		int[] flags = new int[100000];
 		Connection connection = null;
+		int index = 0;
+		Time startTime = null;
+		Time endTime = null;
+		ResultSet rs = null;
 		try {
 			connection=this.connection.getConnection();
 			PreparedStatement preparedStatement = connection
 					.prepareStatement("select * from emp_cms.emp_raw_result "
-							+ " where result_id=? order by time asc");
+							+ " where result_id=? "
+							+ (getTimeWindow()==null ? "" : "and time between ? and ?") 
+							+" order by time asc");
 			preparedStatement.setInt(1, this.resultId);
-			ResultSet rs = preparedStatement.executeQuery();
-			int index = 0;
+			if (getTimeWindow() != null){
+				Time st = getTimeWindow().getStartTime();
+				Time et = getTimeWindow().getEndTime();
+				preparedStatement.setTimestamp(2, new Timestamp(st.getDate().getTime()));
+				preparedStatement.setTimestamp(3, new Timestamp(et.getDate().getTime()));
+			}
+			rs = preparedStatement.executeQuery();
 			while (rs.next()) {
 				if (getTimeInterval() == null) {
 					// TODO: could this more efficient?
-					x[index] = TF.createTime(rs.getTime("time"))
+					x[index] = TF.createTime(rs.getTimestamp("time"))
 							.getTimeInMinutes();
+				}
+				if (index==0 && getTimeWindow()==null){
+					startTime = TF.createTime(rs.getTimestamp("time"));
+				} else {
+					endTime = TF.createTime(rs.getTimestamp("time"));
 				}
 				y[index] = rs.getDouble("value");
 				flags[index]=0;
@@ -191,6 +230,12 @@ public class BDATDataReference extends DataReference {
 					e.printStackTrace();
 				}
 			}
+		}
+		x=trim(x,index);
+		y=trim(y,index);
+		flags=trim(flags,index);
+		if (getTimeWindow() == null && startTime != null && endTime != null){
+			setTimeWindow(TF.createTimeWindow(startTime, endTime));
 		}
 		if (getTimeInterval() == null) {
 			DataSetAttr attr = new DataSetAttr(DataType.IRREGULAR_TIME_SERIES, "TIME", units, "", "INST-VAL");
