@@ -209,6 +209,9 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 		// set clip
 		if (_attributes._clipWithinBounds) {
 			Rectangle r = getDrawBounds();
+			if (DEBUG){
+				System.out.println("Setting clip for :"+this+" -> "+r);
+			}
 			_gc.setClip(r.x, r.y, r.width, r.height);
 		}
 		// set orientation ( future graphics )
@@ -239,8 +242,6 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 	 * restore state to previous state
 	 */
 	public void postDraw() {
-		// restore color, font and clip
-		uncacheGraphicsState(_gc);
 		// unset orientation ( future graphics )
 		if (GraphUtils.isJDK2() && _attributes._orientation == GEAttr.VERTICAL
 				&& _doRotate) {
@@ -258,6 +259,8 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 				throw new RuntimeException("Nested Exception: " + exc);
 			}
 		}
+		// restore color, font and clip
+		uncacheGraphicsState(_gc);
 	}
 
 	/**
@@ -286,7 +289,6 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 	 *            The region within which to draw
 	 */
 	public void draw(Rectangle r) {
-
 		setBounds(r);
 
 		draw();
@@ -723,6 +725,10 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 	protected final void cacheGraphicsState(Graphics g) {
 		_gcState._color = g.getColor();
 		_gcState._font = g.getFont();
+		if (DEBUG){
+			System.err.println(this+" Graphics: "+System.identityHashCode(g));
+			System.out.println("Clip bounds in cacheGraphicsState "+this+" -> "+g.getClipBounds());
+		}
 		_gcState._clip = g.getClipBounds();
 	}
 
@@ -732,9 +738,16 @@ public abstract class GraphicElement implements Drawable, Bounded, Cloneable,
 	protected final void uncacheGraphicsState(Graphics g) {
 		g.setColor(_gcState._color);
 		g.setFont(_gcState._font);
-		if (_gcState._clip != null)
+		if (DEBUG){
+			System.err.println(this+" Graphics: "+System.identityHashCode(g));
+		}
+		if (_gcState._clip != null){
 			g.setClip(_gcState._clip.x, _gcState._clip.y, _gcState._clip.width,
 					_gcState._clip.height);
+			if (DEBUG){
+				System.out.println("Setting clip in uncacheGraphicsState: "+this+" -> "+_gcState._clip);
+			}
+		}
 	}
 
 	/**

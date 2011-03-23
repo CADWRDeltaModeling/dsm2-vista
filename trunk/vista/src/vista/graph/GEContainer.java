@@ -245,6 +245,8 @@ public class GEContainer extends GraphicElement implements BoundedComposite,
 	 * order in which they are added (for now).
 	 */
 	public void Draw() {
+		if (DEBUG)
+			System.out.println("Clip Bounds: " + this+" -> "+getGraphics().getClipBounds());
 		/*
 		Rectangle bounds = getBounds();
 		getGraphics().setColor(Color.BLUE);
