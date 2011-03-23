@@ -55,7 +55,6 @@
 package vista.app;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.FileDialog;
 import java.awt.GridLayout;
@@ -69,10 +68,8 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -83,20 +80,14 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.TableModel;
-
-import com.sun.xml.internal.bind.v2.model.core.Ref;
 
 import vista.db.dss.DSSUtil;
 import vista.graph.Graph;
-import vista.gui.ExcelAdapter;
 import vista.gui.VistaUtils;
 import vista.set.DataReference;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.FlagUtils;
-import vista.set.Pathname;
 import vista.set.SetUtils;
 
 /**
