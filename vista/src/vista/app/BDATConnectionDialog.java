@@ -2,6 +2,10 @@ package vista.app;
 
 import java.awt.GridLayout;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.swing.JDialog;
@@ -44,9 +48,7 @@ public class BDATConnectionDialog {
 	private void initializeFields() {
 		// jdbc:oracle:thin:@grsbldbe00308.np.water.ca.gov:1522:orcl
 		Properties props = new Properties();
-		String propsFile = System.getProperty("user.home")
-				+ System.getProperty("file.separator")
-				+ "vista.jdbc.properties";
+		String propsFile = getPropsFilename();
 		try {
 			props.load(new FileInputStream(propsFile));
 		} catch (Exception ex) {
@@ -63,14 +65,28 @@ public class BDATConnectionDialog {
 		if (confirmDialogReturnValue == 0) {
 			Properties props = new Properties();
 			props.setProperty("db.user", userField.getText());
-			props.setProperty("db.password", new String(passwordField
-					.getPassword()));
 			props.setProperty("db.servername", serverField.getText());
 			props.setProperty("db.portnumber", portField.getText());
 			props.setProperty("db.databaseName", databaseField.getText());
+			try {
+				FileOutputStream fos = new FileOutputStream(getPropsFilename());
+				props.store(fos, ""+new Date());
+				fos.close();
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
+			// don't store password so added after save
+			props.setProperty("db.password", new String(passwordField
+					.getPassword()));
 			return new BDATConnection(props);
 		} else {
 			return null;
 		}
+	}
+	
+	private String getPropsFilename(){
+		return System.getProperty("user.home")
+		+ System.getProperty("file.separator")
+		+ "vista.jdbc.properties";
 	}
 }
