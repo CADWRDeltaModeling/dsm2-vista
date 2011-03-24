@@ -1,8 +1,8 @@
 import sys, os, shutil
-import vdss, vutils, vdisplay, vtimeseries, vdiff
+import vtimeseries, vdiff
 import js_data, js_data_list, compare_dss_utils
 import logging
-from shutil import rmtree, copytree
+from shutil import copytree
 class PlotType:
     TIME_SERIES="timeseries"
     EXCEEDANCE="exceedance"
@@ -37,7 +37,6 @@ def get_output_html(template_file):
     scalar_table = tables.getTableNamed("SCALAR")
     scalar_values = scalar_table.getValues()
     nscalars = scalar_values.size()
-    scalars = {}
     for i in range(nscalars):
         name = scalar_table.getValue(i, "NAME").encode('ascii')
         value = scalar_table.getValue(i, "VALUE").encode('ascii').replace('"','')
@@ -77,7 +76,6 @@ def parse_template_file(template_file):
     for name in output_values:
         ov.append(name[0].encode('ascii'))
     output_values = ov
-    timewindows = []
     timewindow_table = tables.getTableNamed("TIME_PERIODS")
     tw_values = timewindow_table.getValues();
     return globals, scalars, var_values, output_values, tw_values
@@ -91,7 +89,6 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     # obtain the new output list modified for *_ or _* cases
     output_values = compare_dss_utils.get_ref_list(compare_mode,dss_group0,dss_group1,output_values) 
     output_dir = scalars['OUTDIR'].replace('"','')
-    output_file = scalars['OUTFILE'].replace('"','')
     wyt_arr = write_wyt(output_dir, tw_values)  #write the water type JavaScript file
     #out_name = column(output_values,0)
     #out_type = column(output_values,1)
@@ -99,13 +96,11 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
         type_arr = compare_dss_utils.get_cpart_list(dss_group0)
     else:
         type_arr = compare_dss_utils.get_cpart_list(dss_group1)
-    len_group = len(dss_group1)
     if output_dir[-1]!='/': output_dir=output_dir+"/"
     time_windows = map(lambda val: val[1].replace('"',''), tw_values)
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
     dIndex = 0
     dataIndex = {}
-    fm = {}
     fs_davg = {}
     fs_dmax = {}
     fs_dmin = {}
@@ -115,11 +110,8 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     tbl_latlng = compare_dss_utils.lines2table(output_dir+"js/latlng.txt")
     fl = open(output_dir+"data/data_list.js",'w')
     for i in type_arr:
-        try:
-            initial_js
-        except:
-            initial_js = output_dir+"data/DSS_compare_spec_davg_"+i+".js"
-            initial_pretab = i
+        initial_js = output_dir+"data/DSS_compare_spec_davg_"+i+".js"
+        initial_pretab = i
         fs_davg[i] = open(output_dir+"data/DSS_compare_spec_davg_"+i+".js",'w')
         fs_dmax[i] = open(output_dir+"data/DSS_compare_spec_dmax_"+i+".js",'w')
         fs_dmin[i] = open(output_dir+"data/DSS_compare_spec_dmin_"+i+".js",'w')
@@ -151,6 +143,7 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
         refname = compare_dss_utils.get_not_sort_refname(refname,output_values)
         
     for name in refname:
+        ref0 = None; ref1 = None; ref2 = None
         try:
             series_name = compare_dss_utils.get_series_name(compare_mode,scalars,refvar[name])
         except Exception,e:
@@ -206,6 +199,10 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                             fs_dmax[cpart].write(",")
                         if dataIndex['spec_dmin_'+cpart]>1:
                             fs_dmin[cpart].write(",")
+                        if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
+                            dataIndex['spec_orig_'+cpart]=dataIndex['spec_orig_'+cpart]+1
+                            if dataIndex['spec_orig_'+cpart]>1:
+                                fs_orig[cpart].write(",")
                         ref0_davg = None; ref0_dmax = None; ref0_dmin = None; ref0_mavg = None
                         ref1_davg = None; ref1_dmax = None; ref1_dmin = None; ref1_mavg = None
                         ref2_davg = None; ref2_dmax = None; ref2_dmin = None; ref2_mavg = None
@@ -227,6 +224,8 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                         write_plot_data(fs_davg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_davg,ref1_davg,ref2_davg), dataIndex['spec_davg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Average')           
                         write_plot_data(fs_dmax[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmax,ref1_dmax,ref2_dmax), dataIndex['spec_dmax_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Maximum')           
                         write_plot_data(fs_dmin[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmin,ref1_dmin,ref2_dmin), dataIndex['spec_dmin_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Minimum')
+                        if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
+                            write_plot_data(fs_orig[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0,ref1,ref2), dataIndex['spec_orig_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Original Time Interval')
                            
                     if intv < 40000:
                         dataIndex['spec_mavg_'+cpart]=dataIndex['spec_mavg_'+cpart]+1
@@ -281,13 +280,7 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                     if  name in output_values:      
                         write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 1, diff_arr,latlng)
                     else:
-                        write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)
-                #if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
-                #    dataIndex['spec_orig_'+cpart]=dataIndex['spec_orig_'+cpart]+1
-                #    if dataIndex['spec_orig_'+cpart]>1:
-                #    fs_orig[cpart].write(",")
-                #    write_plot_data(fs_orig[cpart], build_data_array(ref1,ref2), dataIndex['spec_orig_'+cpart], "%s"%var_name, series_name, "%s(%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Original Time Interval')                    
-                #write_list_data(fl,p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)                
+                        write_list_data(fl,name, str_refvar, p.getPart(p.B_PART), cpart, 0, diff_arr,latlng)              
             else:
                 logging.debug("*** Please verify the path for "+name+" ***")               
 
@@ -372,13 +365,12 @@ def write_wyt(output_dir,tw_values):
     
     
 def write_summary_table(fh, dss_group1,dss_group2,globals,scalars,tw_values, var_values, output_values):
-    import vtimeseries
     compare_mode = globals['COMPARE_MODE']
     if compare_mode=='1': print >> fh, "<h1><center>Observation Time Series Report<br>Data Set: %s </center></h1>"%(scalars['NAME0'])
     if compare_mode=='2': print >> fh, "<h1><center>Model Output Time Series Report<br>Study Name: %s </center></h1>"%(scalars['NAME1'])
     if compare_mode=='3': print >> fh, "<h1><center>DSM2 Output Comparison Report<br> %s <n>vs</n> %s</center></h1>"%(scalars['NAME1'], scalars['NAME2'])
-    if compare_mode=='4': print >> fh, "<h1><center>Calibration Report<br> %s <n>vs</n> %s</center></h1>"%(scalars['NAME0'], scalars['NAME1'])
-    if compare_mode=='5': print >> fh, "<h1><center>Calibration Report<br>[ %s <n>vs</n> %s ] <n> & </n> [ %s <n>vs</n> %s ]</center></h1>"%(scalars['NAME0'],scalars['NAME1'], scalars['NAME0'],scalars['NAME2'])
+    if compare_mode=='4': print >> fh, "<h1><center>Calibration Report<br> %s <n>vs</n> %s</center></h1>"%(scalars['NAME1'], scalars['NAME0'])
+    if compare_mode=='5': print >> fh, "<h1><center>Calibration Report<br>[ %s <n>vs</n> %s ] <n> & </n> [ %s <n>vs</n> %s ]</center></h1>"%(scalars['NAME1'],scalars['NAME0'], scalars['NAME2'],scalars['NAME0'])
     print >> fh, '<div id="note">Note: %s</div>'%(scalars['NOTE'].replace('"',''))
     print >> fh, '<div id="assumptions">Assumptions: %s</div>'%(scalars['ASSUMPTIONS'].replace('"',''))   
     print >> fh, """<div id="control-panel"> 
@@ -450,7 +442,6 @@ Table Statistics: <select name="stat" id="stat" onChange="">
     else:    
         part_c = compare_dss_utils.get_cpart_list(dss_group1)
     for type_item in part_c:
-        part_b = compare_dss_utils.get_bpart_list(dss_group1,type_item)
         print >> fh, '<div class="tabbertab" id="%s"><h2>%s</h2><p id="%s_p">'%(type_item,type_item,type_item)
         print >> fh, '</p></div>'
     print >> fh, '</div>'
@@ -528,11 +519,15 @@ def write_js_block(fh,globals,scalars):
        $("#"+dt_arr[i]+"_p").append('<a href="#" onClick="clear_and_draw(extract_date(to_date_comma($(\\'#SDate\\').val())),extract_date(to_date_comma($(\\'#EDate\\').val())));" onMouseover="this.style.background=\\'#C8F526\\'" onMouseout="this.style.background=\\'\\'"><img src="js/chart.JPG" width="20px" height="19px"> Show the time series plots</a><br>');
        wyt_txt=["Wet","Above Normal","Below Normal","Dry","Critical"];        
 """
+    display_name = []
     if (globals['COMPARE_MODE']!='1' and globals['COMPARE_MODE']!='2'):
+        if globals['COMPARE_MODE']=='3': display_name = [scalars['NAME2'],scalars['NAME1'],scalars['NAME2'],scalars['NAME1']]
+        if globals['COMPARE_MODE']=='4': display_name = [scalars['NAME1'],scalars['NAME0'],scalars['NAME1'],scalars['NAME0']]
+        if globals['COMPARE_MODE']=='5': display_name = [scalars['NAME1']+'/'+scalars['NAME2'],scalars['NAME0'],scalars['NAME1']+'/'+scalars['NAME2'],scalars['NAME0']]
         print >> fh, """
            tbl_head='<table class="alt-highlight" id="tbl_sel'+i+'" style="border-bottom-style: hidden;"><tr><th colspan=9>DSM2 Output Comparison - RMSE Statistics (<a href="#" onClick="initialize(this)"> View Map </a>)<br>This is calculated from the original time series in dss file based on its output time interval.'
            tbl_head+='<br><img src="js/up.png" align=middle> : %s is higher than %s; <img src="js/down.png" align=middle> : %s is lower than %s';
-    """%(scalars['NAME2'],scalars['NAME1'],scalars['NAME2'],scalars['NAME1'])
+    """%(display_name[0],display_name[1],display_name[2],display_name[3])
         print >> fh,"""
        legend='Percentage RMS Diff<br>';    
        legend+='<img src="js/icon16.png" width="33%">: > 100% <br><img src="js/icon16.png" width="27%">: 80% - 100% <br><img src="js/icon16.png" width="23%">: 60% - 80% <br><img src="js/icon16.png" width="19%">: 40% - 60% <br><img src="js/icon16.png" width="16%">: 20% - 40% <br><img src="js/icon16.png" width="11%">: 10% - 20% <br><img src="js/icon16.png" width="7%">: 0% - 10% <br>';

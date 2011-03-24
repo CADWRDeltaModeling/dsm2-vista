@@ -3,14 +3,14 @@ import xyz
 from xyz import *
 
 def select_distinct_int(input_arr):
-  output_arr = []
-  tmp_arr = []
-  for x in input_arr:
-    if x not in tmp_arr:
-      tmp_arr.append(x)
-      output_arr.append(int(x))
-  output_arr.sort()
-  return output_arr
+    output_arr = []
+    tmp_arr = []
+    for x in input_arr:
+        if x not in tmp_arr:
+            tmp_arr.append(x)
+            output_arr.append(int(x))
+    output_arr.sort()
+    return output_arr
 
 if __name__ == '__main__':
     script_path = str(os.getcwd()).replace("\\bin","\\scripts\\dsm2_reporting_tool")
