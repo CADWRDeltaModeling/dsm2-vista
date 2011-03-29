@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import vista.app.DataGraph;
+import vista.app.DataGraphFrame;
 import vista.app.DefaultGraphBuilder;
 import vista.graph.Curve;
 import vista.graph.GECanvas;
@@ -34,7 +34,7 @@ public class TestZoomGraph {
 		graphs[0].setBackgroundColor(Color.white);
 		final Curve curve = graphs[0].getPlot().getCurve(0);
 		GECanvas canvas = new GECanvas(graphs[0]);
-		final DataGraph fr = new DataGraph(graphs[0], "Test Zoom");
+		final DataGraphFrame fr = new DataGraphFrame(graphs[0], "Test Zoom");
 		fr.pack();
 		fr.setVisible(true);
 		fr.addWindowListener(new WindowAdapter() {

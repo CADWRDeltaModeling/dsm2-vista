@@ -55,7 +55,7 @@
  */
 package vista.app.commands;
 
-import vista.app.DataGraph;
+import vista.app.DataGraphFrame;
 import vista.app.GraphBuilder;
 import vista.app.GraphBuilder2;
 import vista.graph.Graph;
@@ -97,7 +97,7 @@ public class GraphDataCommand2 implements Command {
 		Graph[] graphs = gb.createGraphs();
 		if (graphs != null || graphs.length > 0) {
 			for (int i = 0; i < graphs.length; i++) {
-				new DataGraph(graphs[i], "Graph").setVisible(true);
+				new DataGraphFrame(graphs[i], "Graph").setVisible(true);
 			}
 		}
 	}

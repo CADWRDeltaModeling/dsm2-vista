@@ -36,7 +36,7 @@ def simple_plot(x,y,
     graph = Graph()
     graph.add(pl)
     graph.setTitle("")
-    dg = DataGraph(graph,'',0)
+    dg = DataGraphFrame(graph,'',0)
     dg.setLocation(100,100)
     dg.setVisible(1)
     dg.setSize(600,400)

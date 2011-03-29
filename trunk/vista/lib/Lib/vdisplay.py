@@ -1,4 +1,4 @@
-from vista.app import DataGraph, DataTableFrame, MultiDataTableFrame, GroupFrame, \
+from vista.app import DataGraphFrame, DataTableFrame, MultiDataTableFrame, GroupFrame, \
      SessionFrame, DefaultGraphBuilder, CurveFactory
 from vista.graph import GECanvas, GraphUtils, SymbolFactory, \
      Graph, GraphAttr, Plot, PlotAttr, \
@@ -64,7 +64,7 @@ def plot(*reflist) :
 	else:
 	    gb.addData(ref)
     graphs=gb.createGraphs()
-    for graph in graphs: DataGraph(graph,"Graph")
+    for graph in graphs: DataGraphFrame(graph,"Graph")
 #
 #
 # define function to graph a given set of data references.
@@ -78,7 +78,7 @@ def scatterplot(refx, refy) :
     refxy = ProxyFactory.createPairedTimeSeriesProxy(refx,refy)
     gb = DefaultGraphBuilder(); gb.addData(refxy);
     graphs = gb.createGraphs();
-    DataGraph(graphs[0],'Scatter Plot')
+    DataGraphFrame(graphs[0],'Scatter Plot')
 #
 def xyplot(x,y,
            xlabel="x axis", ylabel="y axis", title = "title",
@@ -132,7 +132,7 @@ def simple_plot(x,y,
     graph = Graph()
     graph.add(pl)
     graph.setTitle("")
-    dg = DataGraph(graph,'',0)
+    dg = DataGraphFrame(graph,'',0)
     dg.setLocation(100,100)
     dg.setVisible(1)
     dg.setSize(600,400)

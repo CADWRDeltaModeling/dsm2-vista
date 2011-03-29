@@ -1,6 +1,6 @@
 package vista.app;
 import junit.framework.TestCase;
-import vista.app.DataGraph;
+import vista.app.DataGraphFrame;
 import vista.app.DefaultGraphBuilder;
 import vista.app.MultiDataTableFrame;
 import vista.db.dss.DSSUtil;
@@ -74,7 +74,7 @@ public class TestMerging extends TestCase {
 		Graph[] graphs = createGraphs(DSSUtil.createDataReference("", "", rts1.getName(), rts1),DSSUtil.createDataReference("", "", rts2.getName(), rts2));
 		assertNotNull(graphs);
 		assertEquals(1, graphs.length);
-		DataGraph graph = new DataGraph(graphs[0], true);
-		graph.getCanvas();
+		DataGraphFrame graph = new DataGraphFrame(graphs[0], true);
+		graph.getBounds();
 	}
 }
