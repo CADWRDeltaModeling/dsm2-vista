@@ -296,7 +296,7 @@ def plotStation(standx,tw_all):
     for plot in plotList: mp.add(plot)
     graph = Graph()                     # a blank frame
     graph.add(mp)                       # add plots to frame
-    graph_frame = DataGraph(graph,'DSM2-Hydro ' + label,0)
+    graph_frame = DataGraphFrame(graph,'DSM2-Hydro ' + label,0)
     graph_frame.setLocation(screen.width/3,10) # upper left hand corner of desktop 
     graph_frame.setSize(plot_width,plot_height) # pixels wide by pixels high
     graph_frame.show()

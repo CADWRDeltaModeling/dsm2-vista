@@ -425,7 +425,7 @@ public class DataTableFrame extends DefaultFrame {
 			GraphBuilder gb = new DefaultGraphBuilder();
 			gb.addData(_ref);
 			Graph[] graphs = gb.createGraphs();
-			_graphFrame = new DataGraph(graphs[0], _ref.getName());
+			_graphFrame = new DataGraphFrame(graphs[0], _ref.getName());
 		}
 	}
 
@@ -555,7 +555,7 @@ public class DataTableFrame extends DefaultFrame {
 	/**
 	 * the graph fram
 	 */
-	private DataGraph _graphFrame;
+	private DataGraphFrame _graphFrame;
 	/**
 	 * the data reference containing the data
 	 */

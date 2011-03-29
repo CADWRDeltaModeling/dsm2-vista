@@ -68,7 +68,7 @@ plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Node Numbers");
 plot.getAxis(AxisAttr.LEFT).setAxisLabel("Stage Amplitude");
 graph = Graph(); graph.add(plot);
 
-dg=DataGraph(graph,0);
+dg=DataGraphFrame(graph,0);
 dg.setTitle('STAGE PROFILES');
 dg.setLocation(0,0); dg.setSize(600,400);
 dg.setVisible(1);

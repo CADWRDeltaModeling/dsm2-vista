@@ -237,9 +237,13 @@ public class ZoomInteractor extends ElementInteractor {
 	 */
 	public ZoomInteractor(ElementContext gC) {
 		_gC = gC;
+	}
+
+	public void addZoomControlToolbar(JFrame fr) {
 		JToolBar tb = new JToolBar();
 		tb.setFloatable(false);
 		tb.setFocusable(false);
+
 		zob = new JButton(new ImageIcon(getClass().getResource(
 				"/vista/images/zoom-out-icon.png")));
 		zob.setToolTipText("Zoom Out");
@@ -251,11 +255,11 @@ public class ZoomInteractor extends ElementInteractor {
 		});
 		//
 
-		AbstractAction leftPageAction = new PagingAction(this,AxisAttr.LEFT);
-		AbstractAction rightPageAction = new PagingAction(this,AxisAttr.RIGHT);
-		AbstractAction upPageAction = new PagingAction(this,AxisAttr.TOP);
-		AbstractAction downPageAction = new PagingAction(this,AxisAttr.BOTTOM);
-		AbstractAction homePageAction = new PagingAction(this,-1);
+		PagingAction leftPageAction = new PagingAction(this, AxisAttr.LEFT);
+		PagingAction rightPageAction = new PagingAction(this, AxisAttr.RIGHT);
+		PagingAction upPageAction = new PagingAction(this, AxisAttr.TOP);
+		PagingAction downPageAction = new PagingAction(this, AxisAttr.BOTTOM);
+		PagingAction homePageAction = new PagingAction(this, -1);
 		pagingPanel = new JPanel();
 		pagingPanel.setLayout(null);
 		upButton = new JButton(upPageAction);
@@ -274,51 +278,38 @@ public class ZoomInteractor extends ElementInteractor {
 		pagingPanel.add(rightButton);
 		pagingPanel.add(leftButton);
 		pagingPanel.add(centerButton);
-		pagingPanel.setSize(s * 3, s * 3);
+		pagingPanel.setSize(s * 4, s * 4);
 		setPagingMode(true);
+
+		setZoomOutPagingEnabled(false);
 		tb.add(zob);
 		tb.add(pagingPanel);
-		setZoomOutPagingEnabled(false);
-		Frame fr = JOptionPane.getFrameForComponent((Component) _gC);
-		if (fr instanceof GraphFrameInterface)
-			((GraphFrameInterface) fr).addToolBar(tb);
-		else {
-			if (fr instanceof JFrame) {
-				JPanel mainPanel = new JPanel();
-				mainPanel.setLayout(new BorderLayout());
-				mainPanel.add((Component) _gC, BorderLayout.CENTER);
-				JFrame jframe = (JFrame) fr;
-				jframe.getContentPane().removeAll();
-				jframe.getContentPane().add(tb, BorderLayout.NORTH);
-				jframe.getContentPane().add(mainPanel, BorderLayout.CENTER);
-			}
-		}
-		if (fr instanceof JFrame) {
-			Container contentPane = ((JFrame) fr).getContentPane();
-			if (contentPane instanceof JPanel) {
-				JPanel mainPanel = (JPanel) contentPane;
-				InputMap inputMap = mainPanel
-						.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-						KeyEvent.VK_LEFT + "");
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-						KeyEvent.VK_RIGHT + "");
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-						KeyEvent.VK_UP + "");
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-						KeyEvent.VK_DOWN + "");
-				inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-						KeyEvent.VK_HOME + "");
-				//
-				ActionMap actionMap = mainPanel.getActionMap();
-				actionMap.put(KeyEvent.VK_LEFT + "", leftPageAction);
-				actionMap.put(KeyEvent.VK_RIGHT + "", rightPageAction);
-				actionMap.put(KeyEvent.VK_UP + "", upPageAction);
-				actionMap.put(KeyEvent.VK_DOWN + "", downPageAction);
-				actionMap.put(KeyEvent.VK_HOME + "", homePageAction);
-			}
 
+		Container contentPane = fr.getContentPane();
+		if (contentPane instanceof JPanel) {
+			JPanel mainPanel = (JPanel) contentPane;
+			InputMap inputMap = mainPanel
+					.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+					KeyEvent.VK_LEFT + "");
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+					KeyEvent.VK_RIGHT + "");
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+					KeyEvent.VK_UP + "");
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+					KeyEvent.VK_DOWN + "");
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+					KeyEvent.VK_HOME + "");
+			//
+			ActionMap actionMap = mainPanel.getActionMap();
+			actionMap.put(KeyEvent.VK_LEFT + "", leftPageAction);
+			actionMap.put(KeyEvent.VK_RIGHT + "", rightPageAction);
+			actionMap.put(KeyEvent.VK_UP + "", upPageAction);
+			actionMap.put(KeyEvent.VK_DOWN + "", downPageAction);
+			actionMap.put(KeyEvent.VK_HOME + "", homePageAction);
 		}
+
+		contentPane.add(tb, BorderLayout.NORTH);
 	}
 
 	public Object getMnemonicKey() {

@@ -280,13 +280,13 @@ def do3plots(plotfile='plots.data',ppg=3,diffplot=0,together=0):
 	#pl.getLayout().setScaleComponents(0)
 	# finally if we have enough plots lets make a frame
 	if (count%(ppg*cpg) == 0 ) :
-	    dg=DataGraph(graph,'plot',0)
+	    dg=DataGraphFrame(graph,'plot',0)
 	    dg.setLocation(100,100);
 	    dg.setSize(width,height);
 	    dg.setVisible(1)
     #do the last one after loop
     if ( count%(ppg*cpg) != 0 ) and ppg != 1:
-	dg=DataGraph(graph,'plot',0)
+	dg=DataGraphFrame(graph,'plot',0)
 	dg.setLocation(100,100)
 	dg.setSize(width,height)
 	dg.setVisible(1)

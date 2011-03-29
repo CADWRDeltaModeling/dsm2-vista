@@ -78,5 +78,5 @@ graph = Graph()
 # add the multiplot object to the graph
 graph.add(mp)
 # display the graph in a frame...
-dg = DataGraph(graph,'Test Graph')
+dg = DataGraphFrame(graph,'Test Graph')
 #

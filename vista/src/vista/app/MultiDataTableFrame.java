@@ -303,7 +303,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 				gb.addData(_refs[i]);
 			Graph[] graphs = gb.createGraphs();
 			for (int i = 0; i < graphs.length; i++)
-				_graphFrame = new DataGraph(graphs[0], "");
+				_graphFrame = new DataGraphFrame(graphs[0], "");
 		}
 	}
 
@@ -387,7 +387,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 	/**
 	 * the graph fram
 	 */
-	private DataGraph _graphFrame;
+	private DataGraphFrame _graphFrame;
 	/**
 	 * the data set table model
 	 */

@@ -654,7 +654,7 @@ public class GroupTable extends JPanel implements RowMovable, View {
 					Graph[] graphs = _graphBuilder.createGraphs();
 					if (graphs != null && graphs.length > 0) {
 						for (int i = 0; i < graphs.length; i++) {
-							new DataGraph(graphs[i], "Graph").setVisible(true);
+							new DataGraphFrame(graphs[i], "Graph").setVisible(true);
 						}
 					}
 				} catch (Exception e) {
