@@ -1,5 +1,5 @@
 <wiki:toc max_depth="1" />
-#sidebar TableOfContents 
+#sidebar CompareDSS
 
 = Introduction =
 This tool automates the comparison process and produces report to share with others. It reduces duplicate effort for routine procedures, avoids human operation errors, and provides a systematic way for result comparison. The tool reads DSS files and generates a HTML report based on instructions in a configuration file. There are five modes available for output options. They are 1) observed data only 2) modeled data only 3) two model comparison 4) calibration and 5) calibration comparison for two model outputs. The interactive time series plot gives users the options to adjust time windows, overlay water year types and view the differences. 
