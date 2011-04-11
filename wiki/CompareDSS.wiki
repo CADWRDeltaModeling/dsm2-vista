@@ -15,11 +15,11 @@ This tool automates the comparison process and produces report to share with oth
 Here is the instruction for how to prepare the configuration file.<br>
 There are 5 blocks inside the configuration file. They are:
 {{{
- * GLOBAL_CONTROL
- * SCALAR
- * VARIABLE
- * OUTPUT
- * TIME_PERIODS
+  * GLOBAL_CONTROL
+  * SCALAR
+  * VARIABLE
+  * OUTPUT
+  * TIME_PERIODS
 }}}
 
 == GLOBAL_CONTROL ==
