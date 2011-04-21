@@ -165,7 +165,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 				- new File(dssFile).lastModified();
 		if (doFreshCatalog
 				|| ((!new File(catalogFile).exists()) || Math
-						.abs(timeDifference) > 10)) {
+						.abs(timeDifference) < 10)) {
 			try {
 				_dataReader.generateCatalog(dssFile);
 				// as dss calls zclose on dss file last, the file gets
