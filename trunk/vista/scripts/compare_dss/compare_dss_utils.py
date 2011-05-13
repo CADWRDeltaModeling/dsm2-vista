@@ -74,8 +74,18 @@ def cfs2taf(data):
     TSMath.cfs2taf(data_taf)
     return data_taf
 
+def chk_cpart_space(str_arr):
+    for i in str_arr:
+        if i.find(" ")>=0:
+            logging.warning("*******************************************************************************************************************")
+            logging.warning("Time series with C PART '"+i+"' will not be displayed. Please replace space in PART C with other valid characters.")
+            logging.warning("*******************************************************************************************************************")
+
 def column(matrix, i):
     return [row[i] for row in matrix]
+
+def fill_space_w_bar(str_orig):
+    return str_orig.replace(" ","_")
 
 def format_timewindow(tw):
     from vista.time import SubTimeFormat

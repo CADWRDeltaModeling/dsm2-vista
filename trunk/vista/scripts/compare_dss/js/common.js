@@ -1,4 +1,32 @@
 
+
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function(elt /*, from*/){
+          var len = this.length;
+          var from = Number(arguments[1]) || 0;
+          from = (from < 0) ? Math.ceil(from): Math.floor(from);
+          if (from < 0)
+               from += len;
+          for (; from < len; from++){
+            if (from in this && this[from] === elt)
+                return from;
+          }
+          return -1;
+        };
+    }
+
+    function getInternetExplorerVersion()
+    {
+      var rv = -1; // Return value assumes failure.
+      if (navigator.appName == 'Microsoft Internet Explorer'){
+         var ua = navigator.userAgent;
+         var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+         if (re.exec(ua) != null)
+           rv = parseFloat( RegExp.$1 );
+    }
+    return rv;
+    }
+
     function roll_over(img_name, img_src) {document[img_name].src = img_src;}
 
     /* to replace the data JavaScript file */

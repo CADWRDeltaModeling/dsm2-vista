@@ -74,7 +74,7 @@ def parse_template_file(template_file):
     output_values = output_table.getValues()
     ov = []
     for name in output_values:
-        ov.append(name[0].encode('ascii'))
+        ov.append(name[0].encode('ascii').replace('"',''))
     output_values = ov
     timewindow_table = tables.getTableNamed("TIME_PERIODS")
     tw_values = timewindow_table.getValues();
@@ -96,6 +96,7 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
         type_arr = compare_dss_utils.get_cpart_list(dss_group0)
     else:
         type_arr = compare_dss_utils.get_cpart_list(dss_group1)
+    compare_dss_utils.chk_cpart_space(type_arr)
     if output_dir[-1]!='/': output_dir=output_dir+"/"
     time_windows = map(lambda val: val[1].replace('"',''), tw_values)
     tws = map(lambda x: vtimeseries.timewindow(x), time_windows)
@@ -189,6 +190,9 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
             if conti == 0: 
                 cpart = p.getPart(p.C_PART).encode('ascii')
                 if name in output_values:  
+                    ref0_davg = None; ref0_dmax = None; ref0_dmin = None; ref0_mavg = None
+                    ref1_davg = None; ref1_dmax = None; ref1_dmin = None; ref1_mavg = None
+                    ref2_davg = None; ref2_dmax = None; ref2_dmin = None; ref2_mavg = None                    
                     if intv < 1000:
                         dataIndex['spec_davg_'+cpart]=dataIndex['spec_davg_'+cpart]+1
                         dataIndex['spec_dmax_'+cpart]=dataIndex['spec_dmax_'+cpart]+1
@@ -199,13 +203,6 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                             fs_dmax[cpart].write(",")
                         if dataIndex['spec_dmin_'+cpart]>1:
                             fs_dmin[cpart].write(",")
-                        if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
-                            dataIndex['spec_orig_'+cpart]=dataIndex['spec_orig_'+cpart]+1
-                            if dataIndex['spec_orig_'+cpart]>1:
-                                fs_orig[cpart].write(",")
-                        ref0_davg = None; ref0_dmax = None; ref0_dmin = None; ref0_mavg = None
-                        ref1_davg = None; ref1_dmax = None; ref1_dmin = None; ref1_mavg = None
-                        ref2_davg = None; ref2_dmax = None; ref2_dmin = None; ref2_mavg = None
                         if compare_mode=='1' or compare_mode=='4' or compare_mode=='5':    
                             ref0_godin = vtimeseries.godin(ref0)
                             ref0_davg = vtimeseries.per_avg(ref0_godin,'1day')
@@ -224,8 +221,17 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
                         write_plot_data(fs_davg[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_davg,ref1_davg,ref2_davg), dataIndex['spec_davg_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Average')           
                         write_plot_data(fs_dmax[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmax,ref1_dmax,ref2_dmax), dataIndex['spec_dmax_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Maximum')           
                         write_plot_data(fs_dmin[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0_dmin,ref1_dmin,ref2_dmin), dataIndex['spec_dmin_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Daily Minimum')
-                        if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
-                            write_plot_data(fs_orig[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0,ref1,ref2), dataIndex['spec_orig_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Original Time Interval')
+                    elif globals['DEFAULT_TIME_INTERVAL']=='1DAY':
+                        ref0_davg = ref0; ref0_dmax = ref0; ref0_dmin = ref0
+                        ref1_davg = ref1; ref1_dmax = ref1; ref1_dmin = ref1
+                        ref2_davg = ref2; ref2_dmax = ref2; ref2_dmin = ref2
+                    elif globals['DEFAULT_TIME_INTERVAL']=='1MON':
+                        ref2_mavg = ref2; ref2_mmax = ref2; ref2_mmin = ref2
+                    if globals['PLOT_ORIGINAL_TIME_INTERVAL']=='ON':
+                        dataIndex['spec_orig_'+cpart]=dataIndex['spec_orig_'+cpart]+1
+                        if dataIndex['spec_orig_'+cpart]>1:
+                            fs_orig[cpart].write(",")        
+                        write_plot_data(fs_orig[cpart], compare_mode, name, str_refvar, compare_dss_utils.build_data_array(ref0,ref1,ref2), dataIndex['spec_orig_'+cpart], "%s"%var_name, series_name, "%s (%s)"%(data_type,data_units), "Time", PlotType.TIME_SERIES, cpart,'Original Time Interval')
                            
                     if intv < 40000:
                         dataIndex['spec_mavg_'+cpart]=dataIndex['spec_mavg_'+cpart]+1
@@ -305,6 +311,7 @@ def do_processing(globals, scalars, var_values, output_values, tw_values):
     print >> fh, """ 
 <html>
 <head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
 <title>DSM2 Report: %s vs %s</title>
 <script type="text/javascript" src="%s"></script>
 <script type="text/javascript" src="js/wateryr.js"></script>
@@ -327,6 +334,24 @@ var pre_tab="%s";
 var pre_period="davg";
 </script>
 </head><body onunload="GUnload()"><a href="#top"></a>
+ <!--[if IE]>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+    <style>
+     .chromeFrameInstallDefaultStyle {
+       border: 5px solid blue;
+     }
+    </style>
+  <script>
+  function install_gcf() {
+      CFInstall.check({
+        mode: "overlay",
+        node: "prompt"
+      });
+      return false;
+     }
+     window.attachEvent("onload", install_gcf);
+  </script>
+  <![endif]-->
 """%(scalars['NAME1'],scalars['NAME2'],initial_js,initial_pretab)
     tws = write_summary_table(fh,dss_group1, dss_group2, globals, scalars, tw_values, var_values, output_values)
     if globals['CALCULATE_SPECIFIED_RMSE_ONLY']=='ON':
@@ -567,7 +592,9 @@ def write_js_block(fh,globals,scalars):
          for(j=0;j<ns;j++){
           if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='1'){ k1++;
             tbl_sel[z]+='<tr class="d'+k1%2+'"><td><a href="#fig_'+ data_list[j].output+'" title="'+data_list[j].refvar+'">'+data_list[j].output+'</a></td>'
-            for(k=0;k<(data_list[j].diff).length;k++){           
+            ndiff = data_list[j].diff.length;
+            if (getInternetExplorerVersion() > -1) ndiff = ndiff-1;
+            for(k=0; k<ndiff; k++){           
                if(z==0) va=data_list[j].diff[k].perc_rmse;
                if(z==1) va=data_list[j].diff[k].rmse;
                tbl_sel[z]+='</td><td>'+Math.abs(va);
@@ -589,7 +616,9 @@ def write_js_block(fh,globals,scalars):
           }
           if(data_list[j].data_type==dt_arr[i] && data_list[j].checked=='0'){ k2++;
             tbl_unsel[z]+='<tr class="d'+k2%2+'"><td width=180>'+data_list[j].output+'</td>';
-            for(k=0;k<(data_list[j].diff).length;k++){
+            ndiff = data_list[j].diff.length;
+            if (getInternetExplorerVersion() > -1) ndiff = ndiff-1;
+            for(k=0; k<ndiff; k++){
                if(z==0) va=data_list[j].diff[k].perc_rmse;               
                if(z==1) va=data_list[j].diff[k].rmse;               
                tbl_unsel[z]+='</td><td>'+Math.abs(va);
