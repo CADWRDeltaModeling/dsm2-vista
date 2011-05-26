@@ -73,24 +73,38 @@ import vista.set.DataType;
  * @version $Id: DSSDataReader.java,v 1.1 2003/10/02 20:48:44 redwood Exp $
  */
 public class DSSDataReader {
+
+	private int[] ifltab;
+
 	/**
    *
    */
 	public DSSDataReader() {
 	}
 
+	public void open(String dssFile) {
+		ifltab = DSSUtil.openDSSFile(dssFile, false);
+		;
+	}
+
+	public void close() {
+		DSSUtil.closeDSSFile(ifltab);
+		ifltab = null;
+	}
+
 	/**
 	 * generates a catalog for this dss file
 	 */
 	public void generateCatalog(String dssFile) {
-		int[] ifltab = DSSUtil.openDSSFile(dssFile, false);
+		if (ifltab == null) {
+			open(dssFile);
+		}
 		int[] numberFound = new int[] { -1 };// way to indicate to create new
 		// catalog
 		int[] catalogUnit = new int[1];
 		Heclib.makedsscatalog(dssFile, ifltab, "NEW COND", numberFound,
 				catalogUnit);
 		Heclib.closescratchdsscatalog(catalogUnit);
-		DSSUtil.closeDSSFile(ifltab);
 	}
 
 	/**
@@ -192,23 +206,20 @@ public class DSSDataReader {
 	 * returns an integer for the type of record contained in the pathname
 	 */
 	private synchronized int getRecordType(String dssFile, String pathname) {
-		int[] ifltab = null;
-		try {
-			ifltab = DSSUtil.openDSSFile(dssFile, false);
-			int[] checkedNumber = new int[] { 0 };
-			stringContainer type = new stringContainer();
-			int[] dataType = new int[] { 0 };
-			int[] existsInt = new int[] { 0 };
-			Heclib.zdtype(ifltab, pathname, checkedNumber, existsInt, type,
-					dataType);
-			if (existsInt[0] == 0) {
-				throw new RuntimeException(" ** The pathname: " + pathname
-						+ " does not exist in file: " + dssFile);
-			}
-			return dataType[0];
-		} finally {
-			DSSUtil.closeDSSFile(ifltab);
+		if (ifltab == null) {
+			open(dssFile);
 		}
+		int[] checkedNumber = new int[] { 0 };
+		stringContainer type = new stringContainer();
+		int[] dataType = new int[] { 0 };
+		int[] existsInt = new int[] { 0 };
+		Heclib.zdtype(ifltab, pathname, checkedNumber, existsInt, type,
+				dataType);
+		if (existsInt[0] == 0) {
+			throw new RuntimeException(" ** The pathname: " + pathname
+					+ " does not exist in file: " + dssFile);
+		}
+		return dataType[0];
 	}
 
 	/**
@@ -220,7 +231,9 @@ public class DSSDataReader {
 	private synchronized int retrieveRegularTimeSeries(String dssFile,
 			String pathname, long startJulmin, long endJulmin,
 			boolean retrieveFlags, DSSData data) {
-		int[] ifltab = DSSUtil.openDSSFile(dssFile, false);
+		if (ifltab == null) {
+			open(dssFile);
+		}
 		int nvals = getNumberOfValuesInInterval(startJulmin, endJulmin,
 				pathname);
 		int idate = (int) startJulmin / 1440;
@@ -251,7 +264,6 @@ public class DSSDataReader {
 		Heclib.zrrtsxd(ifltab, pathname, cdate, ctime.toString(), nvals,
 				values, flags, readFlags, flagsWereRead, units, type, userHead,
 				maxUserHead, numberHeadRead, offset, compression, istat);
-		DSSUtil.closeDSSFile(ifltab);
 		if (istat[0] <= 5) {
 			data._dataType = DSSUtil.REGULAR_TIME_SERIES;
 			data._numberRead = nvals;
@@ -302,71 +314,67 @@ public class DSSDataReader {
 	private synchronized int retrieveIrregularTimeSeries(String dssFile,
 			String pathname, long startJulmin, long endJulmin,
 			boolean retrieveFlags, DSSData data) {
-		int[] ifltab = null;
-		try {
-			ifltab = DSSUtil.openDSSFile(dssFile, false);
-			int startJulian = (int) startJulmin / 1440;
-			int startTime = (int) startJulmin % 1440;
-			int endJulian = (int) endJulmin / 1440;
-			int endTime = (int) endJulmin % 1440;
-			int MAX_VALUES = 10000;
-			int[] timeBuffer = null;
-			int[] flags = null;
-			double[] dataValues = null;
-			int dataSize = MAX_VALUES;
-			int[] numberRead = new int[1];
-			int[] beginJulian = new int[1];
-			int readFlags = retrieveFlags ? 1 : 0;
-			int[] flagsRead = new int[1];
-			int[] status = { 1 }; // just to get into the first loop
-			stringContainer units = new stringContainer();
-			stringContainer type = new stringContainer();
-			int ntries = 0;
-			while (status[0] == 1 && ntries < 3) {
-				MAX_VALUES = 5*MAX_VALUES;
-				timeBuffer = new int[MAX_VALUES];
-				flags = new int[MAX_VALUES];
-				dataValues = new double[MAX_VALUES];
-				dataSize = MAX_VALUES;
-				ntries++;
-				int maxUserHead = 100;
-				int[] userHead = new int[maxUserHead];
-				int[] numberHeadRead = new int[1];
-				int inflag = 0;
-				Heclib.zritsxd(ifltab, pathname, startJulian, startTime,
-						endJulian, endTime, timeBuffer, dataValues, dataSize,
-						numberRead, beginJulian, flags, readFlags, flagsRead,
-						units, type, userHead, maxUserHead, numberHeadRead,
-						inflag, status);
-			}
-			if (status[0] == 0) {
-				data._dataType = DSSUtil.IRREGULAR_TIME_SERIES;
-				data._numberRead = numberRead[0];
-				double[] xValues = new double[data._numberRead];
-				for (int i = 0; i < data._numberRead; i++) {
-					xValues[i] = timeBuffer[i] + beginJulian[0]*1440;
-				}
-				data._xValues = xValues;
-				double[] yValues = new double[data._numberRead];
-				System.arraycopy(dataValues, 0, yValues, 0, data._numberRead);
-				data._yValues = yValues;
-				if (flagsRead[0] != 0) {
-					int[] dFlags = new int[data._numberRead];
-					System.arraycopy(flags, 0, dFlags, 0, data._numberRead);
-					data._flags = dFlags;
-				} else {
-					data._flags = null;
-				}
-				data._yType = type.toString();
-				data._yUnits = units.toString();
-			} else if (status[0] == 1) {
-				throw new RuntimeException(
-						"Irregular time series has higher density of data than expected!");
-			}
-			return status[0];
-		} finally {
-			DSSUtil.closeDSSFile(ifltab);
+		if (ifltab == null) {
+			open(dssFile);
 		}
+		int startJulian = (int) startJulmin / 1440;
+		int startTime = (int) startJulmin % 1440;
+		int endJulian = (int) endJulmin / 1440;
+		int endTime = (int) endJulmin % 1440;
+		int MAX_VALUES = 10000;
+		int[] timeBuffer = null;
+		int[] flags = null;
+		double[] dataValues = null;
+		int dataSize = MAX_VALUES;
+		int[] numberRead = new int[1];
+		int[] beginJulian = new int[1];
+		int readFlags = retrieveFlags ? 1 : 0;
+		int[] flagsRead = new int[1];
+		int[] status = { 1 }; // just to get into the first loop
+		stringContainer units = new stringContainer();
+		stringContainer type = new stringContainer();
+		int ntries = 0;
+		while (status[0] == 1 && ntries < 3) {
+			MAX_VALUES = 5 * MAX_VALUES;
+			timeBuffer = new int[MAX_VALUES];
+			flags = new int[MAX_VALUES];
+			dataValues = new double[MAX_VALUES];
+			dataSize = MAX_VALUES;
+			ntries++;
+			int maxUserHead = 100;
+			int[] userHead = new int[maxUserHead];
+			int[] numberHeadRead = new int[1];
+			int inflag = 0;
+			Heclib.zritsxd(ifltab, pathname, startJulian, startTime, endJulian,
+					endTime, timeBuffer, dataValues, dataSize, numberRead,
+					beginJulian, flags, readFlags, flagsRead, units, type,
+					userHead, maxUserHead, numberHeadRead, inflag, status);
+		}
+		if (status[0] == 0) {
+			data._dataType = DSSUtil.IRREGULAR_TIME_SERIES;
+			data._numberRead = numberRead[0];
+			double[] xValues = new double[data._numberRead];
+			for (int i = 0; i < data._numberRead; i++) {
+				xValues[i] = timeBuffer[i] + beginJulian[0] * 1440;
+			}
+			data._xValues = xValues;
+			double[] yValues = new double[data._numberRead];
+			System.arraycopy(dataValues, 0, yValues, 0, data._numberRead);
+			data._yValues = yValues;
+			if (flagsRead[0] != 0) {
+				int[] dFlags = new int[data._numberRead];
+				System.arraycopy(flags, 0, dFlags, 0, data._numberRead);
+				data._flags = dFlags;
+			} else {
+				data._flags = null;
+			}
+			data._yType = type.toString();
+			data._yUnits = units.toString();
+		} else if (status[0] == 1) {
+			throw new RuntimeException(
+					"Irregular time series has higher density of data than expected!");
+		}
+		return status[0];
 	}
 
 	/**
@@ -374,51 +382,47 @@ public class DSSDataReader {
    */
 	private synchronized int retrievePairedData(String dssFile,
 			String pathname, DSSData data) {
-		int[] ifltab = null;
-		try {
-			ifltab = DSSUtil.openDSSFile(dssFile, false);
-			int[] status = { 0 };
-			int[] nord = new int[] { 0 };
-			int[] numberOfCurves = new int[] { 0 };
-			int[] ihoriz = new int[] { 0 };
-			stringContainer cunitsX = new stringContainer();
-			stringContainer ctypeX = new stringContainer();
-			stringContainer cunitsY = new stringContainer();
-			stringContainer ctypeY = new stringContainer();
-			double[] values = new double[100000];
-			int kvals = 100000;
-			int[] numberOfValues = new int[] { 0 };
-			String[] clabel = new String[50];
-			int klabel = 50;
-			booleanContainer labelsExist = new booleanContainer();
-			float[] headu = new float[50];
-			int kheadu = 50;
-			int[] nheadu = new int[] { 0 };
-			int[] istat = new int[] { 0 };
-			Heclib.zrpdd(ifltab, pathname, nord, numberOfCurves, ihoriz,
-					cunitsX, ctypeX, cunitsY, ctypeY, values, kvals,
-					numberOfValues, clabel, klabel, labelsExist, headu, kheadu,
-					nheadu, istat);
-			if (istat[0] == 0) {
-				data._numberRead = nord[0];
-				data._dataType = DSSUtil.PAIRED;
-				data._xType = ctypeX.toString();
-				data._xUnits = cunitsX.toString();
-				data._yType = ctypeY.toString();
-				data._yUnits = cunitsY.toString();
-				data._xValues = new double[data._numberRead];
-				data._yValues = new double[data._numberRead];
-				System.arraycopy(values, 0, data._xValues, 0, data._numberRead);
-				System.arraycopy(values, data._numberRead, data._yValues, 0,
-						data._numberRead);
-			} else {
-				throw new RuntimeException("Error retrieving paired data from "
-						+ dssFile + "::" + pathname + " status = " + istat[0]);
-			}
-			return status[0];
-		} finally {
-			DSSUtil.closeDSSFile(ifltab);
+		if (ifltab == null) {
+			open(dssFile);
 		}
+		int[] status = { 0 };
+		int[] nord = new int[] { 0 };
+		int[] numberOfCurves = new int[] { 0 };
+		int[] ihoriz = new int[] { 0 };
+		stringContainer cunitsX = new stringContainer();
+		stringContainer ctypeX = new stringContainer();
+		stringContainer cunitsY = new stringContainer();
+		stringContainer ctypeY = new stringContainer();
+		double[] values = new double[100000];
+		int kvals = 100000;
+		int[] numberOfValues = new int[] { 0 };
+		String[] clabel = new String[50];
+		int klabel = 50;
+		booleanContainer labelsExist = new booleanContainer();
+		float[] headu = new float[50];
+		int kheadu = 50;
+		int[] nheadu = new int[] { 0 };
+		int[] istat = new int[] { 0 };
+		Heclib.zrpdd(ifltab, pathname, nord, numberOfCurves, ihoriz, cunitsX,
+				ctypeX, cunitsY, ctypeY, values, kvals, numberOfValues, clabel,
+				klabel, labelsExist, headu, kheadu, nheadu, istat);
+		if (istat[0] == 0) {
+			data._numberRead = nord[0];
+			data._dataType = DSSUtil.PAIRED;
+			data._xType = ctypeX.toString();
+			data._xUnits = cunitsX.toString();
+			data._yType = ctypeY.toString();
+			data._yUnits = cunitsY.toString();
+			data._xValues = new double[data._numberRead];
+			data._yValues = new double[data._numberRead];
+			System.arraycopy(values, 0, data._xValues, 0, data._numberRead);
+			System.arraycopy(values, data._numberRead, data._yValues, 0,
+					data._numberRead);
+		} else {
+			throw new RuntimeException("Error retrieving paired data from "
+					+ dssFile + "::" + pathname + " status = " + istat[0]);
+		}
+		return status[0];
 	}
 
 	private final static boolean DEBUG = false;

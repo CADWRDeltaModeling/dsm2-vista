@@ -94,8 +94,8 @@ class MainGui:
             fos.close()
         else:
             MainGui.props.load(fis)
-        DataGraph.LANDSCAPE_PRINTING = string.atoi(MainGui.props.getProperty("landscape"))
-        DataGraph.PRINTER_NAME = MainGui.props.getProperty("printer.name")
+        DataGraphFrame.LANDSCAPE_PRINTING = string.atoi(MainGui.props.getProperty("landscape"))
+        DataGraphFrame.PRINTER_NAME = MainGui.props.getProperty("printer.name")
         xplot.__legend_font_size__ = int(MainGui.props.getProperty("legend.font.size"))
         xplot.__left_axis_font_size__ = int(MainGui.props.getProperty("left.axis.font.size"))
         xplot.__bottom_axis_font_size__ = int(MainGui.props.getProperty("bottom.axis.font.size"))
@@ -175,10 +175,10 @@ class OptionsDialog(JDialog):
         btnPanel.setLayout(XYGridLayout(10,7))
         btnPanel.add(okBtn, Rectangle(1,3,3,2))
         btnPanel.add(cancelBtn, Rectangle(5,3,3,2))
-        self.pfield = JTextField(DataGraph.PRINTER_NAME)
+        self.pfield = JTextField(DataGraphFrame.PRINTER_NAME)
         ppanel = JPanel(); ppanel.setLayout(BorderLayout()); ppanel.add(self.pfield)
         ppanel.setBorder(BorderFactory.createTitledBorder("Printer name"))
-        self.lchoice = JCheckBox("Print Landscape",DataGraph.LANDSCAPE_PRINTING)
+        self.lchoice = JCheckBox("Print Landscape",DataGraphFrame.LANDSCAPE_PRINTING)
         self.legend_field = JTextField(str(self.gd.font_data.legend),4)
         tp1 = self.mkTitledPanel(self.legend_field,"legend font size")
         self.laxis_field = JTextField(str(self.gd.font_data.laxis),4)
@@ -224,17 +224,17 @@ class OptionsDialog(JDialog):
         tp.setBorder(BorderFactory.createTitledBorder(title))
         return tp
     def ok_action(self,evt):
-        DataGraph.LANDSCAPE_PRINTING = self.lchoice.isSelected()
-        GraphData.landscape = DataGraph.LANDSCAPE_PRINTING
-        DataGraph.PRINTER_NAME = self.pfield.text
+        DataGraphFrame.LANDSCAPE_PRINTING = self.lchoice.isSelected()
+        GraphData.landscape = DataGraphFrame.LANDSCAPE_PRINTING
+        DataGraphFrame.PRINTER_NAME = self.pfield.text
         self.gd.font_data.legend = int(self.legend_field.text)
         self.gd.font_data.laxis = int(self.laxis_field.text)
         self.gd.font_data.baxis = int(self.baxis_field.text)
         self.gd.font_data.plot_title = int(self.title_field.text)
         self.gd.font_data.title = int(self.graph_title_field.text)
         self.gd.font_data.footer = int(self.footer_field.text)
-        MainGui.props.put("landscape",str(DataGraph.LANDSCAPE_PRINTING))
-        MainGui.props.put("printer.name",DataGraph.PRINTER_NAME)
+        MainGui.props.put("landscape",str(DataGraphFrame.LANDSCAPE_PRINTING))
+        MainGui.props.put("printer.name",DataGraphFrame.PRINTER_NAME)
         MainGui.props.put("legend.font.size",str(xplot.__legend_font_size__))
         MainGui.props.put("left.axis.font.size",str(xplot.__left_axis_font_size__))
         MainGui.props.put("bottom.axis.font.size",str(xplot.__bottom_axis_font_size__))

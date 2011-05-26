@@ -338,7 +338,7 @@ public class DSSImporter {
 				ts = new IrregularTimeSeries("", xvals, yvals, flags, attr);
 			}
 			//
-			DSSUtil.writeData(dssfile, path.toString(), ts);
+			DSSUtil.writeData(dssfile, path.toString(), ts, true);
 		}
 	}
 

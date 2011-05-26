@@ -22,4 +22,13 @@ public class TestDefaultTimeInterval extends TestCase {
 		long exactNumberOfIntervalsTo = atime.getExactNumberOfIntervalsTo(etime, oti);
 		assertEquals(1, exactNumberOfIntervalsTo);
 	}
+	
+	public void testIncrementMonth(){
+		Time startTime = TimeFactory.getInstance().createTime("07JAN2000 2200");
+		TimeInterval ti60min = TimeFactory.getInstance().createTimeInterval("5MON");
+		long intervalInMinutes = ti60min.getIntervalInMinutes(startTime);
+		assertEquals(60, intervalInMinutes);
+		long exactNumberOfIntervalsTo = startTime.getExactNumberOfIntervalsTo(startTime, ti60min);
+		assertEquals(0, exactNumberOfIntervalsTo);
+	}
 }

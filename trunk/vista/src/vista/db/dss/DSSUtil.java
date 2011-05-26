@@ -260,7 +260,7 @@ public class DSSUtil {
 	 * @see Pathname
 	 * @see DataSet
 	 */
-	public static void writeData(String filename, String pathname, DataSet ds) {
+	public static void writeData(String filename, String pathname, DataSet ds, boolean withFlags) {
 
 		long smin = 0;
 		long emin = 0;
@@ -278,7 +278,7 @@ public class DSSUtil {
 		}
 		//
 		new DSSDataWriter().storeData(filename, p.toString(), smin, emin, ds,
-				ds.isFlagged());
+				withFlags && ds.isFlagged());
 	}
 
 	/**

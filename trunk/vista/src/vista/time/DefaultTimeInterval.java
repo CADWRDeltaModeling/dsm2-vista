@@ -56,6 +56,8 @@
 package vista.time;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -212,21 +214,46 @@ public class DefaultTimeInterval implements TimeInterval, Serializable {
 	 * converts current interval to minutes depending upon current time.
 	 */
 	public long getIntervalInMinutes(Time time) {
-		if (isTimeContextDependent()) {
-			Time etime = time.create(time);
-			for (int i = 1; i < _numberOfIntervals.length; i++) {
-				if (_numberOfIntervals[i] != 0)
-					etime.incrementBy(i, _numberOfIntervals[i]);
+		Calendar c = Calendar.getInstance();
+		Date d = time == null ? new Date() : time.getDate();
+		c.setTime(d);
+		for(int i=0; i < _numberOfIntervals.length; i++){
+			int calendarField = Calendar.MINUTE;
+			int amount = _numberOfIntervals[i];
+			switch (i) {
+			case MIN_INTERVAL:
+				calendarField=Calendar.MINUTE;
+				break;
+			case HOUR_INTERVAL:
+				calendarField=Calendar.HOUR;
+				break;
+			case DAY_INTERVAL:
+				calendarField=Calendar.DATE;
+				break;
+			case WEEK_INTERVAL:
+				calendarField=Calendar.WEEK_OF_MONTH;
+				break;
+			case MONTH_INTERVAL:
+				calendarField=Calendar.MONTH;
+				break;
+			case YEAR_INTERVAL:
+				calendarField=Calendar.YEAR;
+				break;
+			case DECADE_INTERVAL:
+				calendarField=Calendar.YEAR;
+				amount=amount*10;
+				break;
+			case CENTURY_INTERVAL:
+				calendarField=Calendar.YEAR;
+				amount=amount*100;
+				break;
+			default:
+				calendarField=Calendar.MINUTE;
 			}
-			return etime.getTimeInMinutes() - time.getTimeInMinutes();
-		} else {
-			return _numberOfIntervals[1] + _numberOfIntervals[2]
-					* getMaximumNumberOfMinutesInField(2)
-					+ _numberOfIntervals[3]
-					* getMaximumNumberOfMinutesInField(3)
-					+ _numberOfIntervals[4]
-					* getMaximumNumberOfMinutesInField(4);
+			c.add(calendarField, amount);
 		}
+		long millis = c.getTime().getTime()-d.getTime();
+		return millis/60000;
 	}
 
 	/**

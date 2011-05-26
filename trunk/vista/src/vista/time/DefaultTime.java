@@ -258,7 +258,6 @@ public class DefaultTime implements Time, Serializable {
 		return Math.round((_date.getTime() - _time0) / 60000.0);
 	}
 
-	@Override
 	public Date getDate() {
 		return new Date(_date.getTime()+_date.getTimezoneOffset()*60000);
 	}

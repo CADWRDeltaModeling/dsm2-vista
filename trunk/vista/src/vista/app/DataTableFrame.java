@@ -89,6 +89,7 @@ import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.FlagUtils;
 import vista.set.SetUtils;
+import vista.set.TimeSeries;
 
 /**
  * This is a table view on the DataSet.
@@ -197,7 +198,8 @@ public class DataTableFrame extends DefaultFrame {
 		JMenuItem markAsOK = new JMenuItem("Mark selected as ok");
 		JMenuItem markAsUS = new JMenuItem("Unmark selected");
 		JMenuItem flagOverride = null;
-		flagOverride = new JCheckBoxMenuItem("Override flags ?", _table.isFlagOverride());
+		flagOverride = new JCheckBoxMenuItem("Override flags ?", _table
+				.isFlagOverride());
 		flagMenu.add(markAsOK);
 		flagMenu.add(markAsMissing);
 		flagMenu.add(markAsQuestionable);
@@ -256,6 +258,7 @@ public class DataTableFrame extends DefaultFrame {
 		JMenuItem editPathnameItem = new JMenuItem("Edit Pathname");
 		JMenu exportDataItem = new JMenu("Export Data to...");
 		JMenuItem dssExport = new JMenuItem("DSS");
+		JMenuItem dssExportWithoutFlags = new JMenuItem("DSS w/o flags");
 		JMenu txtMenu = new JMenu("Text");
 		JMenuItem txtExport = new JMenuItem("DSS Format");
 		JMenuItem txtNormalExport = new JMenuItem("Generic Format");
@@ -264,12 +267,13 @@ public class DataTableFrame extends DefaultFrame {
 		txtMenu.add(txtNormalExport);
 		txtMenu.add(txtTableExport);
 		exportDataItem.add(dssExport);
+		exportDataItem.add(dssExportWithoutFlags);
 		exportDataItem.add(txtMenu);
 		JMenuItem reloadItem = new JMenuItem("Reload Data");
 		JMenuItem quitItem = new JMenuItem("Quit Window");
 		dataMenu.add(showAsGraphItem);
 		dataMenu.add(showFlagsItem);
-		if (!isFlagged(_ref)){
+		if (!isFlagged(_ref)) {
 			dataMenu.add(addFlagsItem);
 		}
 		dataMenu.add(showStatsItem);
@@ -291,7 +295,7 @@ public class DataTableFrame extends DefaultFrame {
 			}
 		});
 		addFlagsItem.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				addFlags(e);
@@ -316,7 +320,12 @@ public class DataTableFrame extends DefaultFrame {
 		});
 		dssExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				exportDataToDSS(evt);
+				exportDataToDSS(evt, true);
+			}
+		});
+		dssExportWithoutFlags.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				exportDataToDSS(evt, false);
 			}
 		});
 		txtExport.addActionListener(new ActionListener() {
@@ -359,7 +368,6 @@ public class DataTableFrame extends DefaultFrame {
 			return;
 		}
 	}
-
 
 	/**
 	 *
@@ -435,8 +443,8 @@ public class DataTableFrame extends DefaultFrame {
 	public void toggleFlagDisplay(ActionEvent evt) {
 		_table.toggleFlagDisplay();
 	}
-	
-	public void addFlags(ActionEvent e){
+
+	public void addFlags(ActionEvent e) {
 		_ref.getData().addFlags();
 		toggleFlagDisplay(e);
 	}
@@ -518,7 +526,7 @@ public class DataTableFrame extends DefaultFrame {
 	/**
 	 * export data as seen in the data table to dss format
 	 */
-	public void exportDataToDSS(ActionEvent evt) {
+	public void exportDataToDSS(ActionEvent evt, boolean withFlags) {
 		// get filename from dialog...
 		try {
 			String saveFilename = VistaUtils.getFilenameFromDialog(this,
@@ -526,8 +534,7 @@ public class DataTableFrame extends DefaultFrame {
 			if (saveFilename == null)
 				return;
 			saveFilename = VistaUtils.setExtension(saveFilename, "dss");
-			DSSUtil.writeData(saveFilename, _ref.getPathname().toString(), _ref
-					.getData());
+			DSSUtil.writeData(saveFilename, _ref.getPathname().toString(), SetUtils.convertFlagsToValues((TimeSeries)_ref.getData()),withFlags);
 		} catch (Exception ioe) {
 			VistaUtils.displayException(this, ioe);
 		}
@@ -586,15 +593,14 @@ public class DataTableFrame extends DefaultFrame {
 				Pattern pattern = Pattern.compile(text,
 						Pattern.CASE_INSENSITIVE);
 				int cpos = scrollBar.getValue();
-				int nearestValue = (int) Math.round(cpos
-						* _table.getRowCount() / scrollBar.getMaximum());
+				int nearestValue = (int) Math.round(cpos * _table.getRowCount()
+						/ scrollBar.getMaximum());
 				value = nearestValue;
 				boolean gotMatch = false;
 				boolean forwardSearch = true;
 				int column = 0;
 				while (!gotMatch) {
-					if (nearestValue >= _table.getRowCount()
-							&& forwardSearch)
+					if (nearestValue >= _table.getRowCount() && forwardSearch)
 						break;
 					if (nearestValue < 0 && !forwardSearch)
 						break;

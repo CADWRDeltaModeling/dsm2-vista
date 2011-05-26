@@ -203,12 +203,14 @@ public class GroupTable extends JPanel implements RowMovable, View {
 		JMenuItem deleteDataItem = new JMenuItem("Delete");
 		JMenu exportToItem = new JMenu("Export Data to...");
 		JMenuItem dssExport = new JMenuItem("DSS");
+		JMenuItem dssExportWithoutFlags = new JMenuItem("DSS w/o Flags");
 		JMenu txtMenu = new JMenu("Text");
 		JMenuItem txtExport = new JMenuItem("DSS Format");
 		JMenuItem txtNormalExport = new JMenuItem("Generic Format");
 		txtMenu.add(txtExport);
 		txtMenu.add(txtNormalExport);
 		exportToItem.add(dssExport);
+		exportToItem.add(dssExportWithoutFlags);
 		exportToItem.add(txtMenu);
 		//
 		JMenu importFromItem = new JMenu("Import Data from...");
@@ -272,7 +274,12 @@ public class GroupTable extends JPanel implements RowMovable, View {
 		});
 		dssExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				exportDataToDSS(evt);
+				exportDataToDSS(evt,true);
+			}
+		});
+		dssExportWithoutFlags.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				exportDataToDSS(evt,false);
 			}
 		});
 		txtExport.addActionListener(new ActionListener() {
@@ -512,7 +519,7 @@ public class GroupTable extends JPanel implements RowMovable, View {
 	/**
    *
    */
-	public void exportDataToDSS(ActionEvent evt) {
+	public void exportDataToDSS(ActionEvent evt, boolean withFlags) {
 		// get filename from dialog...
 		String saveFilename = VistaUtils.getFilenameFromDialog(this,
 				FileDialog.SAVE, "dss", "DSS Files");
@@ -520,7 +527,7 @@ public class GroupTable extends JPanel implements RowMovable, View {
 			return;
 		saveFilename = VistaUtils.setExtension(saveFilename, "dss");
 		Executor.execute(new ExportDataToDSSCommand(getGroup(), _table
-				.getSelectedRows(), saveFilename), this);
+				.getSelectedRows(), saveFilename, withFlags), this);
 	}
 
 	/**
