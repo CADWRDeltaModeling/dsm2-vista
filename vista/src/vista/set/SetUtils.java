@@ -596,7 +596,7 @@ public class SetUtils {
 			if (ds == null)
 				continue;
 			// write to dss
-			DSSUtil.writeData(dssfile, path.toString(), ds);
+			DSSUtil.writeData(dssfile, path.toString(), ds, true);
 			// add to array of references
 			refs.addElement(DSSUtil.createDataReference("local", dssfile, path
 					.toString(), ds));
@@ -649,5 +649,28 @@ public class SetUtils {
 			return false;
 		else
 			return true;
+	}
+	
+	/**
+	 * Create data set with flags that are reject, questionable or missing converted to -901 data values
+	 * 
+	 */
+	public static TimeSeries convertFlagsToValues(TimeSeries ds){
+		TimeSeries ts = ds.createSlice(ds.getTimeWindow());
+		if (!ds.isFlagged()){
+			return ts;
+		}
+		DataSetIterator iterator = ts.getIterator();
+		while(!iterator.atEnd()){
+			DataSetElement element = iterator.getElement();
+			int flagType = FlagUtils.getQualityFlag(element.getFlag());
+			if (flagType==FlagUtils.REJECT_FLAG || flagType==FlagUtils.QUESTIONABLE_FLAG || flagType == FlagUtils.MISSING_FLAG){
+				element.setY(Constants.MISSING_VALUE);
+				iterator.putElement(element);
+			}
+			iterator.advance();
+		}
+		return ts;
+		
 	}
 }

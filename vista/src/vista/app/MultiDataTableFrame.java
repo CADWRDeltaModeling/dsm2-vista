@@ -208,6 +208,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 		JMenuItem showAsGraphItem = new JMenuItem("Show As Graph");
 		JMenu exportDataItem = new JMenu("Export Data to...");
 		JMenuItem dssExport = new JMenuItem("DSS");
+		JMenuItem dssExportWithoutFlags = new JMenuItem("DSS w/o flags");
 		JMenu txtMenu = new JMenu("Text");
 		JMenuItem txtExport = new JMenuItem("DSS Format");
 		JMenuItem txtNormalExport = new JMenuItem("Generic Format");
@@ -217,6 +218,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 		txtMenu.add(txtNormalExport);
 		txtMenu.add(txtTableExport);
 		exportDataItem.add(dssExport);
+		exportDataItem.add(dssExportWithoutFlags);
 		exportDataItem.add(txtMenu);
 		JMenuItem quitItem = new JMenuItem("Quit Window");
 		dataMenu.add(showAsGraphItem);
@@ -234,7 +236,12 @@ public class MultiDataTableFrame extends DefaultFrame {
 		});
 		dssExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				exportDataToDSS(evt);
+				exportDataToDSS(evt,true);
+			}
+		});
+		dssExportWithoutFlags.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				exportDataToDSS(evt,false);
 			}
 		});
 		txtExport.addActionListener(new ActionListener() {
@@ -358,7 +365,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 	/**
 	 * export data as seen in the data table to dss format
 	 */
-	public void exportDataToDSS(ActionEvent evt) {
+	public void exportDataToDSS(ActionEvent evt, boolean withFlags) {
 		// get filename from dialog...
 		String saveFilename = VistaUtils.getFilenameFromDialog(this,
 				FileDialog.SAVE, "dss", "DSS Format");
@@ -369,7 +376,7 @@ public class MultiDataTableFrame extends DefaultFrame {
 			for (int i = 0; i < _refs.length; i++) {
 				DataReference ref = _refs[i];
 				DSSUtil.writeData(saveFilename, ref.getPathname().toString(),
-						ref.getData());
+						SetUtils.convertFlagsToValues((TimeSeries) ref.getData()), withFlags);
 			}
 		} catch (Exception ioe) {
 			VistaUtils.displayException(this._table, ioe);

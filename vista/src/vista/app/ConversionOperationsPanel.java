@@ -69,7 +69,7 @@ public class ConversionOperationsPanel extends JPanel {
 		panel.add(modeOptionsBox);
 		setOptions("SNAP");
 		modeBox.addActionListener(new ActionListener() {
-			@Override
+			
 			public void actionPerformed(ActionEvent evt) {
 				if (modeBox.getSelectedItem().equals("SNAP")) {
 					setOptions("SNAP");

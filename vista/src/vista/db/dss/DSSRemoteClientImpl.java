@@ -164,8 +164,7 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		long timeDifference = new File(catalogFile).lastModified()
 				- new File(dssFile).lastModified();
 		if (doFreshCatalog
-				|| ((!new File(catalogFile).exists()) || Math
-						.abs(timeDifference) < 10)) {
+				|| ((!new File(catalogFile).exists()) || timeDifference < -10)) {
 			try {
 				_dataReader.generateCatalog(dssFile);
 				// as dss calls zclose on dss file last, the file gets
@@ -175,6 +174,8 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 			} catch (Exception ie) {
 				throw new RemoteException(ie.toString()
 						+ "Exception while creating catalog " + catalogFile);
+			} finally {
+				_dataReader.close();
 			}
 		}
 		try {
@@ -242,58 +243,16 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 	 */
 	public DataSet getData(DataReference ref, boolean retrieveFlags)
 			throws RemoteException {
-		long stm = System.currentTimeMillis();
-		checkReference(ref);
-		String filename = ref.getFilename();
-		String pathname = ref.getPathname().toString();
-		Pathname path = ref.getPathname();
-		String dataName = "/" + path.getPart(Pathname.A_PART) + "/"
-				+ path.getPart(Pathname.B_PART) + "/"
-				+ path.getPart(Pathname.C_PART) + "/" + "/" + "/"
-				+ path.getPart(Pathname.F_PART) + "/";
-		if (VERBOSE) {
-			try {
-				_writer.println("Request from: " + RemoteServer.getClientHost()
-						+ " @ " + new Date());
-			} catch (ServerNotActiveException snae) {
-			}
-			_writer.println("File: " + filename);
-			_writer.println("pathname: " + pathname);
-			_writer.flush();
-		}
-		int recordType = _dataReader.recordType(filename, pathname);
-		int startTime = 0;
-		int endTime = 0;
-		if (recordType == DSSUtil.REGULAR_TIME_SERIES || recordType == DSSUtil.REGULAR_TIME_SERIES+5) {
-			startTime = (int) ref.getTimeWindow().getStartTime()
-					.getTimeInMinutes();
-			endTime = (int) ref.getTimeWindow().getEndTime().getTimeInMinutes();
-			//
-			DSSData data = _dataReader.getData(filename, pathname, startTime,
-					endTime, retrieveFlags);
-			if (data._offset > 0) {
-				System.out.println("Path: " + pathname + " has offset "
-						+ data._offset);
-				Time stime = ref.getTimeWindow().getStartTime();
-				stime.incrementBy(ref.getTimeInterval(), -1);
-				startTime = (int) (stime.getTimeInMinutes() + data._offset);
-			}
-			if (data == null)
-				throw new RemoteException("Data " + filename + "::" + pathname
-						+ " is empty?");
-			// write out number read
-			int numberRead = (data == null) ? 0 : data._numberRead;
-			if (numberRead <= 0)
-				throw new RemoteException("Data " + filename + "::" + pathname
-						+ " is empty ?");
-			DataSetAttr attr = new DataSetAttr(path.getPart(Pathname.A_PART),
-					path.getPart(Pathname.B_PART), path
-							.getPart(Pathname.C_PART), path
-							.getPart(Pathname.F_PART),
-					DataType.REGULAR_TIME_SERIES, "TIME", data._yUnits, "",
-					data._yType);
-			//
-			TimeInterval ti = ref.getTimeInterval();
+		try {
+			long stm = System.currentTimeMillis();
+			checkReference(ref);
+			String filename = ref.getFilename();
+			String pathname = ref.getPathname().toString();
+			Pathname path = ref.getPathname();
+			String dataName = "/" + path.getPart(Pathname.A_PART) + "/"
+					+ path.getPart(Pathname.B_PART) + "/"
+					+ path.getPart(Pathname.C_PART) + "/" + "/" + "/"
+					+ path.getPart(Pathname.F_PART) + "/";
 			if (VERBOSE) {
 				try {
 					_writer
@@ -302,82 +261,135 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 									+ new Date());
 				} catch (ServerNotActiveException snae) {
 				}
-				_writer.println("Time taken: "
-						+ (System.currentTimeMillis() - stm) + " ms");
+				_writer.println("File: " + filename);
+				_writer.println("pathname: " + pathname);
 				_writer.flush();
 			}
-			Time stime = DSSUtil.getTimeFactory().createTime(startTime);
-			return new RegularTimeSeries(path.toString(), stime, ti,
-					data._yValues, data._flags, attr);
-		} else if (recordType == DSSUtil.PAIRED) { // for paired data
-			//
-			DSSData data = _dataReader.getData(filename, pathname, 0, 0, false);
-			if (data == null)
-				throw new RemoteException("Data " + filename + "::" + pathname
-						+ " is empty?");
-			// write out number of data points read
-			int numberRead = data._numberRead;
-			if (DEBUG)
-				System.out.println("Paired data count: " + numberRead);
-			if (numberRead <= 0)
-				throw new RemoteException("Data " + filename + "::" + pathname
-						+ " is empty ?");
-			// write out units of data
-			DataSetAttr attr = new DataSetAttr(path.getPart(Pathname.A_PART),
-					path.getPart(Pathname.B_PART), path
-							.getPart(Pathname.C_PART), path
-							.getPart(Pathname.F_PART), DataType.PAIRED,
-					data._xUnits, data._yUnits, data._xType, data._yType);
+			int recordType = _dataReader.recordType(filename, pathname);
+			int startTime = 0;
+			int endTime = 0;
+			if (recordType == DSSUtil.REGULAR_TIME_SERIES
+					|| recordType == DSSUtil.REGULAR_TIME_SERIES + 5) {
+				startTime = (int) ref.getTimeWindow().getStartTime()
+						.getTimeInMinutes();
+				endTime = (int) ref.getTimeWindow().getEndTime()
+						.getTimeInMinutes();
+				//
+				DSSData data = _dataReader.getData(filename, pathname,
+						startTime, endTime, retrieveFlags);
+				if (data._offset > 0) {
+					System.out.println("Path: " + pathname + " has offset "
+							+ data._offset);
+					Time stime = ref.getTimeWindow().getStartTime();
+					stime.incrementBy(ref.getTimeInterval(), -1);
+					startTime = (int) (stime.getTimeInMinutes() + data._offset);
+				}
+				if (data == null)
+					throw new RemoteException("Data " + filename + "::"
+							+ pathname + " is empty?");
+				// write out number read
+				int numberRead = (data == null) ? 0 : data._numberRead;
+				if (numberRead <= 0)
+					throw new RemoteException("Data " + filename + "::"
+							+ pathname + " is empty ?");
+				DataSetAttr attr = new DataSetAttr(path
+						.getPart(Pathname.A_PART), path
+						.getPart(Pathname.B_PART), path
+						.getPart(Pathname.C_PART), path
+						.getPart(Pathname.F_PART),
+						DataType.REGULAR_TIME_SERIES, "TIME", data._yUnits, "",
+						data._yType);
+				//
+				TimeInterval ti = ref.getTimeInterval();
+				if (VERBOSE) {
+					try {
+						_writer.println("Request from: "
+								+ RemoteServer.getClientHost() + " @ "
+								+ new Date());
+					} catch (ServerNotActiveException snae) {
+					}
+					_writer.println("Time taken: "
+							+ (System.currentTimeMillis() - stm) + " ms");
+					_writer.flush();
+				}
+				Time stime = DSSUtil.getTimeFactory().createTime(startTime);
+				return new RegularTimeSeries(path.toString(), stime, ti,
+						data._yValues, data._flags, attr);
+			} else if (recordType == DSSUtil.PAIRED) { // for paired data
+				//
+				DSSData data = _dataReader.getData(filename, pathname, 0, 0,
+						false);
+				if (data == null)
+					throw new RemoteException("Data " + filename + "::"
+							+ pathname + " is empty?");
+				// write out number of data points read
+				int numberRead = data._numberRead;
+				if (DEBUG)
+					System.out.println("Paired data count: " + numberRead);
+				if (numberRead <= 0)
+					throw new RemoteException("Data " + filename + "::"
+							+ pathname + " is empty ?");
+				// write out units of data
+				DataSetAttr attr = new DataSetAttr(path
+						.getPart(Pathname.A_PART), path
+						.getPart(Pathname.B_PART), path
+						.getPart(Pathname.C_PART), path
+						.getPart(Pathname.F_PART), DataType.PAIRED,
+						data._xUnits, data._yUnits, data._xType, data._yType);
 
-			if (VERBOSE) {
-				try {
-					_writer
-							.println("Request from: "
-									+ RemoteServer.getClientHost() + " @ "
-									+ new Date());
-				} catch (ServerNotActiveException snae) {
+				if (VERBOSE) {
+					try {
+						_writer.println("Request from: "
+								+ RemoteServer.getClientHost() + " @ "
+								+ new Date());
+					} catch (ServerNotActiveException snae) {
+					}
+					_writer.println("Time taken: "
+							+ (System.currentTimeMillis() - stm) + " ms");
+					_writer.flush();
 				}
-				_writer.println("Time taken: "
-						+ (System.currentTimeMillis() - stm) + " ms");
-				_writer.flush();
-			}
-			return new DefaultDataSet(dataName, data._xValues, data._yValues,
-					data._flags, attr);
-		} else if (recordType == DSSUtil.IRREGULAR_TIME_SERIES || recordType == DSSUtil.IRREGULAR_TIME_SERIES+5) { // irregular
-			// time
-			startTime = (int) ref.getTimeWindow().getStartTime()
-					.getTimeInMinutes();
-			endTime = (int) ref.getTimeWindow().getEndTime().getTimeInMinutes();
-			//
-			DSSData data = _dataReader.getData(filename, pathname, startTime,
-					endTime, retrieveFlags);
-			// write out number read
-			if (data == null || data._numberRead == 0)
+				return new DefaultDataSet(dataName, data._xValues,
+						data._yValues, data._flags, attr);
+			} else if (recordType == DSSUtil.IRREGULAR_TIME_SERIES
+					|| recordType == DSSUtil.IRREGULAR_TIME_SERIES + 5) { // irregular
+				// time
+				startTime = (int) ref.getTimeWindow().getStartTime()
+						.getTimeInMinutes();
+				endTime = (int) ref.getTimeWindow().getEndTime()
+						.getTimeInMinutes();
+				//
+				DSSData data = _dataReader.getData(filename, pathname,
+						startTime, endTime, retrieveFlags);
+				// write out number read
+				if (data == null || data._numberRead == 0)
+					throw new RemoteException("Data " + filename + "::"
+							+ pathname + " is empty?");
+				DataSetAttr attr = new DataSetAttr(path
+						.getPart(Pathname.A_PART), path
+						.getPart(Pathname.B_PART), path
+						.getPart(Pathname.C_PART), path
+						.getPart(Pathname.F_PART),
+						DataType.IRREGULAR_TIME_SERIES, "TIME", data._yUnits,
+						"", data._yType);
+				if (VERBOSE) {
+					try {
+						_writer.println("Request from: "
+								+ RemoteServer.getClientHost() + " @ "
+								+ new Date());
+					} catch (ServerNotActiveException snae) {
+					}
+					_writer.println("Time taken: "
+							+ (System.currentTimeMillis() - stm) + " ms");
+					_writer.flush();
+				}
+				return new IrregularTimeSeries(path.toString(), data._xValues,
+						data._yValues, data._flags, attr);
+			} else {
 				throw new RemoteException("Data " + filename + "::" + pathname
-						+ " is empty?");
-			DataSetAttr attr = new DataSetAttr(path.getPart(Pathname.A_PART),
-					path.getPart(Pathname.B_PART), path
-							.getPart(Pathname.C_PART), path
-							.getPart(Pathname.F_PART),
-					DataType.IRREGULAR_TIME_SERIES, "TIME", data._yUnits, "",
-					data._yType);
-			if (VERBOSE) {
-				try {
-					_writer
-							.println("Request from: "
-									+ RemoteServer.getClientHost() + " @ "
-									+ new Date());
-				} catch (ServerNotActiveException snae) {
-				}
-				_writer.println("Time taken: "
-						+ (System.currentTimeMillis() - stm) + " ms");
-				_writer.flush();
+						+ " not recognized");
 			}
-			return new IrregularTimeSeries(path.toString(), data._xValues,
-					data._yValues, data._flags, attr);
-		} else {
-			throw new RemoteException("Data " + filename + "::" + pathname
-					+ " not recognized");
+		} finally {
+			_dataReader.close();
 		}
 	}
 

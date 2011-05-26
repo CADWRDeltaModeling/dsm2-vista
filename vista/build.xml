@@ -79,4 +79,13 @@
 	<target name="clean">
 		<delete dir="build"/>
 	</target>
+	
+    <target name="javadoc">
+        <javadoc access="public" additionalparam="-J-Xmx512M " author="true" 
+        	classpath="lib/jyson-1.0.1.jar;lib/xml-apis.jar;lib/jhdfobj.jar;lib/postgresql-8.4-702.jdbc4.jar;lib/xercesImpl.jar;lib/jhall.jar;lib/heclib.jar;lib/jhdf5obj.jar;lib/ojdbc6.jar;lib/dsm2-input-model.jar;lib/jpy.jar;lib/jhdf5.jar;lib/jnios.jar;D:\Programs\eclipse-jee-galileo-SR2-win32\eclipse\plugins\org.junit_3.8.2.v20090203-1005\junit.jar" 
+        	destdir="doc" doctitle="Vista: Time Series Visualization and Analysis Tool" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" 
+        	packagenames="vista.gui,vista.report,com.ibm.util" 
+        	source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
+    </target>
+
 	</project>

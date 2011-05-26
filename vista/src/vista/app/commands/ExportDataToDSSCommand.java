@@ -60,6 +60,8 @@ import vista.gui.Command;
 import vista.gui.ExecutionException;
 import vista.set.DataReference;
 import vista.set.Group;
+import vista.set.SetUtils;
+import vista.set.TimeSeries;
 
 /**
  * Encapsulates commands implementing group related commands
@@ -72,14 +74,17 @@ public class ExportDataToDSSCommand implements Command {
 	private Group _group;
 	private int[] _rNumbers;
 	private String _filename;
+	private boolean _withFlags;
 
 	/**
 	 * opens group and sets current group to
 	 */
-	public ExportDataToDSSCommand(Group g, int[] numbers, String filename) {
+	public ExportDataToDSSCommand(Group g, int[] numbers, String filename,
+			boolean withFlags) {
 		_group = g;
 		_rNumbers = numbers;
 		_filename = filename;
+		_withFlags = withFlags;
 	}
 
 	/**
@@ -95,8 +100,10 @@ public class ExportDataToDSSCommand implements Command {
 			try {
 				refs[i] = _group.getDataReference(_rNumbers[i]);
 				DataReference ref = refs[i];
-				DSSUtil.writeData(_filename, ref.getPathname().toString(), ref
-						.getData());
+
+				DSSUtil.writeData(_filename, ref.getPathname().toString(),
+						SetUtils.convertFlagsToValues((TimeSeries) refs[i]
+								.getData()), _withFlags);
 			} catch (Exception ioe) {
 				throw new ExecutionException(ioe,
 						"exception exporting data to dss");

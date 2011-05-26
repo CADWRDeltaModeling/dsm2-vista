@@ -31,7 +31,7 @@ public class TestDSSWrite extends TestCase {
 		RegularTimeSeries rts = new RegularTimeSeries("/A/B/C//15MIN/F/",
 				"01JAN1990 0100", "15MIN", new double[] { 1, 2, 3 });
 		String pathname = "/A/B/C/01JAN1990/15MIN/F/";
-		DSSUtil.writeData(filename, pathname, rts);
+		DSSUtil.writeData(filename, pathname, rts, true);
 		DataSet dataSet = DSSUtil.readData(filename, pathname, false);
 		assertNotNull(dataSet);
 	}
@@ -44,7 +44,7 @@ public class TestDSSWrite extends TestCase {
 				"/A-ITS/B/C/01JAN1990/IR-HOUR/F-ITS/", new double[] { stime,
 						stime + 5, stime + 11 }, new double[] { 0, 1, 7 });
 		String pathname = "/A-ITS/B/C/01JAN1990/IR-MON/F-ITS/";
-		DSSUtil.writeData(filename, pathname, its);
+		DSSUtil.writeData(filename, pathname, its, true);
 		DataSet dataSet = DSSUtil.readData(filename, pathname, false);
 		assertNotNull(dataSet);
 		assertTrue(dataSet instanceof IrregularTimeSeries);
@@ -71,7 +71,7 @@ public class TestDSSWrite extends TestCase {
 						stime + 5, stime + 11 }, new double[] { 0, 1, 7 },
 				new int[] { flagReject, flagQuestionable, flagMissing }, attr);
 		String pathname = "/A-ITS/B/C/01JAN1990/IR-MON/F-ITS/";
-		DSSUtil.writeData(filename, pathname, its);
+		DSSUtil.writeData(filename, pathname, its, true);
 		DataSet dataSet = DSSUtil.readData(filename, pathname, true);
 		assertNotNull(dataSet);
 		assertTrue(dataSet instanceof IrregularTimeSeries);

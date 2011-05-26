@@ -698,7 +698,7 @@ class GraphData:
         #if not display: return
         global __graph_number__
         __graph_number__ = __graph_number__+1
-        dg=DataGraph(graph,'graph#'+str(__graph_number__),0)
+        dg=DataGraphFrame(graph,'graph#'+str(__graph_number__),0)
         self.set_attr(graph)
         dg.setLocation(100,100)
         if GraphData.landscape:
