@@ -81,6 +81,7 @@ import vista.set.DataSet;
 import vista.set.ElementFilter;
 import vista.set.FlagUtils;
 import vista.set.MultiValueFilter;
+import vista.set.NaNFilter;
 import vista.set.TimeSeries;
 
 /**
@@ -190,9 +191,10 @@ public class AppUtils {
 	public static ElementFilter getCurrentCurveFilter() {
 		double[] missingValues = { Float.MIN_VALUE,
 				vista.set.Constants.MISSING_VALUE,
-				vista.set.Constants.MISSING_RECORD };
+				vista.set.Constants.MISSING_RECORD};
 		CompositeFilter compFilter = new CompositeFilter(new ElementFilter[] {
 				new MultiValueFilter(missingValues), FlagUtils.MISSING_FILTER });
+		compFilter.add(new NaNFilter());
 		if (GraphProperties.properties.get("displayGood").equals("false")) {
 			compFilter.add(FlagUtils.OK_FILTER);
 		}
