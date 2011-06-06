@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+<title>Map With Colored Areas</title>
+<script src="raphael-min.js" type="text/javascript"></script>
+<script
+	src="http://maps.google.com/maps?file=api&amp;v=2.s&amp;sensor=false&amp;key=ABQIAAAAglaP4sjC2PIcowNPLkkkHhT8rAyZjU8upfSql3mfnLpRUSUYMBTPRYXsxQLACgvyciPYCrXMRFZ2NA"
+	type="text/javascript"></script>
+<script src="map_with_colored_areas.js" type="text/javascript"></script>
+<style type="text/css">
+#fig,#map,#temp {
+	width: 610px;
+	height: 820px;
+}
+
+#map {
+	border: solid 1px #999;
+}
+
+#map .canvas{
+	position: absolute;
+}
+
+</style>
+<script type="text/javascript">
+var colors = ["red", "orange", "yellow", "green", "blue"];
+var DIVERGING_COLORS= [ "#5e3c99", "#b2abd2", "#ff99ff", "#fdb863", "#e66101" ];
+var QUALITATIVE_COLORS = [ "#6600cc","#0000ff", "#006633", "#ff6600", "#ff3399" ];
+var SEQUENTIAL_COLORS = [ "#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15" ];
+//var colors = SEQUENTIAL_COLORS;
+function colormap(value, min, max){
+	var slope = (colors.length-1)/(max-min);
+	var index = (value-min)*slope;
+	index = Math.min(colors.length-1,Math.max(0,index));
+	var ci = Math.ceil(index);
+	var fi = Math.floor(index);
+	var frgb = Raphael.getRGB(colors[fi]);
+	var crgb = Raphael.getRGB(colors[ci]);
+	var slope = 0;
+	if (ci!=fi){
+		slope=(index-fi)/(ci-fi);
+	}
+	var r = (crgb.r-frgb.r)*slope+frgb.r;
+	var g = (crgb.g-frgb.g)*slope+frgb.g;
+	var b = (crgb.b-frgb.b)*slope+frgb.b;
+	var c = "rgb("+Math.round(Math.abs(r))+","+Math.round(Math.abs(g))+","+Math.round(Math.abs(b))+")";
+	//console.log(frgb, crgb, ci, fi, slope, index, c,value);
+	return c;
+};
+
+/* Define a new GOverlay class to contain the visualization. */
+function Canvas() {}
+
+g = function(){};
+g.prototype = GOverlay.prototype || GOverlay;
+Canvas.prototype=new g();
+/* Add our canvas to the map pane when initialized. */
+Canvas.prototype.initialize = function(map) {
+  this.map = map;
+  this.canvas = document.createElement("div");
+  this.canvas.setAttribute("class","canvas");
+  map.getPane(G_MAP_MAP_PANE).parentNode.appendChild(this.canvas);
+};
+
+/* Redraw the visualizations when the map is moved. */
+Canvas.prototype.redraw = function(force) {
+  var m = this.map;
+
+  var c = this.canvas, r = 50;
+  if (!force) return;
+  var paper = Raphael(c, 610, 830);
+  var zoom = m.getZoom();
+  var arrow_size = Math.round(Math.pow(2,zoom)/70);
+  var font_size = Math.round(20.0/30.0*arrow_size);
+  var lx=50, ly=100, lw=280;
+  paper.rect(lx,ly,lw,data.legend.lines.length*25+10).attr("fill","wheat").attr("stroke","black");
+  for(i=0; i < data.legend.lines.length; i++){
+  	var x=lx+120;
+  	var y = 25*i+15+ly;
+  	var label = paper.text(Math.round(60/70.*arrow_size),0,data.legend.lines[i]).translate(x,y);
+  	label.attr("font-size",font_size*1.5).attr("font-weight","bold").attr("fill","black");
+  }
+  var lh = 25*(data.legend.lines.length)+10;
+  var minv = 0.0;
+  var maxv = 1.8;
+  for(i=0; i < colors.length; i++){
+	  paper.rect(lx,ly+lh+5+15*i,25,15).attr("fill",colors[i]).attr("stroke","white");
+	  paper.rect(lx+25,ly+lh+5+15*i,25,15).attr("fill","wheat").attr("stroke","white");
+  }
+  for(i=0; i < colors.length; i++){
+	  paper.text(lx+25,ly+lh+12+15*i,minv+i*(maxv-minv)/(colors.length-1)).attr("text-anchor","start").attr("stroke","black").attr("font-size",12);
+  }
+  data.channels.forEach(function(d){
+	/* Convert latitude and longitude to pixel locations. */
+    var up = m.fromLatLngToDivPixel(new GLatLng(d.ulat, d.ulon));
+    d.ux = up.x; d.uy = up.y;
+    var dp = m.fromLatLngToDivPixel(new GLatLng(d.dlat, d.dlon));
+    d.dx = dp.x; d.dy = dp.y;
+    var arrow = paper.path("M "+d.ux+" "+d.uy+" L "+d.dx+ " "+ d.dy);
+  	arrow.attr("fill","blue").attr("stroke","blue").attr("title","Channel: "+d.id+" Value: "+d.v).attr("stroke-width","5");
+  	arrow.attr("stroke",colormap(d.v,minv,maxv));
+  });
+
+};
+
+/* Create the map, embedding our visualization! */
+function initMap(){
+	/* Restrict minimum and maximum zoom levels. */
+ 	[G_NORMAL_MAP, G_HYBRID_MAP, G_PHYSICAL_MAP].forEach(function(t) {
+	  t.getMinimumResolution = function() {return 10;}
+	  t.getMaximumResolution = function() {return 10;}
+	});
+ 	var map = new GMap2(document.getElementById("map"));
+	map.setCenter(new GLatLng(38.12, -121.72), 10);
+ 	var ui = map.getDefaultUI();
+	ui.maptypes.satellite = false;
+	ui.maptypes.physical = false;
+	ui.maptypes.hybrid = false;
+	ui.zoom.scrollwheel = true;
+	ui.zoom.doubleclick=false;
+	ui.controls.largemapcontrol3d=false;
+
+	map.setUI(ui);
+	//map.disableDragging();
+	map.disableGoogleBar();
+	map.setMapType(G_NORMAL_MAP);
+	map.addOverlay(new Canvas());
+	//
+}
+
+    </script>
+</head>
+<body onload="initMap()" onunload="GUnload()">
+  <!--[if IE]>
+    <script type="text/javascript"
+     src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+
+    <style>
+     .chromeFrameInstallDefaultStyle {
+       width: 100%; /* default is 800px */
+       border: 5px solid blue;
+     }
+    </style>
+
+    <div id="prompt">
+    </div>
+
+    <script>
+     function install_gcf() {
+       CFInstall.check({
+         mode: "overlay",
+         node: "prompt"
+       });
+       return false;
+      }
+      window.attachEvent("onload", install_gcf);
+    </script>
+  <![endif]-->
+<div id="center">
+<div id="fig">
+<div id="map"></div>
+<div id="submap">
+<div id="temp"></div>
+</div>
+</div>
+</div>
+</body>
+</html>
