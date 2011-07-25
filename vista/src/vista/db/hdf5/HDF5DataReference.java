@@ -49,8 +49,9 @@ public class HDF5DataReference extends DataReference {
 	public HDF5DataReference(String file, String path, int locationNumber,
 			int nodePosition) {
 		this(file, path, locationNumber, nodePosition, TimeFactory
-				.getInstance().createTimeWindow("01JAN1900 0000 - 01JAN2300 2400"),
-				TimeFactory.getInstance().createTimeInterval("15MIN"), null);
+				.getInstance().createTimeWindow(
+						"01JAN1900 0000 - 01JAN2300 2400"), TimeFactory
+				.getInstance().createTimeInterval("15MIN"), null);
 	}
 
 	public HDF5DataReference(String file, String path, int locationNumber,
@@ -63,20 +64,20 @@ public class HDF5DataReference extends DataReference {
 		setTimeWindow(tw);
 		setTimeInterval(ti);
 		setPathname(pathname);
-		setName(file+"::"+pathname);
+		setName(file + "::" + pathname);
 	}
 
 	@Override
 	protected DataReference createClone() {
-		return new HDF5DataReference(getFilename(), this.path, this.locationNumber,
-				this.nodePosition, getTimeWindow(), getTimeInterval(),
-				getPathname());
+		return new HDF5DataReference(getFilename(), this.path,
+				this.locationNumber, this.nodePosition, getTimeWindow(),
+				getTimeInterval(), getPathname());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public DataSet getData() {
-		if (dataset == null || dataset.get() == null){
+		if (dataset == null || dataset.get() == null) {
 			String file = getFilename();
 			H5File h5file = new H5File(file);
 			try {
@@ -91,49 +92,6 @@ public class HDF5DataReference extends DataReference {
 				H5ScalarDS ds = (H5ScalarDS) hObject;
 				// initialize the dim arrays
 				List<Attribute> attributes = ds.getMetadata();
-				//
-				long[] startDims = ds.getStartDims();
-				long[] stride = ds.getStride();
-				long[] selectedDims = ds.getSelectedDims();
-				long[] dims = ds.getDims();
-				//
-				startDims[0] = 0;
-				if (startDims.length > 2){
-					startDims[1] = locationNumber;
-					startDims[2] = nodePosition;
-				} else {
-					startDims[1] = locationNumber;
-				}
-				//
-				stride[0] = 1;
-				stride[1] = 1;
-				if (stride.length > 2){
-					stride[2] = 1;
-				}
-				//
-				selectedDims[0] = dims[0];
-				selectedDims[1] = 1;
-				if (selectedDims.length > 2){
-					selectedDims[2] = 1;
-				}
-				// if channel get elevation at node position
-				double bottomElevation = 0.0;
-				if (path.contains("channel stage")){
-					bottomElevation = getBottomElevation(h5file, locationNumber, nodePosition);
-				}
-				//
-				Object rawData = ds.read();
-				if (!(rawData != null && rawData instanceof float[])) {
-					throw new IllegalArgumentException("Path: " + path
-							+ " in HDF5 file: " + file
-							+ " is either null or not a floating point array");
-				}
-				// FIXME: data sets should be able to hold floats?
-				float[] fData = (float[]) rawData;
-				double[] dData = new double[fData.length];
-				for (int i = 0; i < fData.length; i++) {
-					dData[i] = fData[i] + bottomElevation;
-				}
 				Time startTimeString = null;
 				TimeInterval timeInterval = null;
 				String modelName = "";
@@ -156,16 +114,79 @@ public class HDF5DataReference extends DataReference {
 						modelVersion = ((String[]) value)[0];
 					}
 				}
+				Time dataStartTime = TimeFactory.getInstance().createTime(
+						startTimeString);
+				if (timeInterval == null) {
+					setTimeInterval(timeInterval);
+				}
+				//
+				long[] startDims = ds.getStartDims();
+				long[] stride = ds.getStride();
+				long[] selectedDims = ds.getSelectedDims();
+				long[] dims = ds.getDims();
+				// FIXME: startDims[0]=startTimeIndex
+				if (getTimeWindow() != null) {
+					Time startTime = getTimeWindow().getStartTime();
+					startDims[0] = Math.max(0,dataStartTime.getExactNumberOfIntervalsTo(startTime, getTimeInterval()));
+				} else{
+					startDims[0] = 0;
+				}
+				if (startDims.length > 2) {
+					startDims[1] = locationNumber;
+					startDims[2] = nodePosition;
+				} else {
+					startDims[1] = locationNumber;
+				}
+				//
+				stride[0] = 1;
+				stride[1] = 1;
+				if (stride.length > 2) {
+					stride[2] = 1;
+				}
+				//
+				// FIXME: set this to startIndex+numberof steps from desired
+				// time window
+				if (getTimeWindow() != null) {
+					Time startTime = getTimeWindow().getStartTime();
+					Time endTime = getTimeWindow().getEndTime();
+					selectedDims[0] = Math.min(startTime.getExactNumberOfIntervalsTo(endTime, getTimeInterval())+1,dims[0]);
+				} else{
+					selectedDims[0] = dims[0];
+				}
+				selectedDims[1] = 1;
+				if (selectedDims.length > 2) {
+					selectedDims[2] = 1;
+				}
+				// if channel get elevation at node position
+				double bottomElevation = 0.0;
+				if (path.contains("channel stage")) {
+					bottomElevation = getBottomElevation(h5file,
+							locationNumber, nodePosition);
+				}
+				//
+				Object rawData = ds.read();
+				if (!(rawData != null && rawData instanceof float[])) {
+					throw new IllegalArgumentException("Path: " + path
+							+ " in HDF5 file: " + file
+							+ " is either null or not a floating point array");
+				}
+				// FIXME: data sets should be able to hold floats?
+				float[] fData = (float[]) rawData;
+				double[] dData = new double[fData.length];
+				for (int i = 0; i < fData.length; i++) {
+					dData[i] = fData[i] + bottomElevation;
+				}
+
+				if (getTimeWindow() == null) {
+					Time endTime = dataStartTime.create(dataStartTime);
+					endTime.incrementBy(getTimeInterval(), dData.length);
+					setTimeWindow(TimeFactory.getInstance().createTimeWindow(
+							dataStartTime, endTime));
+				}
+
 				String[] pathParts = this.path.split("/");
 				String nodePositionName = this.nodePosition == 1 ? "LENGTH"
 						: "0";
-				setTimeInterval(timeInterval);
-				Time startTime = TimeFactory.getInstance().createTime(
-						startTimeString);
-				Time endTime = startTime.create(startTime);
-				endTime.incrementBy(getTimeInterval(), dData.length);
-				setTimeWindow(TimeFactory.getInstance().createTimeWindow(
-						startTime, endTime));
 				if (getPathname() == null) {
 					String name = "/hydro/" + this.locationNumber + "_"
 							+ nodePositionName + "/"
@@ -175,10 +196,12 @@ public class HDF5DataReference extends DataReference {
 					setPathname(Pathname.createPathname(name));
 				}
 				String yUnits = getUnits(getPathname().getPart(Pathname.C_PART));
-				DataSetAttr attr =  new DataSetAttr(DataType.REGULAR_TIME_SERIES,
-						"TIME", yUnits, "", "INST-VAL");
-				RegularTimeSeries rts = new RegularTimeSeries(getPathname().toString(), startTimeString,
-						timeInterval, dData, null, attr);
+				DataSetAttr attr = new DataSetAttr(
+						DataType.REGULAR_TIME_SERIES, "TIME", yUnits, "",
+						"INST-VAL");
+				RegularTimeSeries rts = new RegularTimeSeries(getPathname()
+						.toString(), getTimeWindow().getStartTime(), timeInterval, dData,
+						null, attr);
 				dataset = new WeakReference<DataSet>(rts);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -192,7 +215,8 @@ public class HDF5DataReference extends DataReference {
 		return dataset.get();
 	}
 
-	private double getBottomElevation(H5File h5file, int locationNumber2, int nodePosition2) throws Exception {
+	private double getBottomElevation(H5File h5file, int locationNumber2,
+			int nodePosition2) throws Exception {
 		HObject hObject = h5file.get("/hydro/geometry/channel_bottom");
 		if (!(hObject instanceof H5ScalarDS)) {
 			throw new IllegalArgumentException("Path: " + path
@@ -230,13 +254,14 @@ public class HDF5DataReference extends DataReference {
 	}
 
 	private String getUnits(String part) {
-		if (part.equalsIgnoreCase("FLOW")){
+		if (part.equalsIgnoreCase("FLOW")) {
 			return "CFS";
-		} else if (part.equalsIgnoreCase("STAGE")){
+		} else if (part.equalsIgnoreCase("STAGE")) {
 			return "FT";
-		} else if (part.equalsIgnoreCase("AREA") || part.equalsIgnoreCase("AVG_AREA")){
+		} else if (part.equalsIgnoreCase("AREA")
+				|| part.equalsIgnoreCase("AVG_AREA")) {
 			return "FT^2";
-		} else if (part.equalsIgnoreCase("VOLUME")){
+		} else if (part.equalsIgnoreCase("VOLUME")) {
 			return "FT^3";
 		} else {
 			return "";
@@ -245,15 +270,15 @@ public class HDF5DataReference extends DataReference {
 
 	@Override
 	public void reloadData() {
-		if (dataset != null){
+		if (dataset != null) {
 			dataset.clear();
 		}
 		dataset = null;
 	}
 
 	public String toString() {
-		return "HDF5::" + getFilename() + "::" + path + "::" + locationNumber + "@"
-				+ nodePosition + "::" + getTimeWindow() + "::"
+		return "HDF5::" + getFilename() + "::" + path + "::" + locationNumber
+				+ "@" + nodePosition + "::" + getTimeWindow() + "::"
 				+ getTimeInterval() + "::" + getPathname();
 	}
 
