@@ -200,7 +200,8 @@ public class DSSUtil {
 		DSSDataReader reader = new DSSDataReader();
 		int recType = reader.recordType(filename, pathname);
 		Pathname path = Pathname.createPathname(pathname);
-		if (recType == DSSUtil.REGULAR_TIME_SERIES || recType == DSSUtil.REGULAR_TIME_SERIES+5) {
+		if (recType == DSSUtil.REGULAR_TIME_SERIES
+				|| recType == DSSUtil.REGULAR_TIME_SERIES + 5) {
 			TimeInterval ti = DSSUtil.createTimeInterval(path);
 			TimeWindow tw = DSSUtil.createTimeWindow(path);
 			int st = (int) tw.getStartTime().getTimeInMinutes();
@@ -216,7 +217,8 @@ public class DSSUtil {
 			Time stime = tw.getStartTime();
 			return new RegularTimeSeries(filename + "::" + pathname, stime, ti,
 					data._yValues, data._flags, attr);
-		} else if (recType == DSSUtil.IRREGULAR_TIME_SERIES || recType == DSSUtil.IRREGULAR_TIME_SERIES+5) {
+		} else if (recType == DSSUtil.IRREGULAR_TIME_SERIES
+				|| recType == DSSUtil.IRREGULAR_TIME_SERIES + 5) {
 			TimeInterval ti = DSSUtil.createTimeInterval(path);
 			TimeWindow tw = DSSUtil.createTimeWindow(path);
 			int st = (int) tw.getStartTime().getTimeInMinutes();
@@ -260,7 +262,8 @@ public class DSSUtil {
 	 * @see Pathname
 	 * @see DataSet
 	 */
-	public static void writeData(String filename, String pathname, DataSet ds, boolean withFlags) {
+	public static void writeData(String filename, String pathname, DataSet ds,
+			boolean withFlags) {
 
 		long smin = 0;
 		long emin = 0;
@@ -277,8 +280,14 @@ public class DSSUtil {
 			p.setPart(Pathname.E_PART, ti.toString());
 		}
 		//
-		new DSSDataWriter().storeData(filename, p.toString(), smin, emin, ds,
-				withFlags && ds.isFlagged());
+		DSSDataWriter writer = new DSSDataWriter(filename);
+		try {
+			writer.openDSSFile();
+			writer.storeData(p.toString(), smin, emin, ds, withFlags
+					&& ds.isFlagged());
+		} finally {
+			writer.closeDSSFile();
+		}
 	}
 
 	/**
@@ -328,7 +337,7 @@ public class DSSUtil {
 		// replace with case sensitivity DSS_EXTENSION with CATLOG_EXTENSION
 		char[] str = dssfile.toCharArray();
 		str[str.length - 1] = 'd';// Character.isLowerCase(str[str.length-1]) ?
-									// 'd': 'D';
+		// 'd': 'D';
 		return new String(str);
 	}
 
@@ -339,7 +348,7 @@ public class DSSUtil {
 		// replace with case sensitivity DSS_EXTENSION with CATLOG_EXTENSION
 		char[] str = dsdfile.toCharArray();
 		str[str.length - 1] = 's';// Character.isLowerCase(str[str.length-1]) ?
-									// 's': 'S';
+		// 's': 'S';
 		return new String(str);
 	}
 
@@ -397,8 +406,8 @@ public class DSSUtil {
 	 * data. Make only additions to this array. Any deletion will result in
 	 * mismatches with the older ids that were in use.
 	 */
-	public static final String[] USERS = { "psandhu", "rfinch", "kkao", "jamiea",
-			"eli", "mmierzwa", "tara", "kle", "datachecker" };
+	public static final String[] USERS = { "psandhu", "rfinch", "kkao",
+			"jamiea", "eli", "mmierzwa", "tara", "kle", "datachecker" };
 	/**
 	 * users with access to setting flags and writing to data base
 	 */
@@ -502,7 +511,7 @@ public class DSSUtil {
 			throws InstantiationException {
 		DSSRemoteClient client;
 		if (server.equals("local")) { // && isLocalAccessEnabled() ) { this just
-										// confuses
+			// confuses
 			try {
 				client = new DSSRemoteClientImpl();
 				return client;
@@ -610,19 +619,19 @@ public class DSSUtil {
 		if (epart.indexOf(TimeInterval.MIN_INTERVAL_STR) > 0) {
 			if (tipath.compare(_tf.createTimeInterval("15MIN")) >= 0)
 				incr = 1 + TimeInterval.MONTH_INTERVAL_STR; // stored in month
-															// blocks
+			// blocks
 			else
 				incr = 1 + TimeInterval.DAY_INTERVAL_STR; // stored in day
-															// blocks
+			// blocks
 		} else if (epart.indexOf(TimeInterval.HOUR_INTERVAL_STR) > 0) {
 			incr = 1 + TimeInterval.MONTH_INTERVAL_STR; // stored in month
-														// blocks
+			// blocks
 		} else if (epart.indexOf(TimeInterval.DAY_INTERVAL_STR) > 0) {
 			incr = 1 + TimeInterval.YEAR_INTERVAL_STR; // stored in year blocks
 		} else if (epart.indexOf(TimeInterval.WEEK_INTERVAL_STR) > 0
 				|| epart.indexOf(TimeInterval.MONTH_INTERVAL_STR) > 0) {
 			incr = 1 + TimeInterval.DECADE_INTERVAL_STR; // stored in decade
-															// blocks
+			// blocks
 		} else if (epart.indexOf(TimeInterval.YEAR_INTERVAL_STR) > 0
 				|| epart.indexOf(TimeInterval.DECADE_INTERVAL_STR) > 0
 				|| epart.indexOf(TimeInterval.CENTURY_INTERVAL_STR) > 0) {
@@ -639,10 +648,10 @@ public class DSSUtil {
 			// end Time = end time from d part + time interval from e part
 			if (ti != null)
 				endTime.incrementBy(ti); // regular block size varies with
-											// interval
+			// interval
 		} else {
 			endTime.incrementBy(tipath); // irregular block size is same as
-											// interval
+			// interval
 		}
 
 		TimeWindow tw = _tf.createTimeWindow(startTime, endTime);
@@ -845,8 +854,9 @@ public class DSSUtil {
 		} else {
 			String blockInterval = ((IrregularTimeSeries) ts)
 					.getBlockInterval();
-			String interval = "1"+blockInterval.substring(blockInterval
-					.indexOf("-") + 1, blockInterval.length());
+			String interval = "1"
+					+ blockInterval.substring(blockInterval.indexOf("-") + 1,
+							blockInterval.length());
 			ti = TimeFactory.getInstance().createTimeInterval(interval);
 		}
 		Time stime = tw.getStartTime().floor(ti);
@@ -862,25 +872,27 @@ public class DSSUtil {
 		return blockStart;
 	}
 
-	public static int[] openDSSFile(String dssFile, boolean toWrite){
+	public static int[] openDSSFile(String dssFile, boolean toWrite) {
 		Heclib.zset("PROGRAM", "VISTA", 0);
 		Heclib.zset("MLEVEL", "", 0);
 		Heclib.zset("CCDATE", "ON", 0);
 		stringContainer outName = new stringContainer();
-		boolean exists = Heclib.zfname(dssFile, outName );
-		if (!exists && !toWrite){
-			throw new RuntimeException("** The DSS File does not exist: "+dssFile);
+		boolean exists = Heclib.zfname(dssFile, outName);
+		if (!exists && !toWrite) {
+			throw new RuntimeException("** The DSS File does not exist: "
+					+ dssFile);
 		}
 		int[] ifltab = new int[600];
 		int[] status = new int[1];
 		Heclib.zopen(ifltab, dssFile, status);
-		if ( status[0] != 0){
-			throw new RuntimeException(" *** Error in opening DSS File: "+dssFile+ " Status: "+ status[0]);
+		if (status[0] != 0) {
+			throw new RuntimeException(" *** Error in opening DSS File: "
+					+ dssFile + " Status: " + status[0]);
 		}
 		return ifltab;
 	}
-	
-	public static void closeDSSFile(int[] ifltab){
-     	Heclib.zclose(ifltab);
+
+	public static void closeDSSFile(int[] ifltab) {
+		Heclib.zclose(ifltab);
 	}
 }

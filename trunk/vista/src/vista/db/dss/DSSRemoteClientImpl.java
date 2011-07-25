@@ -424,14 +424,19 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		if (ds == null)
 			throw new RemoteException("Nothing to store");
 		checkUserId(id);
-		_dataWriter.storeData(filename, path, startJulmin, endJulmin, ds,
-				storeFlags);
+		DSSDataWriter writer = new DSSDataWriter(filename);
+		try {
+			writer.openDSSFile();
+			writer.storeData(path, startJulmin, endJulmin, ds,
+					storeFlags);
+		} finally {
+			writer.closeDSSFile();
+		}
 	}
 
 	/**
    *
    */
 	private DSSDataReader _dataReader = new DSSDataReader();
-	private DSSDataWriter _dataWriter = new DSSDataWriter();
 	private static final boolean DEBUG = false;
 }
