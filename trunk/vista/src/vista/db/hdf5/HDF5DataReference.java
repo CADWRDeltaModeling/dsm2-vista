@@ -127,13 +127,25 @@ public class HDF5DataReference extends DataReference {
 				// FIXME: startDims[0]=startTimeIndex
 				if (getTimeWindow() != null) {
 					Time startTime = getTimeWindow().getStartTime();
-					startDims[0] = Math.max(0,dataStartTime.getExactNumberOfIntervalsTo(startTime, getTimeInterval()));
-				} else{
+					startDims[0] = Math.max(0, dataStartTime
+							.getExactNumberOfIntervalsTo(startTime,
+									getTimeInterval()));
+				} else {
 					startDims[0] = 0;
 				}
-				if (startDims.length > 2) {
-					startDims[1] = locationNumber;
-					startDims[2] = nodePosition;
+				if (modelName.equalsIgnoreCase("qual")) {
+
+				}
+				if (startDims.length == 4) {
+					startDims[2] = locationNumber;
+					startDims[3] = nodePosition;
+				} else if (startDims.length == 3) {
+					if (modelName.equalsIgnoreCase("qual")) {
+						startDims[2] = locationNumber;
+					} else {
+						startDims[1] = locationNumber;
+						startDims[2] = nodePosition;
+					}
 				} else {
 					startDims[1] = locationNumber;
 				}
@@ -149,13 +161,18 @@ public class HDF5DataReference extends DataReference {
 				if (getTimeWindow() != null) {
 					Time startTime = getTimeWindow().getStartTime();
 					Time endTime = getTimeWindow().getEndTime();
-					selectedDims[0] = Math.min(startTime.getExactNumberOfIntervalsTo(endTime, getTimeInterval())+1,dims[0]);
-				} else{
+					selectedDims[0] = Math.min(startTime
+							.getExactNumberOfIntervalsTo(endTime,
+									getTimeInterval()) + 1, dims[0]);
+				} else {
 					selectedDims[0] = dims[0];
 				}
 				selectedDims[1] = 1;
 				if (selectedDims.length > 2) {
 					selectedDims[2] = 1;
+				}
+				if (selectedDims.length > 3) {
+					selectedDims[3] = 1;
 				}
 				// if channel get elevation at node position
 				double bottomElevation = 0.0;
@@ -200,8 +217,8 @@ public class HDF5DataReference extends DataReference {
 						DataType.REGULAR_TIME_SERIES, "TIME", yUnits, "",
 						"INST-VAL");
 				RegularTimeSeries rts = new RegularTimeSeries(getPathname()
-						.toString(), getTimeWindow().getStartTime(), timeInterval, dData,
-						null, attr);
+						.toString(), getTimeWindow().getStartTime(),
+						timeInterval, dData, null, attr);
 				dataset = new WeakReference<DataSet>(rts);
 			} catch (Exception e) {
 				e.printStackTrace();
