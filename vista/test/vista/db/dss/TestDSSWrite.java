@@ -1,6 +1,8 @@
 package vista.db.dss;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 
 import junit.framework.TestCase;
 import vista.set.DataSet;
@@ -10,6 +12,8 @@ import vista.set.FlagUtils;
 import vista.set.IrregularTimeSeries;
 import vista.set.RegularTimeSeries;
 import vista.set.TimeElement;
+import vista.time.Time;
+import vista.time.TimeFactory;
 
 public class TestDSSWrite extends TestCase {
 
@@ -31,6 +35,19 @@ public class TestDSSWrite extends TestCase {
 		RegularTimeSeries rts = new RegularTimeSeries("/A/B/C//15MIN/F/",
 				"01JAN1990 0100", "15MIN", new double[] { 1, 2, 3 });
 		String pathname = "/A/B/C/01JAN1990/15MIN/F/";
+		DSSUtil.writeData(filename, pathname, rts, true);
+		DataSet dataSet = DSSUtil.readData(filename, pathname, false);
+		assertNotNull(dataSet);
+	}
+
+	public void testWriteRTSMonthly() {
+		Time time = TimeFactory.getInstance().createTime(new Date(21,1,1));
+		RegularTimeSeries rts = new RegularTimeSeries("/A/B/C//1MON/FMON/",
+				"31JAN1921 2400", "1MON", new double[] { 1, 2, 3 });
+		Time startTime = rts.getStartTime();
+		Date date = startTime.getDate();
+		Time time2 = TimeFactory.getInstance().createTime(date);
+		String pathname = "/A/B/C/01JAN1920/1MON/FMON/";
 		DSSUtil.writeData(filename, pathname, rts, true);
 		DataSet dataSet = DSSUtil.readData(filename, pathname, false);
 		assertNotNull(dataSet);
