@@ -19,6 +19,16 @@ public class TestDefaultTime extends TestCase {
 		assertEquals(1440, numberOfMinutesTo);
 	}
 	
+	public void testGetNumberOfIntervalsTo2(){
+		TimeFactory tf = TimeFactory.getInstance();
+		Time startTime = tf.createTime("28OCT1990 0015");
+		TimeInterval ti = tf.createTimeInterval("15MIN");
+		TimeInterval tiday = tf.createTimeInterval("1DAY");
+		Time ceiling = startTime.ceiling(tiday);
+		long intervalsTo = startTime.getExactNumberOfIntervalsTo(ceiling, ti);
+		assertEquals(intervalsTo,95);
+	}
+	
 	public void testGetDate(){
 		TimeFactory tf = TimeFactory.getInstance();
 		Time t1 = tf.createTime("01JAN1980 0100");

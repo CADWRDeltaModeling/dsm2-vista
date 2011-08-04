@@ -60,6 +60,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * A class encapsulating the interval associated with a time series. This can be
@@ -214,7 +215,7 @@ public class DefaultTimeInterval implements TimeInterval, Serializable {
 	 * converts current interval to minutes depending upon current time.
 	 */
 	public long getIntervalInMinutes(Time time) {
-		Calendar c = Calendar.getInstance();
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		Date d = time == null ? new Date() : time.getDate();
 		c.setTime(d);
 		for(int i=0; i < _numberOfIntervals.length; i++){
