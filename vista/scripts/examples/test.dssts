@@ -1,5 +1,5 @@
 dssts.dss
-/A PART/B part/c part//15min/fpart
+/A PART/B part/c part//15min/fpart/
 cfs
 inst-val
 01jan1995 2400
@@ -8,7 +8,7 @@ inst-val
 	4.8
  9.9
 end
-/A PART/B part/c part//1day/fpart
+/A PART/B part/c part//1day/fpart/
 taf
 per-val
 01jan1995 2400

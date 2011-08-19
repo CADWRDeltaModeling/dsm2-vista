@@ -262,6 +262,21 @@ public class DSSUtil {
 	 * @see Pathname
 	 * @see DataSet
 	 */
+	public static void writeData(String filename, String pathname, DataSet ds) {
+		writeData(filename, pathname, ds, true);
+	}
+	/**
+	 * writes out data to dss data base
+	 * 
+	 * @param filename
+	 *            name of dss database
+	 * @param pathname
+	 *            name of data
+	 * @param ds
+	 *            data set
+	 * @see Pathname
+	 * @see DataSet
+	 */
 	public static void writeData(String filename, String pathname, DataSet ds,
 			boolean withFlags) {
 
