@@ -46,7 +46,7 @@ def tabulate(*ref) :
 	else: 
 	    DataTableFrame(ref[0])
     else:
-	MultiDataTable(ref)
+	MultiDataTableFrame(ref)
 # define function to graph a given set of data references.
 def plot(*reflist) :
     """
