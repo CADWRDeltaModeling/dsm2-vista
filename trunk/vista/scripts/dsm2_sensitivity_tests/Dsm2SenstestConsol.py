@@ -26,10 +26,12 @@ if __name__ == '__main__':
     # flow net tidal
     # EC
     #
+    reRun = False
 #    for Param in ['ManN_Ch','Disp_Ch','XTopW_Ch','XElev_Ch','Len_Ch','Depth_Res',\
 #                  'DICU-QDIV_Nd','DICU-QRET_Nd','DICU-ECRET_Nd']:
     for Param in ['ManN_Ch','Disp_Ch','XTopW_Ch','XElev_Ch',\
                   'DICU-QDIV_Nd','DICU-QRET_Nd','DICU-ECRET_Nd']:
+        print 'Trimming', Param
         Prefix = 'HIST-CLB2K-'
         outPattern = Prefix + Param
         STDir = 'd:/delta/models/studies/2010-Calibration/SensitivityTests/'
@@ -72,12 +74,26 @@ if __name__ == '__main__':
                     dataref.getPathname().getPart(Pathname.C_PART) + '.dss'
                 #print DSSConsolFile
                 writedss(DSSConsolFile, ipsu, newDataref.getData())
+            try: 
+                os.remove(envFilePath.replace('\\','/'))
+            except:
+                pass
             print 'Trimmed',os.path.basename(DSSFile)
         # Now calculate amplitudes and averages,
         # average to a single number, and write
         # to text file
         ResultsOut = RDBDir + 'Results-' + Param + '.txt'
-        fp = open(ResultsOut, 'w')
+        if reRun:
+            fp = open(ResultsOut, 'a')
+            # if a re-run, accept only re-run channels or nodes
+            # construct a regexp for only return objects
+            objList = ''
+            for envFilePath in filelist:
+                objName = Param + os.path.basename(envFilePath)
+                objList += objName + '|'
+            objList = objList[0:len(objList)-1]
+        else:
+            fp = open(ResultsOut, 'w')
         BOld = ''
         # reject Base and these stations
         rejStas = '((base)|(rsan112|bnd_sacr).*ec)|(bnd_sacr|bnd_yolo|calaveras|CHCCC006|cosumnes|/cvp/|/mtz/|/sac/|rsan112|slbar002|tompn_sl|vernalis|sjr_mossdale|yolo).*(flow|stage)'
@@ -87,6 +103,12 @@ if __name__ == '__main__':
             dss_group = opendss(DSSConsolFile)
             dss_group.filterBy(Param)
             dss_group.filterBy(PathnamePredicate(rejStas),False)
+            if reRun:
+                # if no objects re-run, skip this parameter entirely
+                if objList == '':
+                    break
+                dss_group.filterBy(objList)
+            print 'Processing', DSSConsolFile
             for dataref in dss_group.getAllDataReferences():
                 pn = dataref.getPathname()
                 B = pn.getPart(Pathname.B_PART)
@@ -132,12 +154,8 @@ if __name__ == '__main__':
                              '\t' + objType + \
                              '\t' + objID + \
                              '\n')
-                try: 
-                    os.remove(envFilePath.replace('\\','/'))
-                except:
-                    pass
         #print datetime.now() - now
         fp.close()
-        print 'End processing all files'
+    print 'End processing all files'
     sys.exit()
 #
