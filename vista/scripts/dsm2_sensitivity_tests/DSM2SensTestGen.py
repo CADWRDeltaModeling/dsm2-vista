@@ -1,4 +1,4 @@
-import string, re, os, sys, math, glob
+import os, glob, shutil
 from vtimeseries import *
 from vista.set import *
 from vista.db.dss import *
@@ -13,21 +13,40 @@ if __name__ == "__main__":
     pctChange = 20.
     ## just one of the below should be True, the others False
     # channel input parameters
-    MANN = True
+    MANN = False
     DISP = False
     XELEV = False
-    XTOPW = False
+    XTOPW = True
     LENGTH = False
     # node input parameters
     DICU = False
+    # Set one to True, the others to False (Diversions, Return Flows, EC of return flows)
+    QDIV = False
+    QRET = False
+    ECRET = False
     # reservoir input parameters
     RESDEPTH = False
 
+    if MANN: PTB = 'ManN_Ch'
+    if DISP: PTB = 'Disp_Ch'
+    if LENGTH: PTB = 'Len_Ch'
+    if XELEV: PTB = 'XElev_Ch'
+    if XTOPW: PTB = 'XTopW_Ch'
+    if RESDEPTH: PTB = 'Depth_Res'
+    if DICU:
+        if QDIV: PTB = 'DICU-QDIV_Nd'
+        if QRET: PTB = 'DICU-QRET_Nd'
+        if ECRET: PTB = 'DICU-ECRET_Nd'
+
     infile = 'd:/delta/models/studies/2000-Calibration/historical/output/hydro_echo_hist-calib2000.inp'
     DICUdir = 'd:/delta/models/timeseries/'
-    outdir = 'd:/delta/models/studies/2010-Calibration/SensitivityTests/PerturbedInputFiles/'
+    outdir = 'd:/delta/models/studies/2010-Calibration/SensitivityTests/PtbInFiles-' + PTB + '/'
     outfilenm = 'PerturbedInp'
     
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
+    os.mkdir(outdir)
+
     p = Parser()
     tables = p.parseModel(infile)
     for fn in glob.glob(outdir+'???'):
@@ -38,34 +57,43 @@ if __name__ == "__main__":
         for chan in channels.getChannels():
             chan3 = "%03d" % int(chan.getId())
             if MANN:    # mannings N...
-                PTBID = 'ManN_Ch' + chan3
+                PTBID = PTB + chan3
                 Val = chan.getMannings()
                 newVal = int(10000. * (Val * (1. + pctChange / 100.)) + 0.5) / 10000.
                 chan.setMannings(newVal)
             if LENGTH:    # nominal channel length...
-                PTBID = 'Len_Ch' + chan3
+                PTBID = PTB + chan3
                 Val = chan.getLength()
                 newVal = int(10000. * (Val * (1. + pctChange / 100.)) + 0.5) / 10000.
                 chan.setLength(int(newVal))
             elif DISP:  # dispersion coefficient
-                PTBID = 'Disp_Ch' + chan3
+                PTBID = PTB + chan3
                 Val = chan.getDispersion()
                 newVal = int(10000. * (Val * (1. + pctChange / 100.)) + 0.5) / 10000.
                 chan.setDispersion(newVal)
             elif XELEV or XTOPW: # cross sections in channel
-                if XELEV: PTBID = 'XElev_Ch' + chan3
-                if XTOPW: PTBID = 'XTopW_Ch' + chan3
+                PTBID = PTB + chan3
                 for xs in chan.getXsections():
+                    runningArea = 0.0
+                    elev = 0.0
+                    TW = 0.0
                     for lyr in xs.getLayers():
                         area = lyr.getArea()
+                        prevElev = elev
                         elev = lyr.getElevation()
+                        prevTW = TW
                         TW = lyr.getTopWidth()
                         WP = lyr.getWettedPerimeter()
-                        if XELEV: lyr.setElevation(int(100. * (elev * (1. + pctChange / 100.) + 0.5)) / 100.)
-                        if area == 0:
+                        if XELEV: 
+                            elev = int(100. * (elev * (1. + pctChange / 100.) + 0.5)) / 100.
+                            lyr.setElevation(elev)
+                        if area == 0.0:
                             continue
-                        if XTOPW: lyr.setTopWidth(int(1000. * (TW * (1. + pctChange / 100.) + 0.5)) / 1000.)
-                        lyr.setArea(int(1000. * (area * (1. + pctChange / 100.) + 0.5)) / 1000.)
+                        if XTOPW:
+                            TW = int(1000. * (TW * (1. + pctChange / 100.) + 0.5)) / 1000.
+                            lyr.setTopWidth(TW)
+                        runningArea += (elev-prevElev)*0.5*(TW+prevTW)
+                        lyr.setArea(runningArea)
                         lyr.setWettedPerimeter(int(1000. * (WP * (1. + pctChange / 100.)) + 0.5) / 1000.)
             newChans = Channels()
             newChans.addChannel(chan)
@@ -74,12 +102,12 @@ if __name__ == "__main__":
             fid_NewVal = open(outfile, 'w')
             fid_EnvLabel = open(outdir + chan3, 'w')
             fid_EnvLabel.write('ENVVAR\n')
-            fid_EnvLabel.write('NAME\tVALUE\n'.expandtabs())
-            fid_EnvLabel.write(('PTB\t' + PTBID).expandtabs())
+            fid_EnvLabel.write('NAME VALUE\n'.expandtabs(4))
+            fid_EnvLabel.write(('PTB ' + PTBID).expandtabs(4))
             fid_EnvLabel.write('\nEND\n\n')
             fid_EnvLabel.close()
             for i in range(2):
-                fid_NewVal.write(newTables[i].toStringRepresentation().expandtabs())
+                fid_NewVal.write(newTables[i].toStringRepresentation().expandtabs(4))
             fid_NewVal.close()
         # end channel loop
         print 'Prepared', len(channels.getChannels()), 'Channel files'
@@ -87,7 +115,7 @@ if __name__ == "__main__":
         reservoirs = tables.toReservoirs()
         for res in reservoirs.getReservoirs():
             resname = res.getName()
-            PTBID = 'Depth_Res' + resname
+            PTBID = PTB + resname
             Val = res.getArea()
             newVal = int(10000. * (Val * (1. + pctChange / 100.)) + 0.5) / 10000.
             res.setArea(newVal)
@@ -97,33 +125,27 @@ if __name__ == "__main__":
             outfile = outdir + outfilenm + PTBID + '.inp'
             fid_EnvLabel = open(outdir + resname, 'w')
             fid_EnvLabel.write('ENVVAR\n')
-            fid_EnvLabel.write('NAME\tVALUE\n'.expandtabs())
-            fid_EnvLabel.write(('PTB\t' + PTBID).expandtabs())
+            fid_EnvLabel.write('NAME VALUE\n'.expandtabs(4))
+            fid_EnvLabel.write(('PTB ' + PTBID).expandtabs(4))
             fid_EnvLabel.write('\nEND\n\n')
             fid_EnvLabel.close()
             fid_NewVal = open(outfile, 'w')
             for i in range(2):  
-                fid_NewVal.write(newTables[i].toStringRepresentation().expandtabs())
+                fid_NewVal.write(newTables[i].toStringRepresentation().expandtabs(4))
             fid_NewVal.close()
         # end reservoir loop
         print 'Prepared', len(reservoirs.getReservoirs()), 'Reservoir files'
     elif DICU:
-        # Set one to True, the others to False (Diversions, Return Flows, EC of return flows)
-        QDIV = False
-        QRET = False
-        ECRET = True
         # Perturbed values for flows could be either a single replacement value, 
         # or an incremental (additional) value.
         # Use incremental value for each node to avoid huge directory
         # of full input for each nodal perturbation.
         # For ECs of return flows, use a replacement value
+        QType = PTB
         if QDIV: 
-            QType = 'QDIV'
             Sign = '-1'
         if QRET: 
-            QType = 'QRET'
             Sign = '+1'
-        if ECRET: QType = 'ECRET'
         if QDIV or QRET: DICUfile = DICUdir + 'dicu_200705.dss'
         if ECRET: DICUfile = DICUdir + 'dicuwq_200611_expand.dss'
         dss_group = opendss(DICUfile)
@@ -149,12 +171,12 @@ if __name__ == "__main__":
             if not update:
                 continue
             dataset = dataref.getData()
-            PTBID = 'DICU-' +QType + '_Nd' + node3
+            PTBID = PTB + node3
             # create file for environment variable study label
             fid_EnvLabel = open(outdir + node3, 'w')
             fid_EnvLabel.write('ENVVAR\n')
-            fid_EnvLabel.write('NAME\tVALUE\n'.expandtabs())
-            fid_EnvLabel.write(('PTB\t' + PTBID).expandtabs())
+            fid_EnvLabel.write('NAME VALUE\n'.expandtabs(4))
+            fid_EnvLabel.write(('PTB ' + PTBID).expandtabs(4))
             fid_EnvLabel.write('\nEND\n')
             fid_EnvLabel.close()
             # create file to read in updated value
@@ -163,19 +185,19 @@ if __name__ == "__main__":
             fid_NewVal = open(outfile, 'w')
             if QDIV or QRET:
                 fid_NewVal.write('SOURCE_FLOW\n')
-                fid_NewVal.write('NAME\t\tNODE\tSIGN\tFILLIN\tFILE\t\tPATH\n'.expandtabs())
+                fid_NewVal.write('NAME  NODE SIGN FILLIN FILE  PATH\n'.expandtabs(4))
                 if inpath.getPart(inpath.C_PART)=='DIV-FLOW': name = 'dicu_div_'
                 if inpath.getPart(inpath.C_PART)=='DRAIN-FLOW': name = 'dicu_drain_'
                 if inpath.getPart(inpath.C_PART)=='SEEP-FLOW': name = 'dicu_seep_'
-                fid_NewVal.write(name+B+'\t'+B+'\t'+Sign+'\t\tlast\t'+ \
-                         os.path.basename(dicufile)+'\t'+ \
-                         inpath.getFullPath()+'\n'.expandtabs())
+                fid_NewVal.write(name+B+' '+B+' '+Sign+'  last '+ \
+                         os.path.basename(dicufile)+' '+ \
+                         inpath.getFullPath()+'\n'.expandtabs(4))
             if ECRET:
                 fid_NewVal.write('NODE_CONCENTRATION\n')
-                fid_NewVal.write('NAME\t\tNODE_NO\tVARIABLE\tFILLIN\tFILE\t\tPATH\n'.expandtabs())
-                fid_NewVal.write('dicu_drain_'+B+'\t'+B+'\tEC\t\tlast\t'+ \
-                         os.path.basename(dicufile)+'\t'+ \
-                         inpath.getFullPath()+'\n'.expandtabs())                
+                fid_NewVal.write('NAME  NODE_NO VARIABLE FILLIN FILE  PATH\n'.expandtabs(4))
+                fid_NewVal.write('dicu_drain_'+B+' '+B+' EC  last '+ \
+                         os.path.basename(dicufile)+' '+ \
+                         inpath.getFullPath()+'\n'.expandtabs(4))                
             fid_NewVal.write('END\n')
             fid_NewVal.close()
             # write updated value to new DSS file
