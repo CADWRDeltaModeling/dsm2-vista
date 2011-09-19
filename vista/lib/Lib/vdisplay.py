@@ -1,4 +1,4 @@
-from vista.app import DataGraphFrame, DataTableFrame, MultiDataTableFrame, GroupFrame, \
+from vista.app import DataGraph, DataTableFrame, GroupFrame, \
      SessionFrame, DefaultGraphBuilder, CurveFactory
 from vista.graph import GECanvas, GraphUtils, SymbolFactory, \
      Graph, GraphAttr, Plot, PlotAttr, \
