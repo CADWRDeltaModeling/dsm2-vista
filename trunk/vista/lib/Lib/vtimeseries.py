@@ -27,9 +27,9 @@ def time(tmstr,pattern=None):
     format.
     """
     if pattern == None:
-	       return TimeFactory.getInstance().createTime(tmstr)
+               return TimeFactory.getInstance().createTime(tmstr)
     else:
-	       return TimeFactory.getInstance().createTime(tmstr,pattern)
+               return TimeFactory.getInstance().createTime(tmstr,pattern)
 #
 def convert_to_date(time_val):
     from java.util import TimeZone,Date
@@ -73,12 +73,12 @@ def interpolate(ref,tm_intvl='1day',flat=True):
     ti = ds.getTimeInterval();
     tiday = ti.create(tm_intvl)
     if ti.compare(tiday) < 0 :
-	       raise repr(ref.getName()) + " : has interval lesser than " + repr(tiday)
+               raise repr(ref.getName()) + " : has interval lesser than " + repr(tiday)
     elif ti.compare(tiday) == 0:
-	   if isinstance(ds,RegularTimeSeries):
-	       return ds
-	   else:
-	       return ref
+           if isinstance(ds,RegularTimeSeries):
+               return ds
+           else:
+               return ref
     filter = Constants.DEFAULT_FLAG_FILTER
     # convert monthly data to daily data
     y_cfs = [] # initialize empty array
@@ -197,9 +197,9 @@ def resample(ref,outint,offset=0):
         yt.advance()
     #
     if got_ref:
-	refpath=ref.getPathname()
+        refpath=ref.getPathname()
     else:
-	refpath=Pathname.createPathname(data.getName())
+        refpath=Pathname.createPathname(data.getName())
 
     refpath.setPart(Pathname.E_PART,outint.toString())
     name=refpath.toString()
@@ -255,13 +255,13 @@ def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
     rtsi = rts.getIterator()
     index=0
     while not rtsi.atEnd():
-	   el = rtsi.getElement()
-	   if filter.isAcceptable(el):
-	       xa[index]=0
-	   else:
-	       xa[index]=1
-	   rtsi.advance()
-	   index=index+1
+           el = rtsi.getElement()
+           if filter.isAcceptable(el):
+               xa[index]=0
+           else:
+               xa[index]=1
+           rtsi.advance()
+           index=index+1
     return RegularTimeSeries(rts.getName(),str(rts.getStartTime()),str(rts.getTimeInterval()),xa)
 #
 
@@ -275,9 +275,9 @@ def taf2cfs(ref):
     """
     import java.lang; from java.lang import Math
     if hasattr(ref,'getData'):
-	ds = ref.getData()
+        ds = ref.getData()
     else:
-	ds = ref
+        ds = ref
     ds = ds.createSlice(ds.getTimeWindow())
     dsi = ds.getIterator()
     tifrom = ds.getTimeInterval()
@@ -288,41 +288,66 @@ def taf2cfs(ref):
     tm = ds.getStartTime()
     tm2 = tm.create(tm)
     while not dsi.atEnd():
-	e = dsi.getElement()
-	tm = tm.create(Math.round(e.getX()));
-	tm2 = tm.create(tm);
-	tm2.incrementBy(tifrom,-1); # go back one interval
-	nvals = tm2.getExactNumberOfIntervalsTo(tm,tiday);
-	if filter.isAcceptable(e):
-	    e.setY(e.getY()*factor/nvals)
-	    dsi.putElement(e)
-	dsi.advance()
+        e = dsi.getElement()
+        tm = tm.create(Math.round(e.getX()));
+        tm2 = tm.create(tm);
+        tm2.incrementBy(tifrom,-1); # go back one interval
+        nvals = tm2.getExactNumberOfIntervalsTo(tm,tiday);
+        if filter.isAcceptable(e):
+            e.setY(e.getY()*factor/nvals)
+            dsi.putElement(e)
+        dsi.advance()
     ds.getAttributes().setYUnits("CFS")
     return ds
 #
-def its2rts(irts,tw=None,tis=None):
+def its2rts(its,tw=None,tis=None):
     """
-    its2rts(irts,tw=None,tis='1hour'):
+    its2rts(its,tw=None,tis='1hour'):
     Converts irregular time series to regular time series with
     a time window and time interval.
+    Input is irregular time series dataref or dataset,
+    optional time window as string,
+    optional time interval as string.
     """
-    if irts==None:
+    if not its:
         return None
-    if tis==None:
-        tis='1hour'
-    ti = timeinterval(tis)
     got_ref=False
-    if isinstance(irts,DataReference):
-        irts = irts.getData()
+    if isinstance(its,DataReference):
+        its = its.getData()
         got_ref=True
     if tw == None:
-	   tw = irts.getTimeWindow()
+        tw = its.getTimeWindow()
     else:
-       tw = timewindow(tw)
+        tw = timewindow(tw)
+    if not tis:
+        # estimate time interval from average its intervals
+        aveIntvl = 0
+        sti = dsIndex(its, str(tw.getStartTime()))
+        eti = dsIndex(its, str(tw.getEndTime())) + 1
+        xArr = its.getXArray()
+        for i in range(sti+1,eti):
+            aveIntvl += xArr[i] - xArr[i-1]
+        aveIntvl /= eti-sti-1
+        if aveIntvl > 0.9 and aveIntvl < 1.1:
+            tis = '1MIN'
+        if aveIntvl > 4.9 and aveIntvl < 5.1:
+            tis = '5MIN'
+        elif aveIntvl > 9.5 and aveIntvl < 10.5:
+            tis = '10MIN'
+        elif aveIntvl > 14.5 and aveIntvl < 15.5:
+            tis = '15MIN'
+        elif aveIntvl > 59.5 and aveIntvl < 50.5:
+            tis = '1HOUR'
+        elif aveIntvl > 1439.5 and aveIntvl < 1440.5:
+            tis = '1DAY'
+        else:
+            print 'Unable to determine time interval in its2rts'
+            return None
+    ti = timeinterval(tis)
     st = time(tw.getStartTime().ceiling(ti))
     et = time(tw.getEndTime().floor(ti))
     # update dataset name with new E part
-    parts = string.split(irts.getName(), '/')
+    parts = string.split(its.getName(), '/')
     if len(parts) == 8: parts[5] = tis.upper()
     name = string.join(parts, '/')
     nvals = st.getNumberOfIntervalsTo(et,ti)+1
@@ -331,35 +356,35 @@ def its2rts(irts,tw=None,tis=None):
     flags = jarray.zeros(nvals,'i')
     # initialize loop values
     index=0
-    itrtr_irts = irts.getIterator()
-    last_val = Constants.MISSING_VALUE
-    last_flag = 0
+    itrtr_its = its.getIterator()
+    prev_val = Constants.MISSING_VALUE
+    prev_flag = 0
     # get first time value in irregular time series
-    next_time = time(long(itrtr_irts.getElement().getX()))
+    next_time = time(long(itrtr_its.getElement().getX()))
     # get starting time of regular time series
     time_val = time(st)
     # loop over rts to fill values
     # loop takes care of filling the regular time series
-    # with last irts value and flag
+    # with previous its value and flag
     while index < nvals:
-	# if time value of rts is >= irts then update values
-	if not itrtr_irts.atEnd() and time_val.compare(next_time) >= 0:
-	    # initialize last val and last flag value
-	    last_val = itrtr_irts.getElement().getY()
-	    last_flag = itrtr_irts.getElement().getFlag()
-	    # advance by one & update next time value
-	    itrtr_irts.advance()
-	    # if itrtr_irts hasn't hit its end set the next_time value
-	    if not itrtr_irts.atEnd():
-		    next_time = time(long(itrtr_irts.getElement().getX()))
-	# keep filling with the last value and flag
-	yvals[index] = last_val
-	flags[index] = last_flag
-	# increment current time value by regular interval
-	time_val.incrementBy(ti)
-	index=index+1
+        # if time value of rts >= its then update values
+        if not itrtr_its.atEnd() and time_val.compare(next_time) >= 0:
+            # initialize previous val and last flag value
+            prev_val = itrtr_its.getElement().getY()
+            prev_flag = itrtr_its.getElement().getFlag()
+            # advance by one & update next time value
+            itrtr_its.advance()
+            # if itrtr_its hasn't hit its end set the next_time value
+            if not itrtr_its.atEnd():
+                    next_time = time(long(itrtr_its.getElement().getX()))
+        # keep filling with the last value and flag
+        yvals[index] = prev_val
+        flags[index] = prev_flag
+        # increment current time value by regular interval
+        time_val.incrementBy(ti)
+        index=index+1
     # create an attribute as clone of irregular time series
-    attr = irts.getAttributes().createClone()
+    attr = its.getAttributes().createClone()
     # change its type to regular
     attr.setType(DataType.REGULAR_TIME_SERIES)
     # create a new time series with values, flags and attr with
@@ -478,6 +503,26 @@ def merge_with_flags(ds1, ds2):
         return IrregularTimeSeries('', mX, mY, mF)
 #
 #
+def isITS(dataset):
+    """
+    isITS(dataset)
+    return True if dataset is Irregular Time Series,
+    False if not
+    """ 
+    if dataset.getAttributes().getType() == DataType.IRREGULAR_TIME_SERIES:
+        return True
+    return False
+##
+def isRTS(dataset):
+    """
+    isRTS(dataset)
+    return True if dataset is Regular Time Series,
+    False if not
+    """ 
+    if dataset.getAttributes().getType() == DataType.REGULAR_TIME_SERIES:
+        return True
+    return False
+##
 def ds_add_flags(dataset):
     """
     ds_add_flags(dataset)
