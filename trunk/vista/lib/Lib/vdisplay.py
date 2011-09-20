@@ -1,11 +1,8 @@
-from vista.app import DataGraph, DataTableFrame, GroupFrame, \
-     SessionFrame, DefaultGraphBuilder, CurveFactory
-from vista.graph import GECanvas, GraphUtils, SymbolFactory, \
-     Graph, GraphAttr, Plot, PlotAttr, \
-     Axis, AxisAttr, GELineLayout, \
-     GEAttr, GEContainer, FontResizeInteractor, \
-     Legend, LegendAttr, LegendItem, \
-     LegendItemAttr, MultiPlot, CurveAttr
+from vista.app import DataTableFrame, \
+     DefaultGraphBuilder, CurveFactory
+from vista.graph import SymbolFactory, \
+     Graph, Plot, AxisAttr,\
+     Legend, LegendItem
 from vista.set import ProxyFactory, DefaultDataSet
 from java.awt import Color
 from vdss import wrap_data
