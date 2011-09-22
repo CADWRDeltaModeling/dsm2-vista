@@ -90,7 +90,7 @@ def interpolate(ref,tm_intvl='1day',flat=True):
         try:
             nvals = tm2.getExactNumberOfIntervalsTo(tm,tiday)
         except:
-            raise "Whoa! Don't have exact number of intervals from " + repr(tm2) + \
+            raise "Don't have exact number of intervals from " + repr(tm2) + \
                   " to " + repr(tm) + " using " + repr(tiday)
         if filter.isAcceptable(e): 
             val = e.y
@@ -220,9 +220,9 @@ def apply(ts, function, ):
     """
     tsi = ts.getIterator()
     while not tsi.atEnd():
-       el = tsi.getElement()
-       function(el)
-       tsi.advance()
+        el = tsi.getElement()
+        function(el)
+        tsi.advance()
 def where(ts, conditional):
     """
     where(ts, conditional):
@@ -234,13 +234,13 @@ def where(ts, conditional):
     tsi = ts.getIterator()
     index=0
     while not tsi.atEnd():
-       el = tsi.getElement()
-       if conditional(el):
-           xa[index]=0
-       else:
-           xa[index]=1
-       tsi.advance()
-       index=index+1
+        el = tsi.getElement()
+        if conditional(el):
+            xa[index]=0
+        else:
+            xa[index]=1
+        tsi.advance()
+        index=index+1
     return RegularTimeSeries(ts.getName(),str(ts.getStartTime()),str(ts.getTimeInterval()),xa)
     
 def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
@@ -255,13 +255,13 @@ def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
     rtsi = rts.getIterator()
     index=0
     while not rtsi.atEnd():
-           el = rtsi.getElement()
-           if filter.isAcceptable(el):
-               xa[index]=0
-           else:
-               xa[index]=1
-           rtsi.advance()
-           index=index+1
+        el = rtsi.getElement()
+        if filter.isAcceptable(el):
+            xa[index]=0
+        else:
+            xa[index]=1
+        rtsi.advance()
+        index=index+1
     return RegularTimeSeries(rts.getName(),str(rts.getStartTime()),str(rts.getTimeInterval()),xa)
 #
 
@@ -300,48 +300,53 @@ def taf2cfs(ref):
     ds.getAttributes().setYUnits("CFS")
     return ds
 #
-def its2rts(its,tw=None,tis=None):
+def its2rts(its,tis=None):
     """
-    its2rts(its,tw=None,tis='1hour'):
+    its2rts(its,tw=None,tis=None):
     Converts irregular time series to regular time series with
-    a time window and time interval.
+    time interval.
     Input is irregular time series dataref or dataset,
-    optional time window as string,
-    optional time interval as string.
+    optional time interval as string. If not given, an
+    estimate is made.
     """
+    td_OK={'1MIN': 0, '5MIN': 1, '10MIN': 1, '15MIN': 2, '1HOUR': 5, '1DAY': 15}
     if not its:
         return None
     got_ref=False
     if isinstance(its,DataReference):
         its = its.getData()
         got_ref=True
-    if tw == None:
-        tw = its.getTimeWindow()
-    else:
-        tw = timewindow(tw)
+    tw = its.getTimeWindow()
+    sti = 0
+    eti = len(its) - 1
     if not tis:
-        # estimate time interval from average its intervals
+        # estimate time interval from average its intervals;
+        # set an accepted discrepency beyond which a missing value
+        # will be used
         aveIntvl = 0
-        sti = dsIndex(its, str(tw.getStartTime()))
-        eti = dsIndex(its, str(tw.getEndTime())) + 1
+        ctr = 0
         xArr = its.getXArray()
         for i in range(sti+1,eti):
+            if xArr[i] - xArr[i-1] > 1500:
+                # gap greater than 1 day, skip to improve estimate
+                continue
             aveIntvl += xArr[i] - xArr[i-1]
-        aveIntvl /= eti-sti-1
+            ctr += 1
+        aveIntvl /= ctr
         if aveIntvl > 0.9 and aveIntvl < 1.1:
             tis = '1MIN'
         if aveIntvl > 4.9 and aveIntvl < 5.1:
             tis = '5MIN'
         elif aveIntvl > 9.5 and aveIntvl < 10.5:
             tis = '10MIN'
-        elif aveIntvl > 14.5 and aveIntvl < 15.5:
+        elif aveIntvl > 13. and aveIntvl < 17.:
             tis = '15MIN'
-        elif aveIntvl > 59.5 and aveIntvl < 50.5:
+        elif aveIntvl > 55. and aveIntvl < 65.:
             tis = '1HOUR'
-        elif aveIntvl > 1439.5 and aveIntvl < 1440.5:
+        elif aveIntvl > 1420. and aveIntvl < 1460.:
             tis = '1DAY'
         else:
-            print 'Unable to determine time interval in its2rts'
+            print 'Unable to determine time interval in its2rts',
             return None
     ti = timeinterval(tis)
     st = time(tw.getStartTime().ceiling(ti))
@@ -355,33 +360,36 @@ def its2rts(its,tw=None,tis=None):
     yvals = jarray.zeros(nvals,'d')
     flags = jarray.zeros(nvals,'i')
     # initialize loop values
-    index=0
     itrtr_its = its.getIterator()
-    prev_val = Constants.MISSING_VALUE
-    prev_flag = 0
     # get first time value in irregular time series
-    next_time = time(long(itrtr_its.getElement().getX()))
+    curr_time_its = time(long(itrtr_its.getElement().getX()))
     # get starting time of regular time series
-    time_val = time(st)
-    # loop over rts to fill values
-    # loop takes care of filling the regular time series
-    # with previous its value and flag
+    curr_time_rts = time(st)
+    # loop over rts to fill values in rts from either its
+    # or missing values
+    time_diff = 0
+    index = 0
     while index < nvals:
-        # if time value of rts >= its then update values
-        if not itrtr_its.atEnd() and time_val.compare(next_time) >= 0:
-            # initialize previous val and last flag value
-            prev_val = itrtr_its.getElement().getY()
-            prev_flag = itrtr_its.getElement().getFlag()
-            # advance by one & update next time value
+        while curr_time_its < curr_time_rts \
+            and abs(time_diff) > td_OK[tis] \
+            and not itrtr_its.atEnd():
             itrtr_its.advance()
-            # if itrtr_its hasn't hit its end set the next_time value
-            if not itrtr_its.atEnd():
-                    next_time = time(long(itrtr_its.getElement().getX()))
-        # keep filling with the last value and flag
-        yvals[index] = prev_val
-        flags[index] = prev_flag
+            curr_time_its = time(long(itrtr_its.getElement().getX()))
+            time_diff = curr_time_rts.compare(curr_time_its)
+        # if time of the its is "near" the expected time of rts,
+        # use current data value of its; else, use missing value
+        if abs(time_diff) > td_OK[tis]:
+            use_val = Constants.MISSING_VALUE
+            use_flag = FlagUtils.MISSING_FLAG
+        else:
+            use_val = itrtr_its.getElement().getY()
+            use_flag = itrtr_its.getElement().getFlag()
+        # set previous data value and flag value
+        yvals[index] = use_val
+        flags[index] = use_flag
         # increment current time value by regular interval
-        time_val.incrementBy(ti)
+        curr_time_rts.incrementBy(ti)
+        time_diff = curr_time_rts.compare(curr_time_its)
         index=index+1
     # create an attribute as clone of irregular time series
     attr = its.getAttributes().createClone()
@@ -1102,9 +1110,8 @@ def total(ts):
    also almost the same. Double letters like "ee" to indicate 
    that the subscript should have "+1/2" added to it.
 """
-from vista.time import TimeFactory, Time, TimeInterval, TimeFormat
-from vista.set import DataReference, Pathname, PathnamePredicate,\
-     RegularTimeSeries,Constants
+from vista.time import TimeFactory
+from vista.set import DataReference, RegularTimeSeries, Constants
 #
 def minmod(a,b):
     if a*b > 0:
@@ -1366,7 +1373,7 @@ def testspline():
 def dsIndex(ds,timeinst,ndxHint=0):
     """
     dsIndex(ds, timeinst):
-    Returns the nearest index of the dataset that includes timeinst,
+    Returns the nearest index (long) of the dataset that includes timeinst (str),
     or None if the timeinst is not in the dataset. With optional ndxHint,
     start at that index.
     """
