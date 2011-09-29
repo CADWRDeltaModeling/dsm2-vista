@@ -78,9 +78,13 @@ import vista.set.DataReference;
 import vista.set.DataReferenceMath;
 import vista.set.DataReferenceScalarMathProxy;
 import vista.set.DataReferenceVectorMathProxy;
+import vista.set.DataSet;
+import vista.set.DefaultReference;
 import vista.set.Group;
 import vista.set.Pathname;
 import vista.set.ProxyFactory;
+import vista.set.RegularTimeSeries;
+import vista.set.TimeSeriesMath;
 import vista.time.TimeInterval;
 
 /**
@@ -153,6 +157,8 @@ public class MathOperationsPanel extends JPanel {
 		_periodOperationChoice.addItem(PAVG);
 		_periodOperationChoice.addItem(PMIN);
 		_periodOperationChoice.addItem(PMAX);
+		_periodOperationChoice.addItem(PMAX_TS);
+		_periodOperationChoice.addItem(PMIN_TS);
 		_periodTimeIntervalField = new JComboBox();
 		TimeInterval ti = null;
 		ti = DSSUtil.getTimeFactory().getTimeIntervalInstance().create("15MIN");
@@ -436,6 +442,10 @@ public class MathOperationsPanel extends JPanel {
 			opId = ProxyFactory.PERIOD_MIN;
 		} else if (_periodOperationChoice.getSelectedItem().equals(PMAX)) {
 			opId = ProxyFactory.PERIOD_MAX;
+		} else if (_periodOperationChoice.getSelectedItem().equals(PMAX_TS)) {
+			opId = TimeSeriesMath.PERIOD_MAX;
+		} else if (_periodOperationChoice.getSelectedItem().equals(PMIN_TS)) {
+			opId = TimeSeriesMath.PERIOD_MIN;
 		} else {
 			throw new IllegalArgumentException("Period operation "
 					+ _periodOperationChoice.getSelectedItem() + " not valid");
@@ -447,8 +457,20 @@ public class MathOperationsPanel extends JPanel {
 		DataReference[] refs = _table.getSelectedReferences();
 		for (int i = 0; i < refs.length; i++) {
 			try {
-				DataReference ref = ProxyFactory.createPeriodOperationProxy(
-						opId, refs[i], ti);
+				DataReference ref = null;
+				Object selectedItem = _periodOperationChoice.getSelectedItem();
+				if (selectedItem.equals(PMAX_TS)
+						|| selectedItem.equals(PMIN_TS)) {
+					DataSet data = refs[i].getData();
+					if (data instanceof RegularTimeSeries){
+						ref = new DefaultReference(TimeSeriesMath.getPeriodMinMax((RegularTimeSeries) data, ti, opId));
+					} else {
+						throw new IllegalArgumentException("Reference "+ref+" is not a regular time series");
+					}
+				} else {
+					ref = ProxyFactory.createPeriodOperationProxy(opId,
+							refs[i], ti);
+				}
 				_table.addReferenceAtCurrentSelection(ref);
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(this, e.getMessage());
@@ -698,6 +720,8 @@ public class MathOperationsPanel extends JPanel {
 	private static String PAVG = "PERIOD AVERAGE";
 	private static String PMIN = "PERIOD MINIMUM";
 	private static String PMAX = "PERIOD MAXIMUM";
+	private static String PMAX_TS = "PERIOD_MAXIMUM_TS";
+	private static String PMIN_TS = "PERIOD_MINIMUM_TS";
 	private JComboBox _periodOperationChoice;
 	private JComboBox _periodTimeIntervalField;
 }

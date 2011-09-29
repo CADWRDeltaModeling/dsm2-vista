@@ -32,6 +32,11 @@ class Station:
 			if sensor.type==type and sensor.subType==subType and sensor.duration==duration and sensor.units==units:
 				return sensor
 		return None
+	def findSensorByNumber(self, number):
+		for sensor in self.sensors:
+			if (sensor.id==number):
+				return sensor
+		return None
 #
 def fetch_data_in_url(url):
 	c=HTTPConnection(CDEC_BASE_URL)
@@ -172,7 +177,7 @@ def retrieve_ts(station,sensor,\
 	sensor_number=sensor.sensor_number
 	c_part="%s_%s"%(sensor.type,sensor.subType)
 	f_part="SENSOR %s"%(sensor.id)
-	pathname='/%s/%s/%s//%s/%s/'%('CDEC-RAW',station.id,c_part,DSS_INTERVAL[sensor.duration],"SENSOR "+sensor.id)
+	pathname='/%s/%s/%s//%s/%s/'%('CDEC-RAW',station_name,c_part,DSS_INTERVAL[sensor.duration],"SENSOR "+sensor.id)
 	units=sensor.units
 	dur_code = sensor.getDurationCode()
 	c_url = URL('http://cdec.water.ca.gov/cgi-progs/queryCSV?'
@@ -263,3 +268,24 @@ def retrieve_ts(station,sensor,\
 		rts = RegularTimeSeries(pathname,tp.toString(),ti_str,yvals,None,attr)
 		return rts
 #
+def retrieve(station_name,sensor_number,start_date,end_date='now',verbose=1):
+	"""
+	retrieve(station_name,sensor_number,\
+			 start_date, end_date='now',_verbose=1)
+
+	Retrieves data from cdec station and sensor and
+	constructs a regular time series with given pathname, units.
+
+	The start_date is a starting time value in format mm/dd/yyyy
+	e.g. 15-Jun-2000 would be 06/15/2000
+
+	The end_date can either be the keyword "now" or the same format as
+	the start_date
+
+	verbose=1 sets it to more verbose and 0 for silence
+	"""
+	station = Station(station_name)
+	retrieve_station_metadata(station)
+	retrieve_station_sensors(station)
+	sensor = station.findSensorByNumber(str(sensor_number))
+	return retrieve_ts(station,sensor,start_date, end_date,1)

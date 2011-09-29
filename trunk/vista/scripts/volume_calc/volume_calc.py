@@ -10,6 +10,7 @@ def get_volumes_data(tidefile,channel_ranges):
         for chan in range(int(lo),int(hi+1)):
             refs=tf.find(['','^%s$'%chan,'VOLUME'])
             if refs and len(refs)==1:
+                print "Getting data %s"%(str(chan))
                 volumes.append(refs[0].data)
     return volumes
 def total(volumes):
