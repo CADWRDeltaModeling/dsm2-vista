@@ -613,6 +613,99 @@ public class TimeSeriesMath {
 	}
 
 	/**
+	 * Creates an irregular time series for the periods min/max and the time
+	 * when it occurs is stored along with the value Note: The logic gets the
+	 * first time the value occurs within the period rather than the last time
+	 * the value occurs.
+	 */
+	public static IrregularTimeSeries getPeriodMinMax(RegularTimeSeries ds,
+			TimeInterval ti, int periodOperationId) {
+		if (periodOperationId != PERIOD_MIN && periodOperationId != PERIOD_MAX) {
+			throw new IllegalArgumentException("Only period min or max allowed");
+		}
+		TimeInterval dsti = ds.getTimeInterval();
+		int maxvals = getMaximumNumberOfValues(dsti, ti);
+		double[] yArray = new double[ds.size()];
+		double[] xArray = new double[ds.size()];
+		DataSetIterator dsi = ds.getIterator();
+		DataSetElement dse = dsi.getElement();
+		Time nstime = ds.getStartTime().create(ds.getStartTime()).ceiling(ti);
+		int yIndex = -1, vIndex = 0;
+		Time stime = nstime.create(ds.getStartTime());
+		int nvals = 0;
+		// System.out.println("maxvals: " + maxvals);
+		while (!dsi.atEnd()) {
+			vIndex = 0;
+			dse = dsi.getElement();
+			stime.incrementBy(dsti, nvals);
+			String str_intvl = ti.toString();
+			if (str_intvl.equals("1HOUR") || str_intvl.equals("1DAY")
+					|| str_intvl.equals("1MON")) {
+				nvals = getNumberOfValues(stime, dsti, ti) + 1;
+			} else {
+				nvals = ti.__div__(dsti);
+			}
+			// collect values for the give intervals
+			double xval = dse.getX();
+			double yval = Float.NaN;
+			for (int i = 0; i < nvals; i++) {
+				dse = dsi.getElement();
+				if (_filter.isAcceptable(dse)) {
+					if (Double.isNaN(yval)) {
+						xval = dse.getX();
+						yval = dse.getY();
+					} else {
+						if (periodOperationId == PERIOD_MAX) {
+							if (yval < dse.getY()) {
+								xval = dse.getX();
+								yval = dse.getY();
+							}
+						} else if (periodOperationId == PERIOD_MIN) {
+							if (yval > dse.getY()) {
+								xval = dse.getX();
+								yval = dse.getY();
+							}
+						}
+					}
+					vIndex++;
+				}
+				dsi.advance();
+				if (dsi.atEnd())
+					break;
+			}
+			if (Double.isNaN(yval)) {
+				yval = Constants.MISSING_VALUE;
+			}
+			yIndex++;
+			yArray[yIndex] = yval;
+			xArray[yIndex] = xval;
+		}
+		// resize arrays
+		double[] tmpArray = new double[yIndex + 1];
+		System.arraycopy(yArray, 0, tmpArray, 0, tmpArray.length);
+		yArray = tmpArray;
+		tmpArray = new double[yIndex + 1];
+		System.arraycopy(xArray, 0, tmpArray, 0, tmpArray.length);
+		xArray = tmpArray;
+		// create start time again...
+		nstime = ds.getStartTime().create(ds.getStartTime()).ceiling(ti);
+		// create end time
+		Time netime = nstime.create(nstime);
+		netime.incrementBy(ti, yIndex);
+		// create data set
+		String dsname = ds.getName() + getOperationName(periodOperationId)
+				+ ti.getIntervalAsString();
+		DataSetAttr attr = ds.getAttributes();
+		if (attr != null) {
+			attr = new DataSetAttr(attr.getGroupName(), attr.getLocationName()
+					+ getOperationName(periodOperationId), attr.getTypeName(),
+					attr.getSourceName(), attr.getType(), attr.getXUnits(),
+					attr.getYUnits(), attr.getXType(), "INST-VAL");
+		}
+		return new IrregularTimeSeries(dsname, xArray, yArray, null, attr);
+	}
+
+	/**
    *
    */
 	private static float _operationViableThreshold = 0.25f;

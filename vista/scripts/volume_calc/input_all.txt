@@ -1,0 +1,10 @@
+# A configuration input file for calculating volume from a tidefile and channel ids specified
+[default]
+# Input tidefile to use
+tidefile=d:/temp/hist_mini_rev_grid-201012.h5
+# Channel ranges define the channels that make up the control volume
+channel_ranges=[(1,706)]
+# output dss file and path
+output_dss_file=d:/temp/output.dss
+output_dss_path=/CALC/DELTA/VOLUME//60MIN/CALC/
+

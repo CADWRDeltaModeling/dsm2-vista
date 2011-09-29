@@ -242,7 +242,7 @@ def where(ts, conditional):
         tsi.advance()
         index=index+1
     return RegularTimeSeries(ts.getName(),str(ts.getStartTime()),str(ts.getTimeInterval()),xa)
-    
+
 def where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
     """
     where_missing(rts,filter=Constants.DEFAULT_FLAG_FILTER):
@@ -931,6 +931,20 @@ def per_max(ds, interval='1mon'):
 #
 def per_min(ds, interval='1mon'):
     return per_oper(ds, 'min', interval)
+
+def per_max_time(ds, interval='1mon'):
+    """
+    Locates the maximum within an interval and returns an irregular time series with the max value
+    and the time at which it occurs
+    """
+    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createInterval(interval), TimeSeriesMath.PERIOD_MAX)
+
+def per_min_time(ds, interval='1mon'):
+    """
+    Locates the minimum within an interval and returns an irregular time series with the min value
+    and the time at which it occurs
+    """
+    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createInterval(interval), TimeSeriesMath.PERIOD_MIN)
 #
 #def mov_avg(ts, backLength, forwardLength):
 #    '''

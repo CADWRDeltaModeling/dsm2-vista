@@ -40,6 +40,10 @@ def get_part_id(part):
         raise "Part Name should be one of A,B,C,E or F"
     return pId
 #
+def set_part(pathname, new_part, new_part_id=Pathname.B_PART):
+    p=Pathname.createPathname(pathname)
+    p.setPart(new_part_id, new_part)
+    return p.toString()
 def regexp_path(path):
     """
     regexp_path(path):
