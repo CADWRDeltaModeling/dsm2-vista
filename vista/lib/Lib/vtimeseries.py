@@ -937,14 +937,14 @@ def per_max_time(ds, interval='1mon'):
     Locates the maximum within an interval and returns an irregular time series with the max value
     and the time at which it occurs
     """
-    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createInterval(interval), TimeSeriesMath.PERIOD_MAX)
+    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createTimeInterval(interval), TimeSeriesMath.PERIOD_MAX)
 
 def per_min_time(ds, interval='1mon'):
     """
     Locates the minimum within an interval and returns an irregular time series with the min value
     and the time at which it occurs
     """
-    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createInterval(interval), TimeSeriesMath.PERIOD_MIN)
+    return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createTimeInterval(interval), TimeSeriesMath.PERIOD_MIN)
 #
 #def mov_avg(ts, backLength, forwardLength):
 #    '''
