@@ -17,7 +17,7 @@ overwriteOutput = True
 
 # the GPS-measured stations DB and layer
 GPSMeasGDB = workspaceDir2 + "DeltaStationsGPS.gdb/"
-GPS_lyr = "GarminWaypoints"
+GPS_lyr = GPSMeasGDB + "GarminWaypoints"
 # the provided lists of station locations to check
 StationListsNCRO = workspaceDir1 + "Stations_NCRO/BranchStations.mdb/"
 StationListsGDB = workspaceDir2 + "DeltaStationLists.gdb/"
@@ -31,14 +31,15 @@ NCRO_Flow_lyr = StationListsNCRO + "FlowStations"
 NCRO_SW_lyr = StationListsNCRO + "SurfaceWater"
 NCRO_WQ_lyr = StationListsNCRO + "WaterQuality"
 # for each station list, which field is the primary station name field
-NameFields = {SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
+NameFields = {GPS_lyr: "station", SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
               SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', \
               NCRO_Flow_lyr: "Name", NCRO_SW_lyr: "Station_No", NCRO_WQ_lyr: "Station_Na"}
-
+# Define the base station to check others against
+baseLyr = GPS_lyr
 # which station lists to check
 StationLyrs = [NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
                SMayr_lyr, CDEC_lyr, USBR_lyr, SW_lyr, WQD1641_lyr]
-# find other stations with searchRadius of each GPS location
+# find other stations with searchRadius of each Base list location
 tempTable = GPSMeasGDB + "temp"
 outTable = "NearestTable"
 searchRadius = "150 meters"
@@ -57,12 +58,12 @@ for lyr in StationLyrs:
         continue     
     # put the nearest table list into the temporary table...
     # we will add fields to it for the permanent table.
-    GenerateNearTable(GPSMeasGDB + GPS_lyr, lyr, tempTable, searchRadius, None, None, 'ALL', 15)
-    # now join the GPS-measured table to the nearest table...
+    GenerateNearTable(baseLyr, lyr, tempTable, searchRadius, None, None, 'ALL', 15)
+    # now join the Base table to the nearest table...
     # get correct field delimiters
     delmField = arcpy.AddFieldDelimiters(tempTable, 'NEAR_FC')
     # ...join to get location names
-    JoinField(tempTable, 'in_fid', GPSMeasGDB + GPS_lyr, 'ObjectID', 'station')
+    JoinField(tempTable, 'in_fid', baseLyr, 'OBJECTID', NameFields[baseLyr])
     if lyrCount == 0:
         # Create permanent table
         try: Delete(GPSMeasGDB + outTable)
