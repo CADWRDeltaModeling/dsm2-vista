@@ -30,12 +30,14 @@ WQD1641_lyr = StationListsGDB + "waterquality_Stations_D1641"
 NCRO_Flow_lyr = StationListsNCRO + "FlowStations"
 NCRO_SW_lyr = StationListsNCRO + "SurfaceWater"
 NCRO_WQ_lyr = StationListsNCRO + "WaterQuality"
-StationLyrs = [NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
-               SMayr_lyr, CDEC_lyr, USBR_lyr, SW_lyr, WQD1641_lyr]
+# for each station list, which field is the primary station name field
 NameFields = {SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
               SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', \
               NCRO_Flow_lyr: "Name", NCRO_SW_lyr: "Station_No", NCRO_WQ_lyr: "Station_Na"}
 
+# which station lists to check
+StationLyrs = [NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
+               SMayr_lyr, CDEC_lyr, USBR_lyr, SW_lyr, WQD1641_lyr]
 # find other stations with searchRadius of each GPS location
 tempTable = GPSMeasGDB + "temp"
 outTable = "NearestTable"
