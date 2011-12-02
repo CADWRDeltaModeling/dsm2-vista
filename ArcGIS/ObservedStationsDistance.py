@@ -21,35 +21,39 @@ GPS_lyr = GPSMeasGDB + "GarminWaypoints"
 # the provided lists of station locations to check
 StationListsNCRO = workspaceDir1 + "Stations_NCRO/BranchStations.mdb/"
 StationListsGDB = workspaceDir2 + "DeltaStationLists.gdb/"
-env.workspace = StationListsGDB
+#
 SMayr_lyr = StationListsGDB + "Stations_SMayr"
 CDEC_lyr = StationListsGDB + "CDEC_Delta"
 USBR_lyr = StationListsGDB + "USBR_Others"
 SW_lyr = StationListsGDB + "SurfaceWater_fr_GSmith"
 WQD1641_lyr = StationListsGDB + "waterquality_Stations_D1641"
+NCRO_Oct2011_lyr = StationListsGDB + "NCRO_FlowStation_Oct2011"
 NCRO_Flow_lyr = StationListsNCRO + "FlowStations"
 NCRO_SW_lyr = StationListsNCRO + "SurfaceWater"
 NCRO_WQ_lyr = StationListsNCRO + "WaterQuality"
 # for each station list, which field is the primary station name field
 NameFields = {GPS_lyr: "station", SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
-              SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', \
+              SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', NCRO_Oct2011_lyr: "Internal_c", \
               NCRO_Flow_lyr: "Name", NCRO_SW_lyr: "Station_No", NCRO_WQ_lyr: "Station_Na"}
 # Define the base station to check others against
-baseLyr = GPS_lyr
+#baseLyr = GPS_lyr
+baseLyr = SMayr_lyr
 # which station lists to check
-StationLyrs = [NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
+StationLyrs = [NCRO_Oct2011_lyr, NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
                SMayr_lyr, CDEC_lyr, USBR_lyr, SW_lyr, WQD1641_lyr]
+# where to put output tables
+env.workspace = StationListsGDB
 # find other stations with searchRadius of each Base list location
 tempTable = GPSMeasGDB + "temp"
 outTable = "NearestTable"
-searchRadius = "150 meters"
+searchRadius = "50 meters"
 # create nearest table...
-try: arcpy.management.Delete(tempTable)
-except: pass
 lyrCount = 0
 for lyr in StationLyrs:
     shortLyr = os.path.basename(lyr)
-    print '===>',shortLyr
+    if lyr == baseLyr:
+        continue
+    print 'List: ',shortLyr
     try: Delete(tempTable)
     except: pass
     desc = Describe(lyr)
@@ -91,4 +95,32 @@ for lyr in StationLyrs:
     fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
     Append(tempTable, GPSMeasGDB + outTable, 'NO_TEST', fieldMappings, '')
     lyrCount += 1
+try: arcpy.management.Delete(tempTable)
+except: pass
+# Check the output table for stations in the base layer that had no near matches
+staNumListPrev = 0
+missingStas = []
+rows = SearchCursor(GPSMeasGDB + outTable, '', '', '', 'IN_FID A')
+for row in rows:
+    staNumList = long(row.IN_FID)
+    if staNumList == staNumListPrev:
+        continue
+    while staNumList-staNumListPrev > 1:
+        print "No near neighbor for IN_FID", staNumListPrev+1
+        missingStas += [staNumListPrev+1]
+        staNumListPrev += 1
+    staNumListPrev = staNumList
+rows = InsertCursor(GPSMeasGDB + outTable)
+for sta in missingStas:
+    row = rows.newRow()
+    rowsBase = SearchCursor(baseLyr, "OBJECTID = " + str(sta), "", "STA_NO", "")
+    for rowBase in rowsBase:
+        row.STA_NO = rowBase.STA_NO
+    row.IN_FID = sta
+    row.NEAR_FID = 0L
+    row.NEAR_DIST = 0.0
+    row.StationList = 'None'
+    row.StaListName = 'None'
+    rows.insertRow(row)
+del row, rows
 print "Finished"
