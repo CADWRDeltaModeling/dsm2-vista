@@ -35,6 +35,12 @@ NCRO_WQ_lyr = StationListsNCRO + "WaterQuality_Proj"
 NameFields = {GPS_lyr: "station", SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
               SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', NCRO_Oct2011_lyr: "Internal_c", \
               NCRO_Flow_lyr: "Name", NCRO_SW_lyr: "Station_No", NCRO_WQ_lyr: "Station_Na"}
+LatFields = {GPS_lyr: "Y", SMayr_lyr: 'lat_dd', CDEC_lyr: 'Lat', USBR_lyr: 'Latdec', \
+              SW_lyr: 'Latitude', WQD1641_lyr: 'Latitude', NCRO_Oct2011_lyr: "Lat__DecDe", \
+              NCRO_Flow_lyr: "Latitude", NCRO_SW_lyr: "Lat_DD", NCRO_WQ_lyr: "Latitude"}
+LonFields = {GPS_lyr: "X", SMayr_lyr: 'long__dd', CDEC_lyr: 'Long_', USBR_lyr: 'Londec', \
+              SW_lyr: 'Longitude', WQD1641_lyr: 'Longitude', NCRO_Oct2011_lyr: "Long__DecD", \
+              NCRO_Flow_lyr: "Longitude", NCRO_SW_lyr: "Long_DD", NCRO_WQ_lyr: "Longitude"}
 # 8-char names for each station list (to import into MS Access)
 ShortNames = {GPS_lyr: "GPSMEAS", SMayr_lyr: 'SMAYR', CDEC_lyr: 'CDEC', USBR_lyr: 'USBR', \
               SW_lyr: 'SWGSMITH', WQD1641_lyr: 'WQD1641', NCRO_Oct2011_lyr: "NCRO2011", \
@@ -54,6 +60,7 @@ closest = 'ALL'
 closestCount = 5
 tempTable = GPSMeasGDB + "temp"
 outFile = open(workspaceDir2+'StaMatches.txt','w')
+outFile.write('Type,BaseList,BaseSta,List,ListSta,Lat,Lon\n')
 for baseLyr in StationLyrs:
     temp = os.path.basename(baseLyr).replace('_lyr','')
     temp = temp.replace('_Proj','')
@@ -78,40 +85,62 @@ for baseLyr in StationLyrs:
         if not desc.hasOID:
             print 'No ObjectID field, skipping layer', shortLyr
             continue     
-        # put the nearest table list into the temporary table...
+        # Generate the nearest table list into the temporary table...
         # we will add fields to it for the permanent table.
         GenerateNearTable(baseLyr, lyr, tempTable, searchRadius,location, angle, closest, closestCount)
-        # now join the Base table to the nearest table...
-        # get correct field delimiters
-        delmField = arcpy.AddFieldDelimiters(tempTable, 'NEAR_FC')
-        # ...join to get location names
-        JoinField(tempTable, 'in_fid', baseLyr, BaseOIDFld_nm, NameFields[baseLyr])
+        # join some fields from the Base table to the nearest table...
+#        # get correct field delimiters
+#        delmField = arcpy.AddFieldDelimiters(tempTable, 'NEAR_FC')
+        # ...join to get location names, lat & lon of base layer
+        JoinField(tempTable, 'in_fid', baseLyr, BaseOIDFld_nm, [NameFields[baseLyr], \
+                LatFields[baseLyr], LonFields[baseLyr]])
         if lyrCount == 0:
             # Create permanent table
             try: Delete(GPSMeasGDB + outTable)
             except: pass
             CreateTable(GPSMeasGDB, outTable, tempTable, '')
+            AddField(GPSMeasGDB + outTable, 'Latitude', 'double', '', '', '', '', '', '', '')
+            AddField(GPSMeasGDB + outTable, 'Longitude', 'double', '', '', '', '', '', '', '')
             AddField(GPSMeasGDB + outTable, 'StationList', 'text', '', '', 50, '', '', '', '')
             AddField(GPSMeasGDB + outTable, 'StaListName', 'text', '', '', 254, '', '', '', '')
-        # ...join the station name from the target station list
+        # ...join the station name from the target station list to the temp table
         JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, NameFields[lyr])
         AddField(tempTable, 'StationList', 'text', '', '', 50, '', '', '', '')
-        AddField(tempTable, 'StationList', 'text', '', '', 50, '', '', '', '')
+        #AddField(tempTable, 'StaListName', 'text', '', '', 50, '', '', '', '')
+        # fill the StationList field with the station list name
         rows = UpdateCursor(tempTable, '', '', '', '')
         for row in rows:
             row.StationList = shortLyr[0:49]
             rows.updateRow(row)
+        # Make field mappings from the temp to the permanent table
         # Create FieldMappings object for append output fields
         fieldMappings = FieldMappings()
         # Add all fields from tempTable
         fieldMappings.addTable(tempTable)
+        # create mapping for the station names field, "NameFields[]" for each station list,
+        # and "StaListName" for the permanent output table
         fldMap_staListName = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
         # Set name of permanent output field StaListName
         fld_staListName = fldMap_staListName.outputField
         fld_staListName.name = "StaListName"
         fldMap_staListName.outputField = fld_staListName
         fieldMappings.addFieldMap(fldMap_staListName)
+        # create mapping for the base layer lat/lon fields
+        fldMap_lat = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex(LatFields[baseLyr]))
+        fld_lat = fldMap_lat.outputField
+        fld_lat.name = "Latitude"
+        fldMap_lat.outputField = fld_lat
+        fieldMappings.addFieldMap(fldMap_lat)
+        #
+        fldMap_lon = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex(LonFields[baseLyr]))
+        fld_lon = fldMap_lon.outputField
+        fld_lon.name = "Longitude"
+        fldMap_lon.outputField = fld_lon
+        fieldMappings.addFieldMap(fldMap_lon)
+        #
         fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
+        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LatFields[baseLyr]))
+        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LonFields[baseLyr]))
         Append(tempTable, GPSMeasGDB + outTable, 'NO_TEST', fieldMappings, '')
         lyrCount += 1
     try: arcpy.management.Delete(tempTable)
@@ -132,8 +161,10 @@ for baseLyr in StationLyrs:
             staEquiv = 'Exact'
         else:
             staEquiv = 'Equiv'
-        outFile.write(staEquiv+','+os.path.basename(baseLyr)+','+row.BaseStaID+ \
-            ','+row.StationList+','+row.StaListName+'\n')
+        outFile.write(staEquiv+','+os.path.basename(baseLyr).replace('_Proj','')+ \
+            ','+row.BaseStaID+','+row.StationList.replace('_Proj','')+','+row.StaListName+ \
+            ','+str(row.Latitude)+','+str(row.Longitude)+'\n')
+        outFile.flush()
 #        print staEquiv, 'stations:',os.path.basename(baseLyr),row.BaseStaID, \
 #            row.StationList,row.StaListName
         if baseStaNum == baseStaNumPrev:
@@ -142,17 +173,16 @@ for baseLyr in StationLyrs:
             missingStas += [baseStaNumPrev+1]
             baseStaNumPrev += 1
         baseStaNumPrev = baseStaNum
-    # delete the base list station id field
-    DeleteField(GPSMeasGDB + outTable, NameFields[baseLyr])
-    del row, rows
     # Fill in blank placeholder rows for stations in the base layer that had no near matches
     rows = InsertCursor(GPSMeasGDB + outTable)
     nStasFound = nStasBase - len(missingStas)
     for sta in missingStas:
         row = rows.newRow()
-        rowsBase = SearchCursor(baseLyr, BaseOIDFld_nm+" = "+str(sta), "", NameFields[baseLyr], "")
+        rowsBase = SearchCursor(baseLyr, BaseOIDFld_nm+" = "+str(sta), "", "", "")
         for rowBase in rowsBase:    # should be only 1 row
             baseStaID = rowBase.getValue(NameFields[baseLyr])
+            baseLat = rowBase.getValue(LatFields[baseLyr])
+            baseLon = rowBase.getValue(LonFields[baseLyr])
             row.setValue(genericStaID,baseStaID)
         row.IN_FID = sta
         row.NEAR_FID = 0L
@@ -160,10 +190,20 @@ for baseLyr in StationLyrs:
         row.StationList = 'None'
         row.StaListName = 'None'
         rows.insertRow(row)
+        outFile.write('NoMatch,'+os.path.basename(baseLyr).replace('_Proj','')+ \
+            ','+baseStaID+',,,'+str(baseLat)+','+str(baseLon)+'\n')
+        outFile.flush()
         #print "No near neighbor in", os.path.basename(baseLyr), "for station", baseStaID
+    # delete the base list station id, lat/lon fields
+    DeleteField(GPSMeasGDB + outTable, NameFields[baseLyr])
+    if LatFields[baseLyr] <> 'Latitude':
+        DeleteField(GPSMeasGDB + outTable, LatFields[baseLyr])
+    if LonFields[baseLyr] <> 'Longitude':
+        DeleteField(GPSMeasGDB + outTable, LonFields[baseLyr])
+    del row, rows
     try:
-        Delete(workspaceDir2 + ShortNames[baseLyr]+'.dbf')
-        Delete(workspaceDir2 + ShortNames[baseLyr]+'.dbf.xml')
+        os.remove(workspaceDir2 + ShortNames[baseLyr]+'.dbf')
+        os.remove(workspaceDir2 + ShortNames[baseLyr]+'.dbf.xml')
     except: pass
     TableToTable(GPSMeasGDB + outTable, workspaceDir2, ShortNames[baseLyr]+'.dbf')
     print 'Total stations', nStasBase, 'Stations Nearest', nStasFound
