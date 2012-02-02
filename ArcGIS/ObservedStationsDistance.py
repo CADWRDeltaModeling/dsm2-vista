@@ -172,6 +172,7 @@ for baseLyr in StationLyrs:
             missingStas += [baseStaNumPrev+1]
             baseStaNumPrev += 1
         baseStaNumPrev = baseStaNum
+    outFile.flush()
     # delete the base list station id, lat/lon fields
     DeleteField(GPSMeasGDB + outTable, NameFields[baseLyr])
     if LatFields[baseLyr] <> 'Latitude':
@@ -184,23 +185,30 @@ for baseLyr in StationLyrs:
     nStasFound = nStasBase - len(missingStas)
     for sta in missingStas:
         row = rows.newRow()
-        rowsBase = SearchCursor(baseLyr, BaseOIDFld_nm+" = "+str(sta), "", NameFields[baseLyr], "")
+        rowsBase = SearchCursor(baseLyr, BaseOIDFld_nm+" = "+str(sta), "", "", "")
         for rowBase in rowsBase:    # should be only 1 row
             baseStaID = rowBase.getValue(NameFields[baseLyr])
-            row.setValue(genericStaID,baseStaID)
+            baseLat = rowBase.getValue(LatFields[baseLyr])
+            baseLon = rowBase.getValue(LonFields[baseLyr])
+        row.setValue(genericStaID, baseStaID)
+        row.setValue('Latitude', baseLat)
+        row.setValue('Longitude', baseLon)
         row.IN_FID = sta
         row.NEAR_FID = 0L
         row.NEAR_DIST = 0.0
         row.StationList = 'None'
         row.StaListName = 'None'
         rows.insertRow(row)
+        outFile.write('NoMatch,'+os.path.basename(baseLyr).replace('_Proj','')+',' \
+            +baseStaID+',,,'+str(baseLat)+','+str(baseLon)+'\n')
         #print "No near neighbor in", os.path.basename(baseLyr), "for station", baseStaID
+    outFile.flush()
     try:
         Delete(workspaceDir2 + ShortNames[baseLyr]+'.dbf')
         Delete(workspaceDir2 + ShortNames[baseLyr]+'.dbf.xml')
     except: pass
     TableToTable(GPSMeasGDB + outTable, workspaceDir2, ShortNames[baseLyr]+'.dbf')
-    print 'Total stations', nStasBase, 'Stations Nearest', nStasFound
+    print 'Total stations', nStasBase, 'Near Stations', nStasFound
     print
 outFile.close()
 print "Finished"
