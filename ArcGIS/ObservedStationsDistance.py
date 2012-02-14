@@ -149,11 +149,15 @@ for baseLyr in StationLyrs:
     # Add a station id field common to all station lists
     AddField(GPSMeasGDB + outTable, genericStaID, 'TEXT', '','', '50', '', 'NULLABLE', 'NON_REQUIRED', '')
     # Make a python list of rows to fill in as placeholders 
-    #  for stations in the base layer that had no near matches
-    baseStaNumPrev = 0
+    #  for stations in the base layer that have no near matches
+    # If there are gaps in the base layer numbering, this list
+    #  will have them too...we'll resolve that later
+    iRow = 0
+    baseStaNumPrev = 0L
     missingStas = []
     rows = UpdateCursor(GPSMeasGDB + outTable, '', '', '', 'IN_FID A')
     for row in rows:
+        iRow += 1
         row.setValue(genericStaID,row.getValue(NameFields[baseLyr]))
         rows.updateRow(row)
         baseStaNum = long(row.IN_FID)
@@ -168,9 +172,9 @@ for baseLyr in StationLyrs:
 #            row.StationList,row.StaListName
         if baseStaNum == baseStaNumPrev:
             continue
-        while baseStaNum-baseStaNumPrev > 1:
-            missingStas += [baseStaNumPrev+1]
-            baseStaNumPrev += 1
+        while baseStaNum-baseStaNumPrev > 1L:
+            missingStas += [baseStaNumPrev+1L]
+            baseStaNumPrev += 1L
         baseStaNumPrev = baseStaNum
     outFile.flush()
     # delete the base list station id, lat/lon fields
@@ -181,15 +185,21 @@ for baseLyr in StationLyrs:
         DeleteField(GPSMeasGDB + outTable, LonFields[baseLyr])
     del row, rows
     # Fill in blank placeholder rows for stations in the base layer that had no near matches
+    # The missingStas list may contain false misses (gaps in the station numbering);
+    # we account for that here
     rows = InsertCursor(GPSMeasGDB + outTable)
     nStasFound = nStasBase - len(missingStas)
     for sta in missingStas:
         row = rows.newRow()
         rowsBase = SearchCursor(baseLyr, BaseOIDFld_nm+" = "+str(sta), "", "", "")
-        for rowBase in rowsBase:    # should be only 1 row
+        baseStaID = ''; baseLat = 0.0; baseLon = 0.0
+        for rowBase in rowsBase:    # should be 0 or 1 row
             baseStaID = rowBase.getValue(NameFields[baseLyr])
             baseLat = rowBase.getValue(LatFields[baseLyr])
             baseLon = rowBase.getValue(LonFields[baseLyr])
+        # if no station found, it's just a gap in the numbering
+        if baseStaID == '':
+            continue
         row.setValue(genericStaID, baseStaID)
         row.setValue('Latitude', baseLat)
         row.setValue('Longitude', baseLon)
