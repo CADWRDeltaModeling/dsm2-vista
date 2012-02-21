@@ -47,6 +47,8 @@ ShortNames = {GPS_lyr: "GPSMEAS", SMayr_lyr: 'SMAYR', CDEC_lyr: 'CDEC', USBR_lyr
               NCRO_Flow_lyr: "NCROFLOW", NCRO_SW_lyr: "NCROSW", NCRO_WQ_lyr: "NCROWQ"}
 # A generic primary station name field
 genericStaID = 'BaseStaID'
+# River Kilometer Index field name
+RKIName = 'RKIName'
 # which station lists to check
 StationLyrs = [NCRO_Oct2011_lyr, NCRO_Flow_lyr, NCRO_SW_lyr, NCRO_WQ_lyr, \
                SMayr_lyr, CDEC_lyr, USBR_lyr, SW_lyr, WQD1641_lyr, GPS_lyr]
@@ -60,7 +62,7 @@ closest = 'ALL'
 closestCount = 5
 tempTable = GPSMeasGDB + "temp"
 outFile = open(workspaceDir2+'StaMatches.txt','w')
-outFile.write('Type,BaseList,BaseSta,List,ListSta,Lat,Lon\n')
+outFile.write('Type,BaseList,BaseSta,List,ListSta,RKIName,Lat,Lon\n')
 for baseLyr in StationLyrs:
     temp = os.path.basename(baseLyr).replace('_lyr','')
     temp = temp.replace('_Proj','')
@@ -89,8 +91,6 @@ for baseLyr in StationLyrs:
         # we will add fields to it for the permanent table.
         GenerateNearTable(baseLyr, lyr, tempTable, searchRadius,location, angle, closest, closestCount)
         # join some fields from the Base table to the nearest table...
-#        # get correct field delimiters
-#        delmField = arcpy.AddFieldDelimiters(tempTable, 'NEAR_FC')
         # ...join to get location names, lat & lon of base layer
         JoinField(tempTable, 'in_fid', baseLyr, BaseOIDFld_nm, [NameFields[baseLyr], \
                 LatFields[baseLyr], LonFields[baseLyr]])
@@ -103,10 +103,17 @@ for baseLyr in StationLyrs:
             AddField(GPSMeasGDB + outTable, 'Longitude', 'double', '', '', '', '', '', '', '')
             AddField(GPSMeasGDB + outTable, 'StationList', 'text', '', '', 50, '', '', '', '')
             AddField(GPSMeasGDB + outTable, 'StaListName', 'text', '', '', 254, '', '', '', '')
+            AddField(GPSMeasGDB + outTable, RKIName, 'text', '', '', 10, '', '', '', '')
         # ...join the station name from the target station list to the temp table
-        JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, NameFields[lyr])
+        if lyr == WQD1641_lyr:
+            JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, [NameFields[lyr],'RKI'])
+        else:
+            JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, NameFields[lyr])
+        # add the station list and station RKI name fields to the temp table
         AddField(tempTable, 'StationList', 'text', '', '', 50, '', '', '', '')
-        #AddField(tempTable, 'StaListName', 'text', '', '', 50, '', '', '', '')
+#        if baseLyr == WQD1641_lyr:
+#            JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, 'RKI')
+#        AddField(tempTable, RKIName, 'text', '', '', 10, '', '', '', '')
         # fill the StationList field with the station list name
         rows = UpdateCursor(tempTable, '', '', '', '')
         for row in rows:
@@ -118,7 +125,7 @@ for baseLyr in StationLyrs:
         # Add all fields from tempTable
         fieldMappings.addTable(tempTable)
         # create mapping for the station names field, "NameFields[]" for each station list,
-        # and "StaListName" for the permanent output table
+        # "StaListName" for the permanent output table, and RKI name if available in this lyr
         fldMap_staListName = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
         # Set name of permanent output field StaListName
         fld_staListName = fldMap_staListName.outputField
@@ -137,6 +144,13 @@ for baseLyr in StationLyrs:
         fld_lon.name = "Longitude"
         fldMap_lon.outputField = fld_lon
         fieldMappings.addFieldMap(fldMap_lon)
+        #
+        if lyr == WQD1641_lyr:
+            fldMap_rki = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex('RKI'))
+            fld_rki = fldMap_rki.outputField
+            fld_rki.name = RKIName
+            fldMap_rki.outputField = fld_rki
+            fieldMappings.addFieldMap(fldMap_rki)
         #
         fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
         fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LatFields[baseLyr]))
@@ -167,7 +181,7 @@ for baseLyr in StationLyrs:
             staEquiv = 'Equiv'
         outFile.write(staEquiv+','+os.path.basename(baseLyr).replace('_Proj','')+ \
             ','+row.BaseStaID+','+row.StationList.replace('_Proj','')+','+row.StaListName+ \
-            ','+str(row.Latitude)+','+str(row.Longitude)+'\n')
+            ','+str(row.RKIName)+','+str(row.Latitude)+','+str(row.Longitude)+'\n')
 #        print staEquiv, 'stations:',os.path.basename(baseLyr),row.BaseStaID, \
 #            row.StationList,row.StaListName
         if baseStaNum == baseStaNumPrev:
