@@ -35,12 +35,17 @@ NCRO_WQ_lyr = StationListsNCRO + "WaterQuality_Proj"
 NameFields = {GPS_lyr: "station", SMayr_lyr: 'STA_NO', CDEC_lyr: 'CDEC_ID', USBR_lyr: 'StationDescription', \
               SW_lyr: 'Site_ID', WQD1641_lyr: 'StationID', NCRO_Oct2011_lyr: "Internal_c", \
               NCRO_Flow_lyr: "Name", NCRO_SW_lyr: "Station_No", NCRO_WQ_lyr: "Station_Na"}
+# the lat/lon fields of each list
 LatFields = {GPS_lyr: "Y", SMayr_lyr: 'lat_dd', CDEC_lyr: 'Lat', USBR_lyr: 'Latdec', \
               SW_lyr: 'Latitude', WQD1641_lyr: 'Latitude', NCRO_Oct2011_lyr: "Lat__DecDe", \
               NCRO_Flow_lyr: "Latitude", NCRO_SW_lyr: "Lat_DD", NCRO_WQ_lyr: "Latitude"}
 LonFields = {GPS_lyr: "X", SMayr_lyr: 'long__dd', CDEC_lyr: 'Long_', USBR_lyr: 'Londec', \
               SW_lyr: 'Longitude', WQD1641_lyr: 'Longitude', NCRO_Oct2011_lyr: "Long__DecD", \
               NCRO_Flow_lyr: "Longitude", NCRO_SW_lyr: "Long_DD", NCRO_WQ_lyr: "Longitude"}
+# the descriptive field (if any) for each list
+DescFields = {GPS_lyr: '', SMayr_lyr: 'STR_NAME', CDEC_lyr: 'Location', USBR_lyr: '', \
+              SW_lyr: 'Site_Name', WQD1641_lyr: 'Name', NCRO_Oct2011_lyr: "Station", \
+              NCRO_Flow_lyr: "", NCRO_SW_lyr: "Station_Name", NCRO_WQ_lyr: "Station_Na"}
 # 8-char names for each station list (to import into MS Access)
 ShortNames = {GPS_lyr: "GPSMEAS", SMayr_lyr: 'SMAYR', CDEC_lyr: 'CDEC', USBR_lyr: 'USBR', \
               SW_lyr: 'SWGSMITH', WQD1641_lyr: 'WQD1641', NCRO_Oct2011_lyr: "NCRO2011", \
@@ -104,16 +109,14 @@ for baseLyr in StationLyrs:
             AddField(GPSMeasGDB + outTable, 'StationList', 'text', '', '', 50, '', '', '', '')
             AddField(GPSMeasGDB + outTable, 'StaListName', 'text', '', '', 254, '', '', '', '')
             AddField(GPSMeasGDB + outTable, RKIName, 'text', '', '', 10, '', '', '', '')
+            AddField(GPSMeasGDB + outTable, 'Description', 'text', '', '', 50, '', '', '', '')
         # ...join the station name from the target station list to the temp table
         if lyr == WQD1641_lyr:
             JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, [NameFields[lyr],'RKI'])
         else:
             JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, NameFields[lyr])
-        # add the station list and station RKI name fields to the temp table
+        # add the station list field to the temp table
         AddField(tempTable, 'StationList', 'text', '', '', 50, '', '', '', '')
-#        if baseLyr == WQD1641_lyr:
-#            JoinField(tempTable, 'near_fid', lyr, desc.OIDFieldName, 'RKI')
-#        AddField(tempTable, RKIName, 'text', '', '', 10, '', '', '', '')
         # fill the StationList field with the station list name
         rows = UpdateCursor(tempTable, '', '', '', '')
         for row in rows:
@@ -151,10 +154,23 @@ for baseLyr in StationLyrs:
             fld_rki.name = RKIName
             fldMap_rki.outputField = fld_rki
             fieldMappings.addFieldMap(fldMap_rki)
+        # if the base list has the RKI names, add those to the temp table
+        if baseLyr == WQD1641_lyr:
+            fieldMappings = FieldMappings()
+            # Add all fields from tempTable
+            JoinField(tempTable, 'in_fid', baseLyr, BaseOIDFld_nm, 'RKI')
+            fieldMappings.addTable(tempTable)
+            fldMap_rki = fieldMappings.getFieldMap(fieldMappings.findFieldMapIndex('RKI'))
+            fld_rki = fldMap_rki.outputField
+            fld_rki.name = RKIName
+            fldMap_rki.outputField = fld_rki
+            fieldMappings.addFieldMap(fldMap_rki)
         #
         fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(NameFields[lyr]))
-        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LatFields[baseLyr]))
-        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LonFields[baseLyr]))
+#        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LatFields[baseLyr]))
+#        fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex(LonFields[baseLyr]))
+        if fieldMappings.findFieldMapIndex('RKI') >= 0:
+            fieldMappings.removeFieldMap(fieldMappings.findFieldMapIndex('RKI'))
         Append(tempTable, GPSMeasGDB + outTable, 'NO_TEST', fieldMappings, '')
         lyrCount += 1
     try: arcpy.management.Delete(tempTable)
@@ -179,9 +195,17 @@ for baseLyr in StationLyrs:
             staEquiv = 'Exact'
         else:
             staEquiv = 'Equiv'
+        if row.RKIName == None:
+            RKI_str = ''
+        else:
+            RKI_str = str(row.RKIName)
+        if row.StaListName == None:
+            SLN_str = ''
+        else:
+            SLN_str = row.StaListName
         outFile.write(staEquiv+','+os.path.basename(baseLyr).replace('_Proj','')+ \
-            ','+row.BaseStaID+','+row.StationList.replace('_Proj','')+','+row.StaListName+ \
-            ','+str(row.RKIName)+','+str(row.Latitude)+','+str(row.Longitude)+'\n')
+            ','+row.BaseStaID+','+row.StationList.replace('_Proj','')+','+SLN_str+ \
+            ','+RKI_str+','+str(row.Latitude)+','+str(row.Longitude)+'\n')
 #        print staEquiv, 'stations:',os.path.basename(baseLyr),row.BaseStaID, \
 #            row.StationList,row.StaListName
         if baseStaNum == baseStaNumPrev:
