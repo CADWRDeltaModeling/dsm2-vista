@@ -15,5 +15,12 @@
 	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
 	<classpathentry kind="lib" path="lib/dsm2-input-model.jar"/>
 	<classpathentry kind="lib" path="lib/jyson-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/gridUtil.jar"/>
+	<classpathentry kind="lib" path="lib/hec.jar"/>
+	<classpathentry kind="lib" path="lib/hecData.jar"/>
+	<classpathentry kind="lib" path="lib/images.jar"/>
+	<classpathentry kind="lib" path="lib/rma.jar"/>
+	<classpathentry kind="lib" path="lib/dssvueHelp.jar"/>
+	<classpathentry kind="lib" path="lib/miglayout-4.0-swing.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -57,7 +57,9 @@ package vista.app.schematic;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 
 import vista.app.TimeData;
 import vista.graph.AnimationObservable;
@@ -136,6 +138,7 @@ public class TimeDisplayElement extends GEContainer implements
 	public void animateNext() {
 		_value = _data.getNextValue();
 		Graphics gc = getGraphics();
+		((Graphics2D)gc).setTransform(new AffineTransform());
 		Color previousColor = gc.getColor();
 		gc.setColor(Color.lightGray);
 		Rectangle r = getInsetedBounds();

@@ -61,6 +61,11 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -209,6 +214,8 @@ public AnimatorCanvas setUpPTMAnimator(String propsFile){
   String animationFile = props.getProperty("animation.file"); 
   String fluxInfoFile =  props.getProperty("flux.file"); 
   String labelInfoFile =  props.getProperty("label.file"); 
+  String imageFile = props.getProperty("background.file");
+  
   Color particleColor = Color.yellow;
   Font titleFont = new Font("Times Roman", Font.PLAIN, 12);
   Color titleColor = Color.black;
@@ -216,7 +223,7 @@ public AnimatorCanvas setUpPTMAnimator(String propsFile){
   initMainContainer();
   setTitle( "Particle Tracking Animation" );
   try {
-    setNetwork(Network.createNetwork(new FileInputStream(networkFile)));
+    setNetwork(Network.createNetwork(new FileInputStream(networkFile)),imageFile);
   }catch(IOException ioe){
     throw new RuntimeException(ioe.getMessage());
   }
@@ -314,8 +321,8 @@ public void setTitle(String text){
   /**
    * 
    */
-public void setNetwork( Network network ){
-  _grid = new DSMGridElement(network);
+public void setNetwork( Network network, String imageFile ){
+  _grid = new DSMGridElement(network, imageFile);
   _mc.add("Center", _grid);
 }
   /**
@@ -377,4 +384,68 @@ protected void addToLegend( ParticleElement element ){
   legendItem.add( "West", new TextLine( tla, element.getName() ) );
   _legend.add( legendItem );
 }
+
+private class TranslateHandler implements MouseListener,
+MouseMotionListener {
+private int lastOffsetX;
+private int lastOffsetY;
+
+
+public void mousePressed(MouseEvent e) {
+// capture starting point
+lastOffsetX = e.getX();
+lastOffsetY = e.getY();
+}
+
+public void mouseDragged(MouseEvent e) {
+
+// new x and y are defined by current mouse location subtracted
+// by previously processed mouse location
+int newX = e.getX() - lastOffsetX;
+int newY = e.getY() - lastOffsetY;
+
+// increment last offset to last processed by drag event.
+lastOffsetX += newX;
+lastOffsetY += newY;
+
+// update the canvas locations
+_grid.translateX += newX;
+_grid.translateY += newY;
+
+// schedule a repaint.
+//repaint();
+}
+
+public void mouseClicked(MouseEvent e) {
+}
+
+public void mouseEntered(MouseEvent e) {
+}
+
+public void mouseExited(MouseEvent e) {
+}
+
+public void mouseMoved(MouseEvent e) {
+}
+
+public void mouseReleased(MouseEvent e) {
+}
+}
+
+private class ScaleHandler implements MouseWheelListener {
+public void mouseWheelMoved(MouseWheelEvent e) {
+if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+
+	// make it a reasonable amount of zoom
+	// .1 gives a nice slow transition
+	_grid.scale += (.1 * e.getWheelRotation());
+	// don't cross negative threshold.
+	// also, setting scale to 0 has bad effects
+	_grid.scale = Math.max(0.00001, _grid.scale);
+	//Draw()
+}
+}
+}
+
+
 }

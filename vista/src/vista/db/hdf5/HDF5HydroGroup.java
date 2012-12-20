@@ -230,6 +230,9 @@ public class HDF5HydroGroup extends GroupProxy {
 				if (memberNameIndex == -1) {
 					return null;
 				}
+				int reservoirBottomElevationIndex = findIndexOfMemberName("bot_elev", reservoirIds);
+				int reservoirAreaIndex = findIndexOfMemberName("area", reservoirIds);
+				
 				CompoundDS reservoirConnectionDS = (CompoundDS) reservoirConnectionObject;
 				reservoirConnectionDS.getData();
 				int nodeNumberIndex = findIndexOfMemberName("node",
@@ -245,11 +248,16 @@ public class HDF5HydroGroup extends GroupProxy {
 				if (reservoirData instanceof List) {
 					List list = (List) reservoirData;
 					Object object = list.get(memberNameIndex);
+					double[] reservoirBottomElevations = (double[])list.get(reservoirBottomElevationIndex);
+					double[] reservoirAreas = (double[]) list.get(reservoirAreaIndex);
 					if (object instanceof String[]) {
 						String[] reservoirNames = (String[]) object;
 						for (int j = 0; j < reservoirNames.length; j++) {
-							reservoirMap.put(reservoirNames[j], new Reservoir(
-									reservoirNames[j]));
+							Reservoir r = new Reservoir(
+									reservoirNames[j]);
+							r.setArea(reservoirAreas[j]);
+							r.setBottomElevation(reservoirBottomElevations[j]);
+							reservoirMap.put(reservoirNames[j], r);
 						}
 						// fill with node connections
 						List connectionList = (List) reservoirConnectionData;
@@ -279,9 +287,28 @@ public class HDF5HydroGroup extends GroupProxy {
 											timeInterval.toString(), modelRun });
 							// FIXME: reservoir height needs a different slicing
 							// then the other references
-							references.add(new HDF5DataReference(file,
+							HDF5DataReference reservoirStage=new HDF5DataReference(file,
 									"/hydro/data/reservoir height", i, 0,
-									timeWindow, timeInterval, pathname));
+									timeWindow, timeInterval, pathname);
+							references.add(reservoirStage);
+							// references for reservoir volume
+							pathname = Pathname.createPathname(new String[] { "hydro",
+									reservoirNames[i], "volume",
+									timeWindow.toString(),
+									timeInterval.toString(), modelRun });
+							DataReferenceScalarMathProxy reservoirDepth = new DataReferenceScalarMathProxy(
+									reservoirStage, reservoirBottomElevations[i],
+									DataReferenceMath.SUB,
+									DataReferenceMath.FIRST_FIRST);
+							reservoirDepth.setUnits("FT^3");
+							DataReferenceScalarMathProxy reservoirVolume = new DataReferenceScalarMathProxy(
+									reservoirDepth, reservoirAreas[i]*1e06,
+									DataReferenceMath.MUL,
+									DataReferenceMath.FIRST_FIRST);
+							reservoirVolume.setUnits("FT^3");
+							reservoirVolume.setPathname(pathname);
+							references.add(reservoirVolume);
+							
 							// references for reservoir flow
 							Reservoir reservoir = reservoirMap
 									.get(reservoirNames[i]);

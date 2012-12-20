@@ -59,6 +59,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -79,6 +80,7 @@ import vista.app.schematic.DSMGridElement;
 import vista.app.schematic.FluxElement;
 import vista.app.schematic.GridLabelElement;
 import vista.app.schematic.Network;
+import vista.app.schematic.Node;
 import vista.app.schematic.ParticleElement;
 import vista.app.schematic.TimeDisplayElement;
 import vista.graph.AnimationObservable;
@@ -204,11 +206,12 @@ public class PTMDualAnimator implements AnimationObserver {
 		_frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				_loop.setSelected(false);
-				// System.exit(0);
+				System.exit(0);
 			}
 		});
 
 		_frame.pack();
+		//_frame.setSize(1200,900);
 		_frame.setVisible(true);
 		// timer.startAnimation();
 	}
@@ -264,7 +267,7 @@ public class PTMDualAnimator implements AnimationObserver {
 
 	public void setGraphicElementContainer() {
 		_animPanel = new JPanel();
-		_animPanel.setLayout(new FlowLayout());
+		_animPanel.setLayout(new GridLayout(1,2));
 		_animPanel.add(_canvas1);
 		_animPanel.add(_canvas2);
 		_mc1 = (GEContainer) _canvas1.getGraphicElement();
@@ -326,6 +329,7 @@ public class PTMDualAnimator implements AnimationObserver {
 		props.put("flux.file", "fluxInfo.data");
 		props.put("label.file", "labels.data");
 		props.put("particle.color", "yellow");
+		props.put("image.file", "deltamap.png");
 		props.put("flux.display", "true");
 		props.put("zoom.factor", "1");
 		props.put("origin.xpos", "0");
@@ -351,6 +355,7 @@ public class PTMDualAnimator implements AnimationObserver {
 		String animationFile = props.getProperty("animation.file");
 		String fluxInfoFile = props.getProperty("flux.file");
 		String labelInfoFile = props.getProperty("label.file");
+		String imageFile = props.getProperty("image.file");
 		boolean showFluxElements = new Boolean(props
 				.getProperty("flux.display")).booleanValue();
 		float zoomfactor = new Float(props.getProperty("zoom.factor"))
@@ -370,7 +375,7 @@ public class PTMDualAnimator implements AnimationObserver {
 			InputStream nis = nfi.getInputStream(networkFile);
 			// ? change for web
 			if (nis != null) {
-				setNetwork(Network.createNetwork(nis));
+				setNetwork(Network.createNetwork(nis), imageFile);
 			} else {
 				throw new IOException("Error initializing network file");
 			}
@@ -396,6 +401,11 @@ public class PTMDualAnimator implements AnimationObserver {
 		if (showFluxElements)
 			addFluxElements(fluxInfoFile, this, element);
 		addLabelElements(labelInfoFile, this);
+		Node timeNode = getGrid().getNetwork().getNode(9006);
+		if (timeNode == null){
+			System.err.println("Please define node 9006 for placement of time element in your network.dat file");
+			System.exit(12);
+		}
 		addTimeElement(timeElement, 9006);
 		AnimatorCanvas canvas = new AnimatorCanvas(_mc, timer);
 		return canvas;
@@ -480,8 +490,8 @@ public class PTMDualAnimator implements AnimationObserver {
 	/**
    * 
    */
-	public void setNetwork(Network network) {
-		_grid = new DSMGridElement(network);
+	public void setNetwork(Network network,String backgroundImageFile) {
+		_grid = new DSMGridElement(network, backgroundImageFile);
 		_mc.add("Center", _grid);
 	}
 

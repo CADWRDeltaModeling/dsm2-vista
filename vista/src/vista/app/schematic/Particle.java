@@ -94,25 +94,29 @@ public class Particle {
 	public float getDistanceFromUpNode() {
 		return _x;
 	}
+	
+	public String toString(){
+		return String.format("Particle: %03d in %d @ (%10.2f,%10.2f,%10.2f)",_id,_wbId,_x,_y,_z);
+	}
 
 	/**
 	 * Id of this particle
 	 */
-	protected int _id;
+	public int _id;
 	/**
 	 * Id of waterbody this particle is in.
 	 */
-	protected int _wbId;
+	public int _wbId;
 	/**
 	 * normalized x distance from upnode of channel
 	 */
-	protected float _x;
+	public float _x;
 	/**
 	 * normalized y distance from center of channel
 	 */
-	protected float _y;
+	public float _y;
 	/**
 	 * normalized z distance from bottom of channel
 	 */
-	protected float _z;
+	public float _z;
 }

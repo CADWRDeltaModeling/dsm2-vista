@@ -146,7 +146,7 @@ public class ParticleDataInput {
 				date = readDate();
 
 			if (date.equals(endOfFile)) {
-				fileStatus = true;
+				atEndOfFile = true;
 				throw new EOFException(" End of File ");
 			}
 			if (!partRead)
@@ -190,8 +190,8 @@ public class ParticleDataInput {
 	/**
    * 
    */
-	public boolean FileStatus() {
-		return fileStatus;
+	public boolean isAtEndOfFile() {
+		return atEndOfFile;
 	}
 
 	/**
@@ -209,7 +209,7 @@ public class ParticleDataInput {
 	/**
    * 
    */
-	private boolean fileStatus;
+	private boolean atEndOfFile;
 	/**
    * 
    */

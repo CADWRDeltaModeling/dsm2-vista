@@ -751,7 +751,7 @@ if __name__ == '__main__':
     LOG_FILENAME = 'example.log'
     logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
     if len(sys.argv) != 2:
-        logging.debug(" **** Please specify the report inp file! ****")
+        print " **** Please specify the report inp file! ****"
         #template_file = 'D:/delta/dsm2_v8/report/case2/dsm2_output.inp'
         exit(1)
     else:
