@@ -58,7 +58,7 @@ package vista.app.schematic;
 /**
  *
  */
-class Node {
+public class Node {
 	/**
    *
    */

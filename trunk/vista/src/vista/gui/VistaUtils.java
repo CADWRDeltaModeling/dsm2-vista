@@ -67,6 +67,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -259,7 +260,7 @@ public class VistaUtils {
 	private static String _lastDirectory = null;
 	static {
 		try {
-			_lastDirectory = System.getProperty("user.dir");
+			_lastDirectory = Preferences.userRoot().get("last.dir", System.getProperty("user.dir"));
 		} catch (Exception e) {
 			System.err.println("Could not determine user directory");
 		}
@@ -312,6 +313,7 @@ public class VistaUtils {
 			else
 				filename = fileDialog.getDirectory();
 			_lastDirectory = fileDialog.getDirectory();
+			Preferences.userRoot().put("last.dir", _lastDirectory);
 		} else {
 			JFileChooser chooser = new JFileChooser();
 			if (dirOnly)
@@ -338,6 +340,7 @@ public class VistaUtils {
 			if (filename != null) {
 				_lastDirectory = chooser.getSelectedFile().getParent() == null ? _lastDirectory
 						: chooser.getSelectedFile().getParent();
+				Preferences.userRoot().put("last.dir", _lastDirectory);
 			}
 		}
 		return filename;

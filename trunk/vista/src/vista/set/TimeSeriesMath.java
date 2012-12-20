@@ -315,7 +315,9 @@ public class TimeSeriesMath {
 				}
 			} else {
 				y[index] = Constants.MISSING_VALUE;
-				flags[index] = 0;
+				if (flags != null){
+					flags[index] = 0;
+				}	
 			}
 			dsi1.advance();
 			dsi2.advance();

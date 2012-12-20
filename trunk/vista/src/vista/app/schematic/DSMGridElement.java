@@ -58,8 +58,25 @@ package vista.app.schematic;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import vista.graph.GEAttr;
 import vista.graph.GraphicElement;
@@ -71,10 +88,13 @@ import vista.graph.Scale;
  * and draw methods to render itself on the graphics context
  */
 public class DSMGridElement extends GraphicElement {
+	private BufferedImage backgroundImage;
+	private AffineTransform transform;
+
 	/**
    * 
    */
-	public DSMGridElement(Network net) {
+	public DSMGridElement(Network net, String backgroundImageFile) {
 		super(new GEAttr());
 
 		_net = net;
@@ -100,6 +120,18 @@ public class DSMGridElement extends GraphicElement {
 		grid_xS = new Scale(xMin, xMax, 0, 10);
 		grid_yS = new Scale(yMin, yMax, 0, 10);
 		setInsets(new Insets(15, 15, 15, 15));
+
+		try {
+			this.backgroundImage = ImageIO.read(new File(backgroundImageFile));
+		} catch (IOException ex) {
+
+		}
+		transform = new AffineTransform();
+		transform.translate(-340, -340);
+		//transform.rotate(0.5, -340, -340);
+		transform.translate(20, -30);
+		transform.scale(2.35, 2.5);
+		// showTransformDialog();
 	}
 
 	/**
@@ -133,14 +165,43 @@ public class DSMGridElement extends GraphicElement {
 	 * Draws the DSM grid map
 	 */
 	protected void Draw() {
+		/*
+		AffineTransform tx = new AffineTransform();
+		tx.translate(translateX, translateY);
+		tx.scale(scale, scale);
+		transform = tx;
+*/
 		Graphics gc = getGraphics();
 		Color previousColor = gc.getColor();
 
 		Rectangle r = getInsetedBounds();
 
-		gc.setColor(getAttributes()._backgroundColor);
-		gc.fillRect(r.x, r.y, r.width, r.height);
+		if (gc instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D) gc;
+			g2d.setTransform(transform);
+			g2d.setClip(r.x, r.y, r.width, r.height);
+			// FIXME: finally set transform back to identity
+		}
+		// gc.setColor(getAttributes()._backgroundColor);
 
+		// gc.fillRect(r.x, r.y, r.width, r.height);
+		if (backgroundImage != null) {
+			if (gc instanceof Graphics2D) {
+				Graphics2D g2d = (Graphics2D) gc;
+				AffineTransform tr = new AffineTransform();
+				/*
+				 * For delta_map.png tr.translate(-5,-24); tr.scale(1.085,
+				 * 1.025); tr.rotate(-0.011, 15, 100);
+				 */
+				g2d.setTransform(tr);
+				g2d.drawImage(backgroundImage, r.x, r.y, r.width, r.height,
+						null);
+				g2d.setTransform(transform);
+			} else {
+				gc.drawImage(backgroundImage, r.x - 20, r.y - 20,
+						r.width + 110, r.height + 15, null);
+			}
+		}
 		gc.setColor(channelColor);
 
 		for (int i = 0; i < _net.getNumberOfLinks(); i++) {
@@ -155,6 +216,26 @@ public class DSMGridElement extends GraphicElement {
 		}
 		gc.setColor(previousColor);
 
+	}
+
+	protected void showTransformDialog() {
+		JPanel p = new JPanel();
+		final JTextField zoomField = new JTextField("1.5");
+		zoomField.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				double scale = Double.parseDouble(zoomField.getText());
+				transform.scale(scale, scale);
+			}
+
+		});
+		p.add(zoomField);
+		JDialog d = new JDialog();
+		d.add(p);
+		d.pack();
+		d.setModal(false);
+		d.setVisible(true);
 	}
 
 	/**
@@ -340,4 +421,13 @@ public class DSMGridElement extends GraphicElement {
 	 * The width of the channel in pixels
 	 */
 	private int channel_width = 4;
+
+	public double translateX = 0;
+	public double translateY = 0;
+	public double scale = 1;
+
+	public AffineTransform getTransform() {
+		return transform;
+	}
+
 }

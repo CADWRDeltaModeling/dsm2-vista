@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 class Reservoir {
 	private String name;
+	private double area;
+	private double bottomElevation;
 	private ArrayList<Integer> nodes;
 	private ArrayList<Integer> gateNodes;
 	
@@ -42,5 +44,21 @@ class Reservoir {
 		} else {
 			return nodes.get(index);
 		}
+	}
+
+	public void setArea(double area) {
+		this.area = area;
+	}
+
+	public double getArea() {
+		return area;
+	}
+
+	public void setBottomElevation(double bottomElevation) {
+		this.bottomElevation = bottomElevation;
+	}
+
+	public double getBottomElevation() {
+		return bottomElevation;
 	}
 }

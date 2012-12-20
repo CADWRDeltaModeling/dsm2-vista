@@ -81,9 +81,12 @@ public class Constants {
 	/**
    *
    */
-	public static final ElementFilter DEFAULT_FILTER = new MultiValueFilter(
-			new double[] { Float.MIN_VALUE, vista.set.Constants.MISSING_VALUE,
-					vista.set.Constants.MISSING_RECORD });
+	public static final ElementFilter DEFAULT_FILTER = new CompositeFilter(
+			new ElementFilter[] {
+					new MultiValueFilter(new double[] { Float.MIN_VALUE,
+							vista.set.Constants.MISSING_VALUE,
+							vista.set.Constants.MISSING_RECORD }),
+					new NaNFilter() });
 	/**
    *
    */

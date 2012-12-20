@@ -18,5 +18,13 @@
 <path>/vista/lib/postgresql-8.4-702.jdbc4.jar</path>
 <path>/vista/bin</path>
 <path>/vista/lib/jyson-1.0.1.jar</path>
+<path>/vista/lib/hec.jar</path>
+<path>/vista/lib/hecData.jar</path>
+<path>/vista/lib/heclib.jar</path>
+<path>/vista/lib/images.jar</path>
+<path>/vista/lib/gridUtil.jar</path>
+<path>/vista/lib/rma.jar</path>
+<path>/vista/lib/dssvueHelp.jar</path>
+<path>/vista/lib/miglayout-4.0-swing.jar</path>
 </pydev_pathproperty>
 </pydev_project>

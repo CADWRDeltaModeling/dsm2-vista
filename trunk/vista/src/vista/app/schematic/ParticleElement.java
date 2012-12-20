@@ -58,6 +58,7 @@ package vista.app.schematic;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -143,7 +144,8 @@ public class ParticleElement extends AnimateElement {
 						+ upNode.getX();
 				float py = dist / 100.0f * (downNode.getY() - upNode.getY())
 						+ upNode.getY();
-				gc.fillRect(xS.scaleToUC(px) - channel_width / 2, yS
+				((Graphics2D) gc).setTransform(_grid.getTransform());
+				gc.fillOval(xS.scaleToUC(px) - channel_width / 2, yS
 						.scaleToUC(py)
 						- channel_width / 2, channel_width, channel_width);
 			}
@@ -168,7 +170,7 @@ public class ParticleElement extends AnimateElement {
 		try {
 			_particleInput.updateParticles(_particleData);
 		} catch (EOFException eof) {
-			setFileStatus(_particleInput.FileStatus());
+			setFileStatus(_particleInput.isAtEndOfFile());
 		} catch (IOException ioe) {
 			System.out.println("Exception:" + ioe.getMessage()
 					+ " reading animation file:");
