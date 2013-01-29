@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/vista_for_release/lib/jython.jar"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="PYHOME" value="lib/jython"/>
+<mapEntry key="PYPATH" value="lib/jython/Lib;lib/Lib;scripts"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.python.util.jython"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="scripts/xsection_datum_converter/xsection_convert.py scripts/xsection_datum_converter/resources/hydro_echo_hist_mini_calib_v811.inp scripts/xsection_datum_converter/resources/gis_2009_calibration.inp"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="vista_for_release"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-mx256m  -Djava.library.path=lib -Dvista.home=. -Dpython.home=${project_loc}/lib/jython -Dpython.path=%PYPATH%"/>
+</launchConfiguration>

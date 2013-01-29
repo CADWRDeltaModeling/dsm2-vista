@@ -1,3 +1,5 @@
+# Uses tidefile to calculate volume of channels and reservoirs 
+# The channels and reservoirs can be specified in an input file
 from vtidefile import opentidefile
 from vdss import writedss
 from vutils import timewindow
