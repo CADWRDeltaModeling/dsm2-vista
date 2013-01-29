@@ -4,16 +4,15 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/jhall.jar"/>
 	<classpathentry kind="lib" path="lib/jnios.jar"/>
-	<classpathentry kind="lib" path="lib/jpy.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/jhdf5.jar"/>
 	<classpathentry kind="lib" path="lib/jhdf5obj.jar"/>
 	<classpathentry kind="lib" path="lib/jhdfobj.jar"/>
 	<classpathentry kind="lib" path="lib/heclib.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-8.4-702.jdbc4.jar"/>
 	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
-	<classpathentry kind="lib" path="lib/dsm2-input-model.jar"/>
+	<classpathentry kind="lib" path="lib/dsm2-input-model.jar" sourcepath="/dsm2-input-model"/>
 	<classpathentry kind="lib" path="lib/jyson-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/gridUtil.jar"/>
 	<classpathentry kind="lib" path="lib/hec.jar"/>
@@ -22,5 +21,8 @@
 	<classpathentry kind="lib" path="lib/rma.jar"/>
 	<classpathentry kind="lib" path="lib/dssvueHelp.jar"/>
 	<classpathentry kind="lib" path="lib/miglayout-4.0-swing.jar"/>
+	<classpathentry kind="lib" path="D:/Programs/eclipse-jee-juno-SR1-win32/eclipse/plugins/sf.eclipse.javacc_1.5.27/javacc.jar"/>
+	<classpathentry kind="lib" path="D:/Programs/eclipse-jee-juno-SR1-win32/eclipse/plugins/sf.eclipse.javacc_1.5.27/jtb-1.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/jython.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
