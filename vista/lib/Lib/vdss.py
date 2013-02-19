@@ -87,19 +87,21 @@ def findpath(g,path,exact=1):
                 pa[i] = '^'+pa[i]+'$'
     return g.find(pa)
 #
-def find(group,filter,part="",selecting=1):
+def find(group,filter,part="P",selecting=1):
     """
     find(group, filter, part="", selecting=1):
-    returns a copy of the group filtered by the filter...
-    part can be one of A,B,C,E or F.
-    selecting=0 for removing matched and 1 for keeping only matched
+    Returns a copy of the group filtered by the filter...
+    Part can be one of A,B,C,E,F, or P (for entire path).
+    Default is P
+    Selecting=0 for removing matched and 1 for keeping only matched
     """
     g=group.clone()
     pId = -1
-    try :
-        pId = get_part_id(part)
-    except :
-        pId = -1
+    if part != "P":
+        try:
+            pId = get_part_id(part)
+        except:
+            pId = -1
     if pId == -1:
         g.filterBy(PathnamePredicate(filter), selecting)
     else:
