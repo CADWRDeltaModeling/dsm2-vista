@@ -73,12 +73,12 @@ def interpolate(ref,tm_intvl='1day',flat=True):
     ti = ds.getTimeInterval();
     tiday = ti.create(tm_intvl)
     if ti.compare(tiday) < 0 :
-               raise repr(ref.getName()) + " : has interval lesser than " + repr(tiday)
+        raise repr(ref.getName()) + " : has interval lesser than " + repr(tiday)
     elif ti.compare(tiday) == 0:
-           if isinstance(ds,RegularTimeSeries):
-               return ds
-           else:
-               return ref
+        if isinstance(ds,RegularTimeSeries):
+            return ds
+        else:
+            return ref
     filter = Constants.DEFAULT_FLAG_FILTER
     # convert monthly data to daily data
     y_cfs = [] # initialize empty array
@@ -115,8 +115,7 @@ def interpolate(ref,tm_intvl='1day',flat=True):
         return new_ref
     else :
         return rts
-##############################
-
+#
 def resample(ref,outint,offset=0):
     '''
     Resample a time series at regular intervals
@@ -223,6 +222,7 @@ def apply(ts, function, ):
         el = tsi.getElement()
         function(el)
         tsi.advance()
+#
 def where(ts, conditional):
     """
     where(ts, conditional):
@@ -302,7 +302,7 @@ def taf2cfs(ref):
 #
 def its2rts(its,tis=None):
     """
-    its2rts(its,tw=None,tis=None):
+    its2rts(its,tis=None):
     Converts irregular time series to regular time series with
     time interval.
     Input is irregular time series dataref or dataset,
@@ -451,6 +451,7 @@ def merge_with_flags(ds1, ds2):
     If ds1Flag priority >= ds2Flag priority, use ds1 value;
     If ds1Flag priority < ds2Flag priority, use ds2 value.
     If a dataset does not have flags, UNSCREENED_FLAG is assumed.
+    The two paths need not start or end at the same time.
     
     Return a list of merged elements from ds1 and ds2. 
     """
@@ -470,46 +471,45 @@ def merge_with_flags(ds1, ds2):
         FlagUtils.QUESTIONABLE_FLAG:4, \
         FlagUtils.OK_FLAG:5\
         }
-    if not ds1_rts:
-        mY = []     # merged Y (value) list
-        mX = []     # merged X (time) list
-        mF = []     # merged flags list
-        dsi1 = ds1.getIterator()
-        dsi2 = ds2.getIterator()
-        # perform merge
-        while not (dsi1.atEnd() and dsi2.atEnd()):
-            # get the data elements
-            e1 = dsi1.getElement()
-            e2 = dsi2.getElement()
-            if not e2 or (e1 and e1.getX() < e2.getX()):
-                # use e1 if e2 is at end, or e1 earliest
-                mX.append(e1.getX())
-                mY.append(e1.getY())
-                mF.append(e1.getFlag())
-                dsi1.advance()
-            elif not e1 or (e2 and e2.getX() < e1.getX()):
-                # use e2 if e1 is at end, or e2 earliest
+#    if not ds1_rts: # irregular time series
+    mY = []     # merged Y (value) list
+    mX = []     # merged X (time) list
+    mF = []     # merged flags list
+    dsi1 = ds1.getIterator()
+    dsi2 = ds2.getIterator()
+    # perform merge
+    while not (dsi1.atEnd() and dsi2.atEnd()):
+        # get the data elements
+        e1 = dsi1.getElement()
+        e2 = dsi2.getElement()
+        if not e2 or (e1 and e1.getX() < e2.getX()):
+            # use e1 if e2 is at end, or e1 earliest
+            mX.append(e1.getX())
+            mY.append(e1.getY())
+            mF.append(e1.getFlag())
+            dsi1.advance()
+        elif not e1 or (e2 and e2.getX() < e1.getX()):
+            # use e2 if e1 is at end, or e2 earliest
+            mX.append(e2.getX())
+            mY.append(e2.getY())
+            mF.append(e2.getFlag())
+            dsi2.advance()
+        else:
+            # same time; use the better quality flag, or e1 if same quality
+            e1fp = pri_dict[FlagUtils.getQualityFlag(e1)]
+            e2fp = pri_dict[FlagUtils.getQualityFlag(e2)]
+            if e1fp < e2fp:
                 mX.append(e2.getX())
                 mY.append(e2.getY())
                 mF.append(e2.getFlag())
-                dsi2.advance()
             else:
-                # same time; use the better quality flag, or e1 if same quality
-                e1fp = pri_dict[FlagUtils.getQualityFlag(e1)]
-                e2fp = pri_dict[FlagUtils.getQualityFlag(e2)]
-                if e1fp < e2fp:
-                    mX.append(e2.getX())
-                    mY.append(e2.getY())
-                    mF.append(e2.getFlag())
-                else:
-                    mX.append(e1.getX())
-                    mY.append(e1.getY())
-                    mF.append(e1.getFlag())
-                dsi1.advance()
-                dsi2.advance()
+                mX.append(e1.getX())
+                mY.append(e1.getY())
+                mF.append(e1.getFlag())
+            dsi1.advance()
+            dsi2.advance()
 #        print ds1.getName()
-        return IrregularTimeSeries('', mX, mY, mF)
-#
+    return IrregularTimeSeries('Merged', mX, mY, mF)
 #
 def isITS(dataset):
     """
@@ -1370,9 +1370,7 @@ def linear(ref, myfilter=Constants.DEFAULT_FLAG_FILTER):
 #    ref = DataReference.create(ref,timewindow(tw_str))
 #    rts=interplinear(ref)
 #    tabulate(rts,ref.getData())
-
-
-
+#
 def testspline():
     from vutils import opendss, findpath, timewindow, tabulate
     infile='/delta/data/dss/dayflo.dss'
@@ -1386,10 +1384,13 @@ def testspline():
 #
 def dsIndex(ds,timeinst,ndxHint=0):
     """
-    dsIndex(ds, timeinst):
-    Returns the nearest index (long) of the dataset that includes timeinst (str),
+    dsIndex(ds, timeinst,ndxHint):
+    Returns the "nearest" index (long) of the dataset that includes 
+    timeinst (str or time object),
     or None if the timeinst is not in the dataset. With optional ndxHint,
     start at that index.
+    "nearest" is the index which time is equal to timeinst,
+    or which time is the first one less than timeinst.
     """
     if isinstance(ds, DataReference):
         ds = ds.getData()
@@ -1398,7 +1399,10 @@ def dsIndex(ds,timeinst,ndxHint=0):
     tii = timeinst.getTimeInMinutes()
     if isinstance(ds,RegularTimeSeries):
         # get index by calculation, not search
-        ndx = long((float(tii) - ds.getElementAt(0).getX()) / \
+        # first get "nearest" time as defined above
+        tiiNear = timeinst.ceiling(ds.getTimeInterval()).getTimeInMinutes()
+        # now get index
+        ndx = long( (float(tiiNear) - ds.getElementAt(0).getX()) / \
             float(ds.getTimeInterval().getIntervalInMinutes(ds.getStartTime())) + 0.5)
         #t = TimeFactory.getInstance().createTime(long(ds.getElementAt(ndx).getX()))
         return ndx
