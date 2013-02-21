@@ -24,6 +24,7 @@ Time in original format:  20041219  & the same time in standard format:  18DEC20
 
 To get the string representation applying  different format style
 {{{
+>>> from vista.time import DefaultTimeFormat
 >>> t1.format(DefaultTimeFormat('yyyyMMdd hhmm'))
 u'20060101 0116'
 }}}
