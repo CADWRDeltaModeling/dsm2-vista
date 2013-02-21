@@ -6,7 +6,7 @@ Time functions are available in the [http://dsm2-vista.googlecode.com/svn/trunk/
 
 = Time Formatting =
 
-To read in a time from a string in jython in [http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html any format]
+To read in a time from a string in jython in [http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html java's DateFormat]
 {{{
 >>> t1 = time('20041219','yyyyMMdd')
 }}}
@@ -21,6 +21,14 @@ To get the string representation of the time
 >>> print 'Time in original format: ', str(t1), ' & the same time in standard format: ', str(t2) 
 Time in original format:  20041219  & the same time in standard format:  18DEC2004 2400
 }}}
+
+To get the string representation applying  different format style
+{{{
+>>> t1.format(DefaultTimeFormat('yyyyMMdd hhmm'))
+u'20060101 0116'
+}}}
+*Note*: The above returns a "unicode" string. use the str() function on it to get a typical string
+
 
 To get the equivalent (java.util.Date) in TimeZone GMT do as follows
 {{{
