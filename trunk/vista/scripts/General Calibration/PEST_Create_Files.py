@@ -1,5 +1,4 @@
-import os
-import glob
+import os, glob, datetime
 from vtimeseries import *
 #from vista.time import *
 from vdss import *
@@ -13,13 +12,35 @@ from gov.ca.dsm2.input.parser import Parser
 from gov.ca.dsm2.input.parser import Tables
 from gov.ca.dsm2.input.model import *
 
+def obsDataBParts(str):
+    return str.split('/')[2]
+def obsDataCParts(str):
+    return str.split('/')[3]
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
     #TFI = TimeFormat.dateInstance()
-    # Create a .pst file (PEST Control File) and a .ins file (PEST Instruction File)
-    # for the PEST calibration of DSM2
+    # Create a .pst file (PEST Control File), a PEST Template File (.tpl),
+    # and a .ins file (PEST Instruction File) for the PEST calibration of DSM2
     #
+    # DSM2 dates
+    # These should match the DSM2 calibration run config file
+    runStartDateStr = '01SEP2008 2400'
+    runEndDateStr = '30SEP2009 2400'
+    runStartDateObj = TF.createTime(runStartDateStr)
+    runEndDateObj = TF.createTime(runEndDateStr)
+    RunTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
+    # These should be within the run dates, and are used
+    # for observed and DSM2 comparison data. A delayed
+    # calibration date, for instance, allows DSM2 to
+    # equilibrate some. Later these could be modified
+    # to allow for a list of multiple start/end calibration dates.
+    calibTimeOffsetObj = TF.createTimeInterval('56DAY')
+    calibStartDateObj = runEndDateObj - calibTimeOffsetObj
+    calibEndDateObj = runEndDateObj
+    calibStartDateStr = calibStartDateObj.format()
+    calibEndDateStr = calibEndDateObj.format()
+    calibTW = TF.createTimeWindow(calibStartDateObj, calibEndDateObj)
     # DSM2 directories and files
     BaseDir = 'D:/delta/models/Historical_v81_Beta_Release/'
     CommonDir = BaseDir + 'common_input/NAVD/'
@@ -30,43 +51,77 @@ if __name__ == '__main__':
     DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
     DSM2InpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
+    # PEST outputs for Hydro and Qual runs, these contain output paths
+    # matching observed data paths
+    DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
+    DSM2DSSOutQualFile = 'PEST_Qual_Out.inp'
+    # The DSS file containing combined Hydro and Qual output
+    DSM2DSSOutFile = 'PESTCalibOut.dss'
+    # The text equivalent of the DSS output, necessary for PEST
     DSM2OutFile = 'PESTCalib.out'
-    StartDate = '01SEP2008 2400'
-    EndDate = '30SEP2009 2400'
-    TSWin = TF.createTimeWindow(StartDate+' - '+EndDate)
+    # DSM2 output locations
+    # Each observed B part (location) must have a corresponding
+    # DSM2 channel/length in this list of tuples
+    DSM2ObsLoc = [ \
+                ('ANC', 52, 366), \
+                ('ANH', 52, 366), \
+                ('CLL', 436, 5733), \
+                ('FAL', 279, 4500), \
+                ('HLT', 155, 0), \
+                ('HOL', 117, 2670), \
+                ('JER', 83, 4213), \
+                ('MRZ', 441, 5398), \
+                ('OBI', 106, 2718), \
+                ('OH4', 90, 3021), \
+                ('OLD', 71, 3116), \
+                ('PRI', 42, 286), \
+                ('SJG', 14, 3281), \
+                ('SJJ', 83, 4213), \
+                ('SSS', 383, 9454), \
+                ('SUT', 379, 500), \
+                   ]
+    #
     ParamGroups = ['Mann', 'Disp', 'Length', 'DivQ', 'RtnQ', 'RtnEC']
     #
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these
-    ObsPaths = ['/CDEC/ANC/EC/.*/15MIN/USBR/', \
-               '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
-               '/CDEC/JER/EC/.*/1HOUR/USBR/', \
-               '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
-               '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
-               '/CDEC/HLT/FLOW/.*/15MIN/USGS/', \
-               '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
-               '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
-               '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
-               '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
-               '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
-               '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/MRZ/STAGE/.*/1HOUR/DWR-OM/', \
-               '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
-               '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
-               '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
-               '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
-               ]
+    # To ensure that observed and DSM2 output data are always synched,
+    #
+    ObsPaths = [ \
+            '/CDEC/ANC/EC/.*/15MIN/USBR/', \
+            '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
+            '/CDEC/JER/EC/.*/1HOUR/USBR/', \
+            '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
+            '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/HLT/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
+            '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/MRZ/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
+            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
+            ]
+    # sort the paths to reproduce them in the same order
+    # from the DSM2 output paths; sorting will be alphabetically
+    # by C part (data type), then B part (location)
+    ObsPaths = sorted(ObsPaths, key=obsDataBParts)
+    ObsPaths = sorted(ObsPaths, key=obsDataCParts)
     #
     ObsDataDir = CalibDir + 'Observed Data/'
     ObsDataFile = ObsDataDir + 'CalibObsData.dss'
     # Pest directories and files
     PESTDir = CalibDir + 'PEST/Calib/'
-    PESTTmplFile = DSM2InpFile.split('.')[0] + '.tpl'
+    PESTTplFile = DSM2InpFile.split('.')[0] + '.tpl'
     PESTInsFile = DSM2OutFile.split('.')[0] + '.ins'
     PCF = PESTDir + 'DSM2.pst'
     PCFID = open(PCF,'w')
@@ -85,10 +140,20 @@ if __name__ == '__main__':
     # read observed data file for desired locations and date range
     # write observed data to a temporary file for later inclusion in
     # the .pst file.
-    
+    #
+    # Also produce the DSM2 Hydro and Qual output files for PEST calibration
     dss_group = opendss(ObsDataFile)
     nObs = 0
     obsGroups = []
+    #
+    DSM2HydroID = open(PESTDir + DSM2DSSOutHydroFile,'w')
+    DSM2QualID = open(PESTDir + DSM2DSSOutQualFile,'w')
+    DSM2HydroID.write('# PEST Calibration output for HYDRO.\n' \
+                      'OUTPUT_CHANNEL\n' \
+                      'NAME CHAN_NO DISTANCE VARIABLE INTERVAL PERIOD_OP FILE\n')
+    DSM2QualID.write('# PEST Calibration output for QUAL.\n' \
+                      'OUTPUT_CHANNEL\n' \
+                      'NAME CHAN_NO DISTANCE VARIABLE INTERVAL PERIOD_OP FILE\n')
     for obsPath in ObsPaths:
         g = find(dss_group,obsPath)
         dataref = g.getAllDataReferences()
@@ -96,7 +161,7 @@ if __name__ == '__main__':
             print 'Error, too many observed DSS paths for',obsPath
             sys.exit()
         if len(dataref) < 1:
-            print 'Error, no observed Dss paths for', obsPath
+            print 'Error, no observed DSS paths for', obsPath
             sys.exit()
         obsGroup = dataref[0].getPathname().getPart(Pathname.C_PART)
         if obsGroup not in obsGroups:
@@ -106,9 +171,9 @@ if __name__ == '__main__':
         # average 15MIN data to 1HOUR
         if dataref[0].getPathname().getPart(Pathname.E_PART) == '15MIN':
             dataset = per_avg(dataset,'1HOUR')
-        dataset = dataset.createSlice(StartDate, EndDate)
-        sti = dsIndex(dataset, StartDate)
-        eti = dsIndex(dataset, EndDate)
+        dataset = dataset.createSlice(calibTW)
+        sti = dsIndex(dataset, calibStartDateObj)
+        eti = dsIndex(dataset, calibEndDateObj)
         print 'Writing path', obsPath
         for ndx in range(sti, eti):
             nObs += 1
@@ -121,7 +186,23 @@ if __name__ == '__main__':
             else:
                 valStr = '%15s' % ('DUM')    
             OTF1ID.write("%s%s%s%s %s %3.1f %s\n" % (staName, obsGroup, dateStr, timeStr, valStr, 1.0, obsGroup))
+        #
+        # write the corresponding DSM2 output line for the observed data path
+        tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
+        chan_No = tup[1]
+        chan_Dist = tup[2]
+        fmtStr = '%s    %3d %8d   %s     %s      inst  %s\n'
+        if obsGroup.lower() == 'stage' or \
+           obsGroup.lower() == 'flow':
+            DSM2HydroID.write(fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+        else:
+            DSM2QualID.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+        #
+    DSM2HydroID.write('END')
+    DSM2QualID.write('END')
     OTF1ID.close()
+    DSM2HydroID.close()
+    DSM2QualID.close()
     #
     RSTFLE = 'restart'
     PESTMODE = 'estimation'
@@ -142,7 +223,7 @@ if __name__ == '__main__':
     RLAMFAC = 2.0
     PHIRATSUF = 0.3
     PHIREDLAM = 0.01
-    if RLAMBDA1==0:
+    if RLAMBDA1 == 0:
         NUMLAM = 1
     else:
         NUMLAM = 7    
@@ -239,10 +320,59 @@ if __name__ == '__main__':
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
     PCFID.write('%s\n%s %s\n%s %s' % \
                 ('* model input/output', \
-                PESTTmplFile, DSM2InpFile, \
+                PESTTplFile, DSM2InpFile, \
                 PESTInsFile, DSM2OutFile))
     PCFID.close()
     print 'Wrote file',PCFID.name
-    print 'End processing all files'
+    ##
+    # Create PEST Template File (.tpl)
+    PTFID = open(PESTDir + PESTTplFile,'w')
+    DSM2InpID = open(CommonDir + DSM2InpFile, 'r')
+    PTFID.write('ptf @\n')
+    # read each line from the DSM2 grid input file;
+    # for channel lines, replace Length, Manning, and Dispersion
+    # with PEST placeholder names
+    channelLines = False
+    for line in DSM2InpID:
+        if line.upper().find('END') != -1:
+            # end of channel lines
+            channelLines = False
+        if not channelLines:
+            PTFID.write(line)
+        else:
+            lineParts = line.split()
+            # CHAN_NO  LENGTH  MANNING  DISPERSION  UPNODE  DOWNNODE
+            chanNo = int(lineParts[0])
+            upNode = int(lineParts[4])
+            downNode = int(lineParts[5])
+            PTFID.write('%3d MANN%03d DISP%03d LENGTH%03d %3d %3d\n' % \
+                        (chanNo, chanNo, chanNo, chanNo, upNode, downNode))   
+        if re.search('CHAN_NO +LENGTH +MANNING +DISPERSION',line,re.I):
+            # channel block header line, channel lines follow
+            channelLines = True
+    PTFID.close()
+    DSM2InpID.close()
+    ##
+    # Create the writeDSM2.py file for post-processing DSM2 calibration runs
+    WDSM2ID = open(PESTDir + 'writeDSM2.py', 'w')
+    WDSM2ID.write('import sys, os\n')
+    WDSM2ID.write('from vtimeseries import *\n')
+    WDSM2ID.write('from vdss import *\n')
+    WDSM2ID.write('from vista.set import *\n')
+    WDSM2ID.write('from vista.db.dss import *\n')
+    WDSM2ID.write('from vutils import *\n')
+    WDSM2ID.write('from vista.time import TimeFactory\n')
+    WDSM2ID.write('TF = TimeFactory.getInstance()\n')  
+    WDSM2ID.write("dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
+    #WDSM2ID.write("dssgrp.filterBy('/EC/')\n")
+    WDSM2ID.write('dssdr = dssgrp.getDataReference(0)\n')
+    WDSM2ID.write("tw = TF.createTimeWindow('" + calibStartDateStr + "', '" + \
+                  calibEndDateStr + "')\n")
+    WDSM2ID.write('dssdr = DataReference.create(dssdr,tw)\n')
+    WDSM2ID.write("writeascii('" + DSM2OutFile +"', dssdr.getData())\n")
+    WDSM2ID.write('sys.exit()\n')
+    WDSM2ID.close()
+    #
+    print 'End processing all files', datetime.today()
     sys.exit()
 #
