@@ -198,6 +198,7 @@ if __name__ == '__main__':
         else:
             DSM2QualID.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
         #
+    obsGroups.sort()    # ensure the data groups are alphabetical order
     DSM2HydroID.write('END')
     DSM2QualID.write('END')
     OTF1ID.close()
@@ -353,7 +354,12 @@ if __name__ == '__main__':
     PTFID.close()
     DSM2InpID.close()
     ##
-    # Create the writeDSM2.py file for post-processing DSM2 calibration runs
+    # Create the writeDSM2.py file for post-processing DSM2 calibration runs.
+    # The post-processing generates text output of the DSS calibration stations,
+    # and the PEST instruction (.ins) file. 
+    sq = "'"
+    dq = '"'
+    obsGroupsStr =  dq + '", "'.join(obsGroups) + dq
     WDSM2ID = open(PESTDir + 'writeDSM2.py', 'w')
     WDSM2ID.write('import sys, os\n')
     WDSM2ID.write('from vtimeseries import *\n')
@@ -362,15 +368,47 @@ if __name__ == '__main__':
     WDSM2ID.write('from vista.db.dss import *\n')
     WDSM2ID.write('from vutils import *\n')
     WDSM2ID.write('from vista.time import TimeFactory\n')
-    WDSM2ID.write('TF = TimeFactory.getInstance()\n')  
-    WDSM2ID.write("dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
-    #WDSM2ID.write("dssgrp.filterBy('/EC/')\n")
-    WDSM2ID.write('dssdr = dssgrp.getDataReference(0)\n')
-    WDSM2ID.write("tw = TF.createTimeWindow('" + calibStartDateStr + "', '" + \
+    WDSM2ID.write('TF = TimeFactory.getInstance()\n')
+    WDSM2ID.write("tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
                   calibEndDateStr + "')\n")
-    WDSM2ID.write('dssdr = DataReference.create(dssdr,tw)\n')
-    WDSM2ID.write("writeascii('" + DSM2OutFile +"', dssdr.getData())\n")
-    WDSM2ID.write('sys.exit()\n')
+    WDSM2ID.write("tempfile = 'temp.out'\n")
+    WDSM2ID.write("fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
+    WDSM2ID.write("for dataType in [" + obsGroupsStr + "]:\n")
+    WDSM2ID.write("    dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
+    WDSM2ID.write("    dssgrp.filterBy('/'+dataType+'/')\n")
+    WDSM2ID.write("    for dssdr in dssgrp.getAllDataReferences():\n")
+    WDSM2ID.write("        dssdr = DataReference.create(dssdr,tw)\n")
+    WDSM2ID.write("        writeascii(tempfile, dssdr.getData())\n")
+    WDSM2ID.write("        tid = open(tempfile, 'r')\n")
+    WDSM2ID.write("        fid.write(tid.read())\n")
+    WDSM2ID.write("        tid.close()\n")
+    WDSM2ID.write("fid.close()\n")
+    WDSM2ID.write("if os.path.exists(tempfile):\n")
+    WDSM2ID.write("   os.remove(tempfile)\n")
+    WDSM2ID.write("# generate PEST instruction (.ins) file\n")
+    WDSM2ID.write("fid = open('" + PESTInsFile + "', 'w')\n")
+    WDSM2ID.write("tid = open('" + DSM2OutFile + "', 'r')\n")
+    WDSM2ID.write("fid.write('pif @\\n')\n")
+    WDSM2ID.write("for line in tid:\n")
+    WDSM2ID.write("    if re.search('^$', line):\n")
+    WDSM2ID.write("        fid.write('@Units :\\n')\n")
+    WDSM2ID.write("        continue\n")
+    WDSM2ID.write("    lineSplit = line.split()\n")
+    WDSM2ID.write("    if line.find('Location: ') > -1:\n")
+    WDSM2ID.write("        locStr = lineSplit[1].upper()\n")
+    WDSM2ID.write("        continue\n")
+    WDSM2ID.write("    if line.find('Type: ') > -1:\n")
+    WDSM2ID.write("        typeStr = lineSplit[1].upper()\n")
+    WDSM2ID.write("        continue\n")
+    WDSM2ID.write("    if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9.-]+$',line) > -1:\n")
+    WDSM2ID.write("        dateStr = lineSplit[0]\n")
+    WDSM2ID.write("        timeStr = lineSplit[1]\n")
+    WDSM2ID.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + 'T' + timeStr + ')14:30'\n")
+    WDSM2ID.write("        fid.write(dataID + '\\n')\n")
+    WDSM2ID.write("fid.close()\n")
+    WDSM2ID.write("tid.close()\n")
+    WDSM2ID.write("sys.exit()\n")
+    #
     WDSM2ID.close()
     #
     print 'End processing all files', datetime.today()
