@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ncsa.hdf.object.Attribute;
 import ncsa.hdf.object.CompoundDS;
 import ncsa.hdf.object.HObject;
@@ -32,6 +35,7 @@ public class HDF5HydroGroup extends GroupProxy {
 
 	private String file;
 	private String path;
+	static Logger logger = LoggerFactory.getLogger("vista.db.hdf5");
 
 	public HDF5HydroGroup(String file) {
 		this.file = file;
@@ -253,6 +257,7 @@ public class HDF5HydroGroup extends GroupProxy {
 					if (object instanceof String[]) {
 						String[] reservoirNames = (String[]) object;
 						for (int j = 0; j < reservoirNames.length; j++) {
+							reservoirNames[j]=reservoirNames[j].toUpperCase();
 							Reservoir r = new Reservoir(
 									reservoirNames[j]);
 							r.setArea(reservoirAreas[j]);
@@ -264,19 +269,24 @@ public class HDF5HydroGroup extends GroupProxy {
 						String[] names = (String[]) connectionList.get(0);
 						int[] nodes = (int[]) connectionList.get(1);
 						for (int k = 0; k < names.length; k++) {
+							names[k]=names[k].toUpperCase();
 							reservoirMap.get(names[k]).addNode(nodes[k]);
 						}
 						// fill with gate connections
 						List gateList = (List) gateDS.getData();
 						String[] gateNames = (String[]) gateList.get(0);
 						String[] fromObj = (String[]) gateList.get(1);
+						String[] fromObjName = (String[]) gateList.get(2);
 						int[] to_node = (int[]) gateList.get(3);
 						for (int k = 0; k < fromObj.length; k++) {
 							if (fromObj[k].equalsIgnoreCase("reservoir")) {
-								reservoirMap.get(gateNames[k]).addGateNode(
+								logger.debug("For reservoir: "+fromObjName[k]+" adding gate: "+gateNames[k]+ " to node: "+to_node[k]);
+								fromObjName[k] = fromObjName[k].toUpperCase();
+								reservoirMap.get(fromObjName[k]).addGateNode(
 										to_node[k]);
 							}
 						}
+						int reservoirIndexInData=0;
 						// now add references for stage and flow
 						for (int i = 0; i < reservoirNames.length; i++) {
 							// references for reservoir stage
@@ -324,7 +334,22 @@ public class HDF5HydroGroup extends GroupProxy {
 												timeInterval.toString(),
 												modelRun });
 								references.add(new HDF5DataReference(file,
-										"/hydro/data/reservoir flow", i, 0,
+										"/hydro/data/reservoir flow", reservoirIndexInData++, 0,
+										timeWindow, timeInterval, pathname));
+							}
+							int nodeArraySize = nodeArray.length;
+							Integer[] gateNodeArray = reservoir.getGateNodes();
+							for(int j=0; j < gateNodeArray.length; j++){
+								pathname = Pathname
+										.createPathname(new String[] {
+												"hydro",
+												reservoirNames[i] + "@"
+														+ gateNodeArray[j], "flow",
+												timeWindow.toString(),
+												timeInterval.toString(),
+												modelRun });
+								references.add(new HDF5DataReference(file,
+										"/hydro/data/reservoir flow", reservoirIndexInData++, 0,
 										timeWindow, timeInterval, pathname));
 							}
 						}
