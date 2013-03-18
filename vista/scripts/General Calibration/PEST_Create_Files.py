@@ -19,12 +19,10 @@ def obsDataCParts(str):
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
-    #TFI = TimeFormat.dateInstance()
     # Create a .pst file (PEST Control File), a PEST Template File (.tpl),
     # and a .ins file (PEST Instruction File) for the PEST calibration of DSM2
     #
-    # DSM2 dates
-    # These should match the DSM2 calibration run config file
+    # DSM2 dates; these should match the DSM2 calibration run config file
     runStartDateStr = '01SEP2008 2400'
     runEndDateStr = '30SEP2009 2400'
     runStartDateObj = TF.createTime(runStartDateStr)
@@ -82,6 +80,7 @@ if __name__ == '__main__':
                    ]
     #
     ParamGroups = ['Mann', 'Disp', 'Length', 'DivQ', 'RtnQ', 'RtnEC']
+    ParamDERINCLB = [0.05, 10.0, 50.0, 0.01, 0.01, 0.01]
     #
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these
@@ -123,6 +122,12 @@ if __name__ == '__main__':
     PESTDir = CalibDir + 'PEST/Calib/'
     PESTTplFile = DSM2InpFile.split('.')[0] + '.tpl'
     PESTInsFile = DSM2OutFile.split('.')[0] + '.ins'
+    # 'Dummy' input file for Ag diversion/return/water quality
+    # calibration (multiplier) factors; stores floating-point
+    # numbers used to multiply the time-series values
+    PESTTplAgFile = 'AgCalibCoeffs.tpl'
+    PESTInpAgFile = 'AgCalibCoeffs.inp'
+    # PEST control file name
     PCF = PESTDir + 'DSM2.pst'
     PCFID = open(PCF,'w')
     #
@@ -198,12 +203,12 @@ if __name__ == '__main__':
         else:
             DSM2QualID.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
         #
-    obsGroups.sort()    # ensure the data groups are alphabetical order
     DSM2HydroID.write('END')
     DSM2QualID.write('END')
     OTF1ID.close()
     DSM2HydroID.close()
     DSM2QualID.close()
+    obsGroups.sort()    # ensure the data groups are alphabetical order
     #
     RSTFLE = 'restart'
     PESTMODE = 'estimation'
@@ -213,7 +218,7 @@ if __name__ == '__main__':
     NPARGP = len(ParamGroups)
     NPRIOR = 0
     NOBSGP = len(obsGroups)
-    NTPLFLE = 1
+    NTPLFLE = 2
     NINSFLE = NOBSGP
     PRECIS = 'single'
     DPOINT = 'point'
@@ -261,12 +266,12 @@ if __name__ == '__main__':
     PCFID.write('* parameter groups\n')
     INCTYP = 'relative'
     DERINC = 0.01
-    DERINCLB = 0.005    # should vary with parameter type
     FORCEN = 'switch'
     DERINCMUL = 1.2
     DERMTHD = 'best_fit'
     #
     for param in ParamGroups:
+        DERINCLB = ParamDERINCLB[ParamGroups.index(param)]
         PCFID.write('%s %s %4.3f %5.4f %s %3.1f %s\n' % \
                     (param.upper(),INCTYP,DERINC,DERINCLB,FORCEN,DERINCMUL,DERMTHD))
     #
@@ -300,9 +305,17 @@ if __name__ == '__main__':
                     PARUBND = PARVAL1 * 1.2
                 PCFID.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                 (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
-#        if paramUp == 'DIVQ' or \
-#            paramUp == 'RTNQ' or \
-#            paramUp == 'RTNEC':
+        if paramUp == 'DIVQ' or \
+            paramUp == 'RTNQ' or \
+            paramUp == 'RTNEC':
+            # these calibration parameters, being timeseries, will be updated by a pre-processor
+            # before each DSM2 run.
+            PARNME = paramUp
+            PARVAL1 = 1.0
+            PARLBND = 0.5  
+            PARUBND = 1.5
+            PCFID.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+            (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
     #
     # Observed data groups
     PCFID.write('* observation groups\n')
@@ -319,9 +332,10 @@ if __name__ == '__main__':
     # Model command line and I/O files
     PCFID.write('%s\n%s\n' % \
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
-    PCFID.write('%s\n%s %s\n%s %s' % \
+    PCFID.write('%s\n%s %s\n%s %s\n%s %s' % \
                 ('* model input/output', \
                 PESTTplFile, DSM2InpFile, \
+                PESTTplAgFile, PESTInpAgFile, \
                 PESTInsFile, DSM2OutFile))
     PCFID.close()
     print 'Wrote file',PCFID.name
@@ -346,7 +360,7 @@ if __name__ == '__main__':
             chanNo = int(lineParts[0])
             upNode = int(lineParts[4])
             downNode = int(lineParts[5])
-            PTFID.write('%3d MANN%03d DISP%03d LENGTH%03d %3d %3d\n' % \
+            PTFID.write('%3d @LENGTH%03d@ @MANN%03d @ @DISP%03d @ %3d %3d\n' % \
                         (chanNo, chanNo, chanNo, chanNo, upNode, downNode))   
         if re.search('CHAN_NO +LENGTH +MANNING +DISPERSION',line,re.I):
             # channel block header line, channel lines follow
