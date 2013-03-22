@@ -1,4 +1,4 @@
-import os, glob, datetime
+import os, glob, datetime, random
 from vtimeseries import *
 #from vista.time import *
 from vdss import *
@@ -19,6 +19,7 @@ def obsDataCParts(str):
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
+    random.seed()
     # Create a .pst file (PEST Control File), a PEST Template File (.tpl),
     # and a .ins file (PEST Instruction File) for the PEST calibration of DSM2
     #
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     TimeSeriesDir = BaseDir + 'timeseries/'
     BaseRunDir = CalibDir + 'BaseRun-1/Output/'
     HydroEchoFile = BaseRunDir + 'hydro_echo_HIST-CLB2K-BASE-v81_1Beta_1.inp'
+    QualEchoFile = BaseRunDir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_1Beta_0.inp'
     DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
     DSM2InpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
@@ -79,8 +81,14 @@ if __name__ == '__main__':
                 ('SUT', 379, 500), \
                    ]
     #
-    ParamGroups = ['Mann', 'Disp', 'Length', 'DivQ', 'RtnQ', 'RtnEC']
-    ParamDERINCLB = [0.05, 10.0, 50.0, 0.01, 0.01, 0.01]
+    # Use either Width or Elev, not both
+    ParamGroups = ['MANN', 'DISP', 'LENGTH', \
+ #                  'WIDTH', \
+                   'ELEV', \
+                   'DIV-FLOW', 'DRAIN-FLOW', 'DRAIN-EC']
+    ParamDERINCLB = [0.05, 10.0, 50.0, \
+                     0.01, 0.01, \
+                     0.01, 0.01, 0.01]
     #
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these
@@ -118,45 +126,63 @@ if __name__ == '__main__':
     #
     ObsDataDir = CalibDir + 'Observed Data/'
     ObsDataFile = ObsDataDir + 'CalibObsData.dss'
+    #
     # Pest directories and files
+    #
     PESTDir = CalibDir + 'PEST/Calib/'
     PESTTplFile = DSM2InpFile.split('.')[0] + '.tpl'
     PESTInsFile = DSM2OutFile.split('.')[0] + '.ins'
-    # 'Dummy' input file for Ag diversion/return/water quality
+    # 'Dummy' input/template files for Ag div/drainage/EC
     # calibration (multiplier) factors; stores floating-point
     # numbers used to multiply the time-series values
-    PESTTplAgFile = 'AgCalibCoeffs.tpl'
     PESTInpAgFile = 'AgCalibCoeffs.inp'
+    PESTTplAgFile = PESTInpAgFile.split('.')[0] + '.tpl'
+    PIAFId = open(PESTDir + PESTInpAgFile,'w')
+    PTAFId = open(PESTDir + PESTTplAgFile,'w')
+    PTAFId.write('%s\n' % ('ptf @'))
+    # 'Dummy' input/template files for cross-section calibration
+    # (multiplier) factors; stores floating-point
+    # numbers used to multiply the cross-section
+    # width and elevation values
     # PEST control file name
-    PCF = PESTDir + 'DSM2.pst'
-    PCFID = open(PCF,'w')
+    PESTInpXCFile = 'XCCalibCoeffs.inp'
+    PESTTplXCFile = PESTInpXCFile.split('.')[0] + '.tpl'
+    PIXFId = open(PESTDir + PESTInpXCFile,'w')
+    PTXFId = open(PESTDir + PESTTplXCFile,'w')
+    PTXFId.write('ptf @\n')
+    #
+    PCFId = open(PESTDir + 'DSM2.pst','w')
     #
     ObsTempFile1 = PESTDir + 'temp1.txt'
-    OTF1ID = open(ObsTempFile1,'w')
+    OTF1Id = open(ObsTempFile1,'w')
+    #
     # read DSM2 base run info
     p = Parser()
-    tables = p.parseModel(HydroEchoFile)
-    Channels = tables.toChannels()
+    tablesHydro = p.parseModel(HydroEchoFile)
+    tablesQual = p.parseModel(QualEchoFile)
+    Channels = tablesHydro.toChannels()
     nChans = len(Channels.getChannels())
-    bndryInputs = tables.toBoundaryInputs()
-    SrcQInputs = bndryInputs.getSourceFlowInputs()
-    nAgNodes = len(SrcQInputs)
+    bndryInputsHydro = tablesHydro.toBoundaryInputs()
+    srcAgInputsHydro = bndryInputsHydro.getSourceFlowInputs()
+    bndryInputsQual = tablesQual.toBoundaryInputs()
+    #srcAgInputsQual = bndryInputsQual.getSourceFlowInputs()
+    tableNodeConc = tablesQual.getTableNamed('NODE_CONCENTRATION')
     #
     # read observed data file for desired locations and date range
     # write observed data to a temporary file for later inclusion in
     # the .pst file.
     #
-    # Also produce the DSM2 Hydro and Qual output files for PEST calibration
+    # Also produce the DSM2 Qual and Qual output files for PEST calibration
     dss_group = opendss(ObsDataFile)
     nObs = 0
     obsGroups = []
     #
-    DSM2HydroID = open(PESTDir + DSM2DSSOutHydroFile,'w')
-    DSM2QualID = open(PESTDir + DSM2DSSOutQualFile,'w')
-    DSM2HydroID.write('# PEST Calibration output for HYDRO.\n' \
+    DSM2HydroId = open(PESTDir + DSM2DSSOutHydroFile,'w')
+    DSM2QualId = open(PESTDir + DSM2DSSOutQualFile,'w')
+    DSM2HydroId.write('# PEST Calibration output for HYDRO.\n' \
                       'OUTPUT_CHANNEL\n' \
                       'NAME CHAN_NO DISTANCE VARIABLE INTERVAL PERIOD_OP FILE\n')
-    DSM2QualID.write('# PEST Calibration output for QUAL.\n' \
+    DSM2QualId.write('# PEST Calibration output for QUAL.\n' \
                       'OUTPUT_CHANNEL\n' \
                       'NAME CHAN_NO DISTANCE VARIABLE INTERVAL PERIOD_OP FILE\n')
     for obsPath in ObsPaths:
@@ -190,7 +216,7 @@ if __name__ == '__main__':
                 valStr = '%15.3f' % (el.getY())
             else:
                 valStr = '%15s' % ('DUM')    
-            OTF1ID.write("%s%s%s%s %s %3.1f %s\n" % (staName, obsGroup, dateStr, timeStr, valStr, 1.0, obsGroup))
+            OTF1Id.write("%s%s%s%s %s %3.1f %s\n" % (staName, obsGroup, dateStr, timeStr, valStr, 1.0, obsGroup))
         #
         # write the corresponding DSM2 output line for the observed data path
         tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
@@ -199,21 +225,56 @@ if __name__ == '__main__':
         fmtStr = '%s    %3d %8d   %s     %s      inst  %s\n'
         if obsGroup.lower() == 'stage' or \
            obsGroup.lower() == 'flow':
-            DSM2HydroID.write(fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+            DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
         else:
-            DSM2QualID.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+            DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
         #
-    DSM2HydroID.write('END')
-    DSM2QualID.write('END')
-    OTF1ID.close()
-    DSM2HydroID.close()
-    DSM2QualID.close()
+    DSM2HydroId.write('END')
+    DSM2QualId.write('END')
+    OTF1Id.close()
+    DSM2HydroId.close()
+    DSM2QualId.close()
     obsGroups.sort()    # ensure the data groups are alphabetical order
     #
     RSTFLE = 'restart'
     PESTMODE = 'estimation'
-    xcalc = 23
-    NPAR = nChans + nAgNodes
+    # number of calibration parameters
+    NPAR = 0
+    if 'MANN' in ParamGroups:
+        NPAR += len(Channels.getChannels())
+    if 'DISP' in ParamGroups:
+        NPAR += len(Channels.getChannels())
+    if 'LENGTH' in ParamGroups:
+        NPAR += len(Channels.getChannels())
+    if 'ELEV' in ParamGroups or \
+        'WIDTH' in ParamGroups:
+        for chan in Channels.getChannels():
+                NPAR += len(chan.getXsections())
+    paramUp = 'DIV-FLOW'
+    if paramUp in ParamGroups:
+        for srcInput in srcAgInputsHydro:
+            try: CPartUp = srcInput.path.upper().split('/')[3]
+            except: continue
+            if CPartUp == paramUp:
+                NPAR += 1
+    paramUp = 'DRAIN-FLOW'
+    if paramUp in ParamGroups:
+        for srcInput in srcAgInputsHydro:
+            try: CPartUp = srcInput.path.upper().split('/')[3]
+            except: continue
+            if CPartUp == paramUp:
+                NPAR += 1
+    paramUp = 'DRAIN-EC'
+    if paramUp in ParamGroups:
+        for row in tableNodeConc.getValues():
+            path = row[5]
+            if path.find('/') >= 0:
+                pathParts = path.split('/')
+                CPartUp = pathParts[3]
+                try: node3 = "%03d" % int(pathParts[2])
+                except: continue
+                if CPartUp == paramUp:
+                    NPAR += 1
     NOBS = nObs
     NPARGP = len(ParamGroups)
     NPRIOR = 0
@@ -251,19 +312,19 @@ if __name__ == '__main__':
         ICOV = 0
         ICOR = 0
         IEIG = 0
-    # print the header and PEST control info to the PCF (.pst) file
-    PCFID.write('* control data\n')
-    PCFID.write('%s %s\n' % (RSTFLE, PESTMODE))
-    PCFID.write('%d %d %d %d %d\n' % (NPAR, NOBS, NPARGP, NPRIOR, NOBSGP))
-    PCFID.write('%d %d %s %s %d %d %d\n' % (NTPLFLE, NINSFLE, PRECIS, DPOINT, NUMCOM, JACFILE, MESSFILE))
-    PCFID.write('%f %f %f %f %d\n' % (RLAMBDA1, RLAMFAC, PHIRATSUF, PHIREDLAM, NUMLAM))
-    PCFID.write('%f %f %f\n' % (RELPARMAX, FACPARMAX, FACORIG))
-    PCFID.write('%f\n' % (PHIREDSWH))
-    PCFID.write('%d %f %d %d %f %d\n' % (NOPTMAX, PHIREDSTP, NPHISTP, NPHINORED, RELPARSTP, NRELPAR))
-    PCFID.write('%d %d %d\n' % (ICOV, ICOR, IEIG))
+    # print the header and PEST control info to the PEST control (.pst) file
+    PCFId.write('* control data\n')
+    PCFId.write('%s %s\n' % (RSTFLE, PESTMODE))
+    PCFId.write('%d %d %d %d %d\n' % (NPAR, NOBS, NPARGP, NPRIOR, NOBSGP))
+    PCFId.write('%d %d %s %s %d %d %d\n' % (NTPLFLE, NINSFLE, PRECIS, DPOINT, NUMCOM, JACFILE, MESSFILE))
+    PCFId.write('%f %f %f %f %d\n' % (RLAMBDA1, RLAMFAC, PHIRATSUF, PHIREDLAM, NUMLAM))
+    PCFId.write('%f %f %f\n' % (RELPARMAX, FACPARMAX, FACORIG))
+    PCFId.write('%f\n' % (PHIREDSWH))
+    PCFId.write('%d %f %d %d %f %d\n' % (NOPTMAX, PHIREDSTP, NPHISTP, NPHINORED, RELPARSTP, NRELPAR))
+    PCFId.write('%d %d %d\n' % (ICOV, ICOR, IEIG))
     #
     # parameter groups
-    PCFID.write('* parameter groups\n')
+    PCFId.write('* parameter groups\n')
     INCTYP = 'relative'
     DERINC = 0.01
     FORCEN = 'switch'
@@ -272,11 +333,11 @@ if __name__ == '__main__':
     #
     for param in ParamGroups:
         DERINCLB = ParamDERINCLB[ParamGroups.index(param)]
-        PCFID.write('%s %s %4.3f %5.4f %s %3.1f %s\n' % \
+        PCFId.write('%s %s %4.3f %5.4f %s %3.1f %s\n' % \
                     (param.upper(),INCTYP,DERINC,DERINCLB,FORCEN,DERINCMUL,DERMTHD))
     #
     # parameter data
-    PCFID.write('* parameter data\n')
+    PCFId.write('* parameter data\n')
     PARTRANS = 'none'
     PARCHGLIM = 'relative'
     SCALE = 1.0
@@ -303,127 +364,181 @@ if __name__ == '__main__':
                     PARVAL1 = chan.getLength()
                     PARLBND = PARVAL1 / 1.2   
                     PARUBND = PARVAL1 * 1.2
-                PCFID.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                 (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
-        if paramUp == 'DIVQ' or \
-            paramUp == 'RTNQ' or \
-            paramUp == 'RTNEC':
+        #
+        if paramUp == 'ELEV' or paramUp == 'WIDTH':
+            # cross-sections in channels;
+            # instead of PEST adjusting the elevations or widths directly,
+            # PEST will change coefficients for each cross-section which
+            # will multiply the elevations or widths for each layer in a
+            # pre-processor vscript before each DSM2 run. 
+            PARVAL1 = 1.0
+            PARLBND = 0.8  
+            PARUBND = 1.2
+            for chan in Channels.getChannels():
+                chan3 = "%03d" % int(chan.getId())
+                for xs in chan.getXsections():
+                    xsdist3 = "%03d" % int(xs.getDistance()*1000.)
+                    PARNME = paramUp + chan3 + ":" + xsdist3
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                    # create 'dummy' input/template files for x-sect calibration factors
+                    PIXFId.write('%s %10.4f\n' % (PARNME,random.uniform(0.5, 1.5)))
+                    PTXFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
+        if paramUp == 'DIV-FLOW' or \
+            paramUp == 'DRAIN-FLOW':
             # these calibration parameters, being timeseries, will be updated by a pre-processor
-            # before each DSM2 run.
-            PARNME = paramUp
+            # vscript before each DSM2 run. As with channel cross-sections, PEST will calibrate
+            # 3 coefficients for each node.
             PARVAL1 = 1.0
             PARLBND = 0.5  
             PARUBND = 1.5
-            PCFID.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-            (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+            for srcInput in srcAgInputsHydro:
+                try: CPartUp = srcInput.path.upper().split('/')[3]
+                except: continue
+                if CPartUp == paramUp:
+                    node3 = "%03d" % int(srcInput.nodeId)
+                    PARNME = paramUp+node3
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                    # create 'dummy' input/template files for Ag calibration factors
+                    PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(0.5, 1.5)))
+                    PTAFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
+        if paramUp == 'DRAIN-EC':
+            # similar to Div/Drain flows, but have to use rows from the input table
+            PARVAL1 = 1.0
+            PARLBND = 0.5  
+            PARUBND = 1.5
+            for row in tableNodeConc.getValues():
+                path = row[5]
+                if path.find('/') >= 0:
+                    pathParts = path.split('/')
+                    CPartUp = pathParts[3]
+                    try: node3 = "%03d" % int(pathParts[2])
+                    except: continue
+                    if CPartUp == paramUp:
+                        PARNME = paramUp + node3
+                        PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                        # create 'dummy' input/template files for Ag calibration factors
+                        PIAFId.write('%s %d\n' % (PARNME,random.uniform(0.5, 1.5)))
+                        PTAFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
     #
+    PIAFId.close()
+    PIXFId.close()
+    PTAFId.close()
+    PTXFId.close()
     # Observed data groups
-    PCFID.write('* observation groups\n')
+    PCFId.write('* observation groups\n')
     for obsGroup in obsGroups:
-        PCFID.write('%s\n' % (obsGroup))
+        PCFId.write('%s\n' % (obsGroup))
     #
     # append the temp observed data file previously created
-    OTF1ID = open(ObsTempFile1,'r')
-    PCFID.write('* observation data\n')
-    PCFID.write(OTF1ID.read())
-    OTF1ID.close()
+    OTF1Id = open(ObsTempFile1,'r')
+    PCFId.write('* observation data\n')
+    PCFId.write(OTF1Id.read())
+    OTF1Id.close()
     os.remove(ObsTempFile1)
     #
     # Model command line and I/O files
-    PCFID.write('%s\n%s\n' % \
+    PCFId.write('%s\n%s\n' % \
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
-    PCFID.write('%s\n%s %s\n%s %s\n%s %s' % \
+    PCFId.write('%s\n%s %s\n%s %s\n%s %s' % \
                 ('* model input/output', \
                 PESTTplFile, DSM2InpFile, \
                 PESTTplAgFile, PESTInpAgFile, \
                 PESTInsFile, DSM2OutFile))
-    PCFID.close()
-    print 'Wrote file',PCFID.name
+    PCFId.close()
+    print 'Wrote file',PCFId.name
     ##
     # Create PEST Template File (.tpl)
-    PTFID = open(PESTDir + PESTTplFile,'w')
-    DSM2InpID = open(CommonDir + DSM2InpFile, 'r')
-    PTFID.write('ptf @\n')
+    PTFId = open(PESTDir + PESTTplFile,'w')
+    DSM2InpId = open(CommonDir + DSM2InpFile, 'r')
+    PTFId.write('ptf @\n')
     # read each line from the DSM2 grid input file;
     # for channel lines, replace Length, Manning, and Dispersion
     # with PEST placeholder names
     channelLines = False
-    for line in DSM2InpID:
+    for line in DSM2InpId:
         if line.upper().find('END') != -1:
             # end of channel lines
             channelLines = False
         if not channelLines:
-            PTFID.write(line)
+            PTFId.write(line)
         else:
             lineParts = line.split()
             # CHAN_NO  LENGTH  MANNING  DISPERSION  UPNODE  DOWNNODE
             chanNo = int(lineParts[0])
             upNode = int(lineParts[4])
             downNode = int(lineParts[5])
-            PTFID.write('%3d @LENGTH%03d@ @MANN%03d @ @DISP%03d @ %3d %3d\n' % \
+            PTFId.write('%3d @LENGTH%03d@ @MANN%03d @ @DISP%03d @ %3d %3d\n' % \
                         (chanNo, chanNo, chanNo, chanNo, upNode, downNode))   
         if re.search('CHAN_NO +LENGTH +MANNING +DISPERSION',line,re.I):
             # channel block header line, channel lines follow
             channelLines = True
-    PTFID.close()
-    DSM2InpID.close()
+    PTFId.close()
+    DSM2InpId.close()
     ##
-    # Create the writeDSM2.py file for post-processing DSM2 calibration runs.
+    # Create the writeDSM2Output.py file for post-processing DSM2 calibration runs.
     # The post-processing generates text output of the DSS calibration stations,
     # and the PEST instruction (.ins) file. 
     sq = "'"
     dq = '"'
     obsGroupsStr =  dq + '", "'.join(obsGroups) + dq
-    WDSM2ID = open(PESTDir + 'writeDSM2.py', 'w')
-    WDSM2ID.write('import sys, os\n')
-    WDSM2ID.write('from vtimeseries import *\n')
-    WDSM2ID.write('from vdss import *\n')
-    WDSM2ID.write('from vista.set import *\n')
-    WDSM2ID.write('from vista.db.dss import *\n')
-    WDSM2ID.write('from vutils import *\n')
-    WDSM2ID.write('from vista.time import TimeFactory\n')
-    WDSM2ID.write('TF = TimeFactory.getInstance()\n')
-    WDSM2ID.write("tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
+    WDSM2Id = open(PESTDir + 'DSM2PESTPostProcess.py', 'w')
+    WDSM2Id.write('import sys, os\n')
+    WDSM2Id.write('from vtimeseries import *\n')
+    WDSM2Id.write('from vdss import *\n')
+    WDSM2Id.write('from vista.set import *\n')
+    WDSM2Id.write('from vista.db.dss import *\n')
+    WDSM2Id.write('from vutils import *\n')
+    WDSM2Id.write('from vista.time import TimeFactory\n')
+    WDSM2Id.write('TF = TimeFactory.getInstance()\n')
+    WDSM2Id.write("tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
                   calibEndDateStr + "')\n")
-    WDSM2ID.write("tempfile = 'temp.out'\n")
-    WDSM2ID.write("fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
-    WDSM2ID.write("for dataType in [" + obsGroupsStr + "]:\n")
-    WDSM2ID.write("    dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
-    WDSM2ID.write("    dssgrp.filterBy('/'+dataType+'/')\n")
-    WDSM2ID.write("    for dssdr in dssgrp.getAllDataReferences():\n")
-    WDSM2ID.write("        dssdr = DataReference.create(dssdr,tw)\n")
-    WDSM2ID.write("        writeascii(tempfile, dssdr.getData())\n")
-    WDSM2ID.write("        tid = open(tempfile, 'r')\n")
-    WDSM2ID.write("        fid.write(tid.read())\n")
-    WDSM2ID.write("        tid.close()\n")
-    WDSM2ID.write("fid.close()\n")
-    WDSM2ID.write("if os.path.exists(tempfile):\n")
-    WDSM2ID.write("   os.remove(tempfile)\n")
-    WDSM2ID.write("# generate PEST instruction (.ins) file\n")
-    WDSM2ID.write("fid = open('" + PESTInsFile + "', 'w')\n")
-    WDSM2ID.write("tid = open('" + DSM2OutFile + "', 'r')\n")
-    WDSM2ID.write("fid.write('pif @\\n')\n")
-    WDSM2ID.write("for line in tid:\n")
-    WDSM2ID.write("    if re.search('^$', line):\n")
-    WDSM2ID.write("        fid.write('@Units :\\n')\n")
-    WDSM2ID.write("        continue\n")
-    WDSM2ID.write("    lineSplit = line.split()\n")
-    WDSM2ID.write("    if line.find('Location: ') > -1:\n")
-    WDSM2ID.write("        locStr = lineSplit[1].upper()\n")
-    WDSM2ID.write("        continue\n")
-    WDSM2ID.write("    if line.find('Type: ') > -1:\n")
-    WDSM2ID.write("        typeStr = lineSplit[1].upper()\n")
-    WDSM2ID.write("        continue\n")
-    WDSM2ID.write("    if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9.-]+$',line) > -1:\n")
-    WDSM2ID.write("        dateStr = lineSplit[0]\n")
-    WDSM2ID.write("        timeStr = lineSplit[1]\n")
-    WDSM2ID.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + 'T' + timeStr + ')14:30'\n")
-    WDSM2ID.write("        fid.write(dataID + '\\n')\n")
-    WDSM2ID.write("fid.close()\n")
-    WDSM2ID.write("tid.close()\n")
-    WDSM2ID.write("sys.exit()\n")
+    WDSM2Id.write("# This post-processor generated by PEST_pre_DSM2_DICU.py\n" + \
+                  "# It translates DSM2 DSS output for calibration to a text file,\n" + \
+                  "# then generates the matching PEST instruction file for the output.\n")
+    WDSM2Id.write("tempfile = 'temp.out'\n")
+    WDSM2Id.write("fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
+    WDSM2Id.write("for dataType in [" + obsGroupsStr + "]:\n")
+    WDSM2Id.write("    dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
+    WDSM2Id.write("    dssgrp.filterBy('/'+dataType+'/')\n")
+    WDSM2Id.write("    for dssdr in dssgrp.getAllDataReferences():\n")
+    WDSM2Id.write("        dssdr = DataReference.create(dssdr,tw)\n")
+    WDSM2Id.write("        writeascii(tempfile, dssdr.getData())\n")
+    WDSM2Id.write("        tid = open(tempfile, 'r')\n")
+    WDSM2Id.write("        fid.write(tid.read())\n")
+    WDSM2Id.write("        tid.close()\n")
+    WDSM2Id.write("fid.close()\n")
+    WDSM2Id.write("if os.path.exists(tempfile):\n")
+    WDSM2Id.write("   os.remove(tempfile)\n")
+    WDSM2Id.write("# generate PEST instruction (.ins) file\n")
+    WDSM2Id.write("fid = open('" + PESTInsFile + "', 'w')\n")
+    WDSM2Id.write("tid = open('" + DSM2OutFile + "', 'r')\n")
+    WDSM2Id.write("fid.write('pif @\\n')\n")
+    WDSM2Id.write("for line in tid:\n")
+    WDSM2Id.write("    if re.search('^$', line):\n")
+    WDSM2Id.write("        fid.write('@Units :\\n')\n")
+    WDSM2Id.write("        continue\n")
+    WDSM2Id.write("    lineSplit = line.split()\n")
+    WDSM2Id.write("    if line.find('Location: ') > -1:\n")
+    WDSM2Id.write("        locStr = lineSplit[1].upper()\n")
+    WDSM2Id.write("        continue\n")
+    WDSM2Id.write("    if line.find('Type: ') > -1:\n")
+    WDSM2Id.write("        typeStr = lineSplit[1].upper()\n")
+    WDSM2Id.write("        continue\n")
+    WDSM2Id.write("    if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9.-]+$',line) > -1:\n")
+    WDSM2Id.write("        dateStr = lineSplit[0]\n")
+    WDSM2Id.write("        timeStr = lineSplit[1]\n")
+    WDSM2Id.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + 'T' + timeStr + ')14:30'\n")
+    WDSM2Id.write("        fid.write(dataID + '\\n')\n")
+    WDSM2Id.write("fid.close()\n")
+    WDSM2Id.write("tid.close()\n")
+    WDSM2Id.write("sys.exit()\n")
     #
-    WDSM2ID.close()
+    WDSM2Id.close()
     #
     print 'End processing all files', datetime.today()
     sys.exit()
