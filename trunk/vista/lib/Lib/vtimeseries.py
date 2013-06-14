@@ -1081,6 +1081,16 @@ def sdev(ts):
         data = ts
     return Stats.sdev(data)
 #
+def total_abs(ts):
+    """
+        The total of absolute values of the time series
+    """
+    data = None
+    if isinstance(ts, DataReference):
+        data = ts.getData()
+    else:   # dataset
+        data = ts
+    return Stats.total(TimeSeriesMath.abs(data))
 def total(ts):
     """
     The total of a time series

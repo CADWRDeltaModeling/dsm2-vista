@@ -1249,6 +1249,22 @@ public class TimeSeriesMath {
 	}
 
 	/**
+	 * Returns of value of the first argument raised to the power of the second
+	 * argument.
+	 */
+	public static TimeSeries abs(TimeSeries ts) {
+		TimeSeries nts = ts.createSlice(ts.getTimeWindow());
+		for (DataSetIterator iter = nts.getIterator(); !iter.atEnd(); iter
+				.advance()) {
+			DataSetElement e = iter.getElement();
+			double y = e.getY();
+			e.setY(Math.abs(y));
+			iter.putElement(e);
+		}
+		return nts;
+	}
+
+	/**
 	 * Returns the closest <code>int</code> to the argument.
 	 * <p>
 	 */
