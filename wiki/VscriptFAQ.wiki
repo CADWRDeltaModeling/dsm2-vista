@@ -401,7 +401,7 @@ flag value.
 	This data is stored in a database developed by HEC called
 HEC-DSS. It is NOT a relational database and is specifically tuned for
 fast storage and retrieval of time-series data sets. For more
-information visit HEC at http://wrc-hec.usace.army.mil/. 
+information visit HEC at http://www.hec.usace.army.mil/
 	HEC-DSS has a method of naming each data set ( usually time
 series) with a pathname.
 
