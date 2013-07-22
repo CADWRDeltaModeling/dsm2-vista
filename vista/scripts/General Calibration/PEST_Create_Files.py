@@ -29,10 +29,10 @@ if __name__ == '__main__':
     runStartDateObj = TF.createTime(runStartDateStr)
     runEndDateObj = TF.createTime(runEndDateStr)
     RunTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
-    # These should be within the run dates, and are used
-    # for observed and DSM2 comparison data. A delayed
-    # calibration date, for instance, allows DSM2 to
-    # equilibrate some. Later these could be modified
+    # Calibration start and end dates should be within the run dates, 
+    # and are used for observed and DSM2 comparison data. 
+    # A delayed calibration date, for instance, allows DSM2 to
+    # equilibrate. Later these could be modified
     # to allow for a list of multiple start/end calibration dates.
     calibTimeOffsetObj = TF.createTimeInterval('56DAY')
     calibStartDateObj = runEndDateObj - calibTimeOffsetObj
