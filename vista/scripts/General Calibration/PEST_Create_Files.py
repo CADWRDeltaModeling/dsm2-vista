@@ -13,9 +13,38 @@ from gov.ca.dsm2.input.parser import Tables
 from gov.ca.dsm2.input.model import *
 
 def obsDataBParts(str):
-    return str.split('/')[2]
+    return str.upper().split('/')[2]
 def obsDataCParts(str):
-    return str.split('/')[3]
+    return str.upper().split('/')[3]
+def parseEcho(echoFile,Section,Key):
+    # parse the given Echo file for Section,
+    # return as a dictionary with the Key field used
+    try: EID = open(echoFile,'r')
+    except: 
+        print 'Unable to open echo file', echoFile
+        return None
+    inSection = 0
+    echoDict = {}
+    for line in EID:
+        if line.upper().strip() == Section.upper():
+            inSection += 1
+            continue
+        if inSection:
+            inSection += 1
+            if line.upper().strip() == 'END':
+                break
+            if inSection == 2:  # headers
+                headers = line.upper().split()
+                try: KeyLoc = headers.index(Key.upper()) 
+                except:
+                    print 'Unable to find key', Key, 'in header line:',line
+                    return None
+                echoDict['SectHead'] = line.split()
+            if inSection > 2: # values
+                key = line.split()[KeyLoc]
+                echoDict[key] = line.split()
+    return(echoDict)
+#                
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
@@ -50,7 +79,8 @@ if __name__ == '__main__':
     QualEchoFile = BaseRunDir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_1Beta_0.inp'
     DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
-    DSM2InpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
+    ChanInpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
+    GateInpFile = 'gate_std_delta_grid_NAVD_20121214.inp'
     # PEST outputs for Hydro and Qual runs, these contain output paths
     # matching observed data paths
     DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
@@ -85,10 +115,14 @@ if __name__ == '__main__':
     ParamGroups = ['MANN', 'DISP', 'LENGTH', \
  #                  'WIDTH', \
                    'ELEV', \
-                   'DIV-FLOW', 'DRAIN-FLOW', 'DRAIN-EC']
+                   'DIV-FLOW', 'DRAIN-FLOW', 'DRAIN-EC', \
+                   'GATE']
+    # make sure these elements agree with ParamGroups above
     ParamDERINCLB = [0.05, 10.0, 50.0, \
-                     0.01, 0.01, \
-                     0.01, 0.01, 0.01]
+                     0.01, \
+#                     0.01, \
+                     0.01, 0.01, 0.01, \
+                     0.05]
     #
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these
@@ -130,8 +164,10 @@ if __name__ == '__main__':
     # Pest directories and files
     #
     PESTDir = CalibDir + 'PEST/Calib/'
-    PESTTplFile = DSM2InpFile.split('.')[0] + '.tpl'
+    PESTChanTplFile = ChanInpFile.split('.')[0] + '.tpl'
+    PESTGateTplFile = GateInpFile.split('.')[0] + '.tpl'
     PESTInsFile = DSM2OutFile.split('.')[0] + '.ins'
+    #
     # 'Dummy' input/template files for Ag div/drainage/EC
     # calibration (multiplier) factors; stores floating-point
     # numbers used to multiply the time-series values
@@ -161,7 +197,7 @@ if __name__ == '__main__':
     tablesHydro = p.parseModel(HydroEchoFile)
     tablesQual = p.parseModel(QualEchoFile)
     Channels = tablesHydro.toChannels()
-    nChans = len(Channels.getChannels())
+    Gates = tablesHydro.toGates()
     bndryInputsHydro = tablesHydro.toBoundaryInputs()
     srcAgInputsHydro = bndryInputsHydro.getSourceFlowInputs()
     bndryInputsQual = tablesQual.toBoundaryInputs()
@@ -250,6 +286,8 @@ if __name__ == '__main__':
         'WIDTH' in ParamGroups:
         for chan in Channels.getChannels():
                 NPAR += len(chan.getXsections())
+    if 'GATE' in ParamGroups:
+        NPAR += len(Gates.getGates())
     paramUp = 'DIV-FLOW'
     if paramUp in ParamGroups:
         for srcInput in srcAgInputsHydro:
@@ -349,6 +387,7 @@ if __name__ == '__main__':
         if paramUp == 'MANN' or \
             paramUp == 'DISP' or \
             paramUp == 'LENGTH':
+            # adjust channel parameters directly
             for chan in Channels.getChannels():
                 chan3 = "%03d" % int(chan.getId())
                 PARNME = paramUp + chan3
@@ -367,6 +406,52 @@ if __name__ == '__main__':
                 PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                 (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
         #
+        if paramUp == 'GATE':
+            # adjust gate coefficients directly, similar to channel parameters
+            # unfortunately gate data is not in the DSM2 Input methods by Nicky,
+            # so it has to be read from the Hydro echo file.
+            # since DSM2 gates are split between pipes and weirs,
+            # we'll follow the same pattern
+            #
+            # first read the Hydro echo file for gate info
+            gatePipeDict = parseEcho(HydroEchoFile,'GATE_PIPE_DEVICE','GATE_NAME')
+            gateWeirDict = parseEcho(HydroEchoFile,'GATE_WEIR_DEVICE','GATE_NAME')
+            # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
+            headersList = gatePipeDict['SectHead']
+            CF_FromLoc = headersList.index('CF_FROM_NODE')
+            CF_ToLoc = headersList.index('CF_TO_NODE')
+            # now write to PEST .pst file
+            for name in gatePipeDict:
+                try: PARVAL1 = float(gatePipeDict[name][CF_FromLoc])
+                except: continue    # headers, just continue
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'GATECFFROM:' + name
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                PARVAL1 = float(gatePipeDict[name][CF_ToLoc])
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'GATECFTO:' + name
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+            headersList = gateWeirDict['SectHead']
+            CF_FromLoc = headersList.index('CF_FROM_NODE')
+            CF_ToLoc = headersList.index('CF_TO_NODE')
+            for name in gateWeirDict:
+                try: PARVAL1 = float(gateWeirDict[name][CF_FromLoc])
+                except: continue    # headers, just continue
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'GATECFFROM:' + name
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                PARVAL1 = float(gateWeirDict[name][CF_ToLoc])
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'GATECFTO:' + name
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
         if paramUp == 'ELEV' or paramUp == 'WIDTH':
             # cross-sections in channels;
             # instead of PEST adjusting the elevations or widths directly,
@@ -384,7 +469,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # create 'dummy' input/template files for x-sect calibration factors
-                    PIXFId.write('%s %10.4f\n' % (PARNME,random.uniform(0.5, 1.5)))
+                    PIXFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
                     PTXFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
         if paramUp == 'DIV-FLOW' or \
             paramUp == 'DRAIN-FLOW':
@@ -395,7 +480,7 @@ if __name__ == '__main__':
             PARLBND = 0.5  
             PARUBND = 1.5
             for srcInput in srcAgInputsHydro:
-                try: CPartUp = srcInput.path.upper().split('/')[3]
+                try: CPartUp = obsDataCParts(srcInput)
                 except: continue
                 if CPartUp == paramUp:
                     node3 = "%03d" % int(srcInput.nodeId)
@@ -403,7 +488,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # create 'dummy' input/template files for Ag calibration factors
-                    PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(0.5, 1.5)))
+                    PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
                     PTAFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
         if paramUp == 'DRAIN-EC':
             # similar to Div/Drain flows, but have to use rows from the input table
@@ -444,17 +529,19 @@ if __name__ == '__main__':
     # Model command line and I/O files
     PCFId.write('%s\n%s\n' % \
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
-    PCFId.write('%s\n%s %s\n%s %s\n%s %s' % \
+    PCFId.write('%s\n%s %s\n%s %s\n%s %s\n%s %s' % \
                 ('* model input/output', \
-                PESTTplFile, DSM2InpFile, \
+                PESTChanTplFile, ChanInpFile, \
+                PESTGateTplFile, GateInpFile, \
                 PESTTplAgFile, PESTInpAgFile, \
                 PESTInsFile, DSM2OutFile))
     PCFId.close()
     print 'Wrote file',PCFId.name
     ##
-    # Create PEST Template File (.tpl)
-    PTFId = open(PESTDir + PESTTplFile,'w')
-    DSM2InpId = open(CommonDir + DSM2InpFile, 'r')
+    ## Create PEST Template Files (.tpl)
+    # DSM2 channel input template
+    PTFId = open(PESTDir + PESTChanTplFile,'w')
+    DSM2InpId = open(CommonDir + ChanInpFile, 'r')
     PTFId.write('ptf @\n')
     # read each line from the DSM2 grid input file;
     # for channel lines, replace Length, Manning, and Dispersion
@@ -479,6 +566,44 @@ if __name__ == '__main__':
             channelLines = True
     PTFId.close()
     DSM2InpId.close()
+    # DSM2 Gate input template
+    PTFId = open(PESTDir + PESTGateTplFile,'w')
+    DSM2InpId = open(CommonDir + GateInpFile, 'r')
+    PTFId.write('ptf |\n')
+    # read each line from the DSM2 gate input file;
+    # for gate weir & pipe device lines, replace To and From flow coefficients 
+    # with PEST placeholder names
+    gatePipeDict = parseEcho(CommonDir + GateInpFile,'GATE_PIPE_DEVICE','GATE_NAME')
+    gateWeirDict = parseEcho(CommonDir + GateInpFile,'GATE_WEIR_DEVICE','GATE_NAME')
+    # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
+    gateLines = False
+    for line in DSM2InpId:
+        if line.upper().find('END') != -1:
+            # end of gate lines
+            gateLines = False
+        if not gateLines:
+            PTFId.write(line)
+        else:
+            lineParts = line.split()
+            # GATE_NAME DEVICE NDUPLICATE (RADIUS|HEIGHT) ELEV CF_FROM_NODE CF_TO_NODE DEFAULT_OP
+            gateName = lineParts[headersList.index('GATE_NAME')]
+            lineParts[CF_FromLoc] = '|GATECFFROM:' + gateName + '|' 
+            lineParts[CF_ToLoc] = '|GATECFTO:' + gateName + '|'
+            for i in range(len(lineParts)): 
+                PTFId.write('%s ' % lineParts[i])
+            PTFId.write('\n')
+        # Pipe or Weir section?   
+        if re.search('GATE_PIPE_DEVICE', line, re.I):
+            headersList = gatePipeDict['SectHead']
+        if re.search('GATE_WEIR_DEVICE',line,re.I):
+            headersList = gateWeirDict['SectHead']
+        CF_FromLoc = headersList.index('CF_FROM_NODE')
+        CF_ToLoc = headersList.index('CF_TO_NODE')
+        if re.search('GATE_NAME +.*CF_(FROM|TO)_NODE +.*CF_(FROM|TO)_NODE',line,re.I):
+            # gate block header line, gate lines follow
+            gateLines = True
+    PTFId.close()
+    DSM2InpId.close()
     ##
     # Create the writeDSM2Output.py file for post-processing DSM2 calibration runs.
     # The post-processing generates text output of the DSS calibration stations,
@@ -497,7 +622,7 @@ if __name__ == '__main__':
     WDSM2Id.write('TF = TimeFactory.getInstance()\n')
     WDSM2Id.write("tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
                   calibEndDateStr + "')\n")
-    WDSM2Id.write("# This post-processor generated by PEST_pre_DSM2_DICU.py\n" + \
+    WDSM2Id.write("# This post-processor was generated by PEST_pre_DSM2Run.py\n" + \
                   "# It translates DSM2 DSS output for calibration to a text file,\n" + \
                   "# then generates the matching PEST instruction file for the output.\n")
     WDSM2Id.write("tempfile = 'temp.out'\n")
