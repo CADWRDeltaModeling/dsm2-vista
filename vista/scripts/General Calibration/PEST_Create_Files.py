@@ -16,34 +16,27 @@ def obsDataBParts(str):
     return str.upper().split('/')[2]
 def obsDataCParts(str):
     return str.upper().split('/')[3]
-def parseEcho(echoFile,Section,Key):
-    # parse the given Echo file for Section,
-    # return as a dictionary with the Key field used
-    try: EID = open(echoFile,'r')
+def parseInpSects(DSM2InpFile,Section):
+    # parse the given DSM2 Input file for Section,
+    # return as a list of lists (the rows/columns)
+    try: EID = open(DSM2InpFile,'r')
     except: 
-        print 'Unable to open echo file', echoFile
+        print 'Unable to open file', DSM2InpFile
         return None
-    inSection = 0
-    echoDict = {}
+    inSection = False
+    sectList = []
     for line in EID:
         if line.upper().strip() == Section.upper():
-            inSection += 1
+            inSection = True
             continue
         if inSection:
-            inSection += 1
             if line.upper().strip() == 'END':
                 break
-            if inSection == 2:  # headers
-                headers = line.upper().split()
-                try: KeyLoc = headers.index(Key.upper()) 
-                except:
-                    print 'Unable to find key', Key, 'in header line:',line
-                    return None
-                echoDict['SectHead'] = line.split()
-            if inSection > 2: # values
-                key = line.split()[KeyLoc]
-                echoDict[key] = line.split()
-    return(echoDict)
+            if not re.search('^#',line.lstrip()):
+                # not a comment or blank line, use it
+                sectList.append(line.split())
+    EID.close()
+    return(sectList)
 #                
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
@@ -81,6 +74,7 @@ if __name__ == '__main__':
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
     ChanInpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
     GateInpFile = 'gate_std_delta_grid_NAVD_20121214.inp'
+    ResInpFile = 'reservoir_std_delta_grid_NAVD_20121214.inp'
     # PEST outputs for Hydro and Qual runs, these contain output paths
     # matching observed data paths
     DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
@@ -113,16 +107,20 @@ if __name__ == '__main__':
     #
     # Use either Width or Elev, not both
     ParamGroups = ['MANN', 'DISP', 'LENGTH', \
+                   'GATE', \
+                   'RESERCF', \
  #                  'WIDTH', \
                    'ELEV', \
                    'DIV-FLOW', 'DRAIN-FLOW', 'DRAIN-EC', \
-                   'GATE']
+                   ]
     # make sure these elements agree with ParamGroups above
     ParamDERINCLB = [0.05, 10.0, 50.0, \
+                     0.05, \
+                     1.0, \
                      0.01, \
 #                     0.01, \
                      0.01, 0.01, 0.01, \
-                     0.05]
+                     ]
     #
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these
@@ -166,6 +164,7 @@ if __name__ == '__main__':
     PESTDir = CalibDir + 'PEST/Calib/'
     PESTChanTplFile = ChanInpFile.split('.')[0] + '.tpl'
     PESTGateTplFile = GateInpFile.split('.')[0] + '.tpl'
+    PESTResTplFile = ResInpFile.split('.')[0] + '.tpl'
     PESTInsFile = DSM2OutFile.split('.')[0] + '.ins'
     #
     # 'Dummy' input/template files for Ag div/drainage/EC
@@ -197,12 +196,16 @@ if __name__ == '__main__':
     tablesHydro = p.parseModel(HydroEchoFile)
     tablesQual = p.parseModel(QualEchoFile)
     Channels = tablesHydro.toChannels()
-    Gates = tablesHydro.toGates()
     bndryInputsHydro = tablesHydro.toBoundaryInputs()
     srcAgInputsHydro = bndryInputsHydro.getSourceFlowInputs()
     bndryInputsQual = tablesQual.toBoundaryInputs()
     #srcAgInputsQual = bndryInputsQual.getSourceFlowInputs()
     tableNodeConc = tablesQual.getTableNamed('NODE_CONCENTRATION')
+    # read the gate input file for gate data
+    gatePipeList = parseInpSects(CommonDir + GateInpFile,'GATE_PIPE_DEVICE')
+    gateWeirList = parseInpSects(CommonDir + GateInpFile,'GATE_WEIR_DEVICE')
+    # read the reservoir input file for reservoir connection data
+    resCFList = parseInpSects(CommonDir + ResInpFile,'RESERVOIR_CONNECTION')
     #
     # read observed data file for desired locations and date range
     # write observed data to a temporary file for later inclusion in
@@ -287,7 +290,10 @@ if __name__ == '__main__':
         for chan in Channels.getChannels():
                 NPAR += len(chan.getXsections())
     if 'GATE' in ParamGroups:
-        NPAR += len(Gates.getGates())
+        NPAR += (len(gateWeirList)-1) * 2   # for to/from flow coeffs
+        NPAR += (len(gatePipeList)-1) * 2
+    if 'RESERCF' in ParamGroups:
+        NPAR += (len(resCFList)-1) * 2    # for in/out flow coeffs
     paramUp = 'DIV-FLOW'
     if paramUp in ParamGroups:
         for srcInput in srcAgInputsHydro:
@@ -413,45 +419,72 @@ if __name__ == '__main__':
             # since DSM2 gates are split between pipes and weirs,
             # we'll follow the same pattern
             #
-            # first read the Hydro echo file for gate info
-            gatePipeDict = parseEcho(HydroEchoFile,'GATE_PIPE_DEVICE','GATE_NAME')
-            gateWeirDict = parseEcho(HydroEchoFile,'GATE_WEIR_DEVICE','GATE_NAME')
-            # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
-            headersList = gatePipeDict['SectHead']
+            headersList = gateWeirList[0]
+            # find fields which combined will give a unique row name
+            uniq1 = headersList.index('GATE_NAME')
+            uniq2 = headersList.index('DEVICE')
+            # find fields with the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
             CF_FromLoc = headersList.index('CF_FROM_NODE')
             CF_ToLoc = headersList.index('CF_TO_NODE')
             # now write to PEST .pst file
-            for name in gatePipeDict:
-                try: PARVAL1 = float(gatePipeDict[name][CF_FromLoc])
+            for row in gateWeirList:
+                try: PARVAL1 = float(row[CF_FromLoc])
                 except: continue    # headers, just continue
                 PARLBND = PARVAL1 * 0.5
                 PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFFROM:' + name
+                PARNME = 'GATECFFROM:' + row[uniq1] + ':' + row[uniq2]
                 PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
-                PARVAL1 = float(gatePipeDict[name][CF_ToLoc])
+                PARVAL1 = float(row[CF_ToLoc])
                 PARLBND = PARVAL1 * 0.5
                 PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFTO:' + name
+                PARNME = 'GATECFTO:' + row[uniq1] + ':' + row[uniq2]
                 PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
-            headersList = gateWeirDict['SectHead']
+            headersList = gatePipeList[0]
+            uniq = headersList.index('GATE_NAME')
             CF_FromLoc = headersList.index('CF_FROM_NODE')
             CF_ToLoc = headersList.index('CF_TO_NODE')
-            for name in gateWeirDict:
-                try: PARVAL1 = float(gateWeirDict[name][CF_FromLoc])
+            for row in gatePipeList:
+                try: PARVAL1 = float(row[CF_FromLoc])
                 except: continue    # headers, just continue
                 PARLBND = PARVAL1 * 0.5
                 PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFFROM:' + name
+                PARNME = 'GATECFFROM:' + row[uniq]
                 PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
-                PARVAL1 = float(gateWeirDict[name][CF_ToLoc])
+                PARVAL1 = float(row[CF_ToLoc])
                 PARLBND = PARVAL1 * 0.5
                 PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFTO:' + name
+                PARNME = 'GATECFTO:' + row[uniq]
                 PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+#
+        if paramUp == 'RESERCF':
+            # adjust reservoir flow coefficients directly, similar to gate flow coeffs
+            headersList = resCFList[0]
+            # find fields which combined will give a unique row name
+            uniq1 = headersList.index('RES_NAME')
+            uniq2 = headersList.index('NODE')
+            # find fields with the reservoir flow coeffs ( COEF_IN and COEF_OUT)
+            CF_InLoc = headersList.index('COEF_IN')
+            CF_OutLoc = headersList.index('COEF_OUT')
+            # now write to PEST .pst file
+            for row in resCFList:
+                try: PARVAL1 = float(row[CF_InLoc])
+                except: continue    # headers, just continue
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'RESERCFIN:' + row[uniq1] + ':' + row[uniq2]
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                PARVAL1 = float(row[CF_OutLoc])
+                PARLBND = PARVAL1 * 0.5
+                PARUBND = PARVAL1 * 1.5
+                PARNME = 'RESERCFOUT:' + row[uniq1] + ':' + row[uniq2]
+                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+#
         if paramUp == 'ELEV' or paramUp == 'WIDTH':
             # cross-sections in channels;
             # instead of PEST adjusting the elevations or widths directly,
@@ -529,10 +562,11 @@ if __name__ == '__main__':
     # Model command line and I/O files
     PCFId.write('%s\n%s\n' % \
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
-    PCFId.write('%s\n%s %s\n%s %s\n%s %s\n%s %s' % \
+    PCFId.write('%s\n%s %s\n%s %s\n%s %s\n%s %s\n%s %s' % \
                 ('* model input/output', \
                 PESTChanTplFile, ChanInpFile, \
                 PESTGateTplFile, GateInpFile, \
+                PESTResTplFile, ResInpFile, \
                 PESTTplAgFile, PESTInpAgFile, \
                 PESTInsFile, DSM2OutFile))
     PCFId.close()
@@ -573,35 +607,67 @@ if __name__ == '__main__':
     # read each line from the DSM2 gate input file;
     # for gate weir & pipe device lines, replace To and From flow coefficients 
     # with PEST placeholder names
-    gatePipeDict = parseEcho(CommonDir + GateInpFile,'GATE_PIPE_DEVICE','GATE_NAME')
-    gateWeirDict = parseEcho(CommonDir + GateInpFile,'GATE_WEIR_DEVICE','GATE_NAME')
-    # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
     gateLines = False
     for line in DSM2InpId:
         if line.upper().find('END') != -1:
             # end of gate lines
             gateLines = False
         if not gateLines:
-            PTFId.write(line)
+            PTFId.write(line.rstrip()+'\n')
         else:
             lineParts = line.split()
             # GATE_NAME DEVICE NDUPLICATE (RADIUS|HEIGHT) ELEV CF_FROM_NODE CF_TO_NODE DEFAULT_OP
             gateName = lineParts[headersList.index('GATE_NAME')]
-            lineParts[CF_FromLoc] = '|GATECFFROM:' + gateName + '|' 
-            lineParts[CF_ToLoc] = '|GATECFTO:' + gateName + '|'
+            devName = lineParts[headersList.index('DEVICE')]
+            # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
+            lineParts[CF_FromLoc] = '|GATECFFROM:' + gateName + ':' + devName + '|' 
+            lineParts[CF_ToLoc] = '|GATECFTO:' + gateName + ':' + devName + '|'
             for i in range(len(lineParts)): 
                 PTFId.write('%s ' % lineParts[i])
             PTFId.write('\n')
         # Pipe or Weir section?   
         if re.search('GATE_PIPE_DEVICE', line, re.I):
-            headersList = gatePipeDict['SectHead']
+            headersList = gatePipeList[0]
         if re.search('GATE_WEIR_DEVICE',line,re.I):
-            headersList = gateWeirDict['SectHead']
-        CF_FromLoc = headersList.index('CF_FROM_NODE')
-        CF_ToLoc = headersList.index('CF_TO_NODE')
+            headersList = gateWeirList[0]
         if re.search('GATE_NAME +.*CF_(FROM|TO)_NODE +.*CF_(FROM|TO)_NODE',line,re.I):
             # gate block header line, gate lines follow
             gateLines = True
+            CF_FromLoc = headersList.index('CF_FROM_NODE')
+            CF_ToLoc = headersList.index('CF_TO_NODE')
+    PTFId.close()
+    DSM2InpId.close()
+    # DSM2 Reservoir input template
+    PTFId = open(PESTDir + PESTResTplFile,'w')
+    DSM2InpId = open(CommonDir + ResInpFile, 'r')
+    PTFId.write('ptf |\n')
+    # read each line from the DSM2 reservoir input file;
+    # for reservoir coefficient lines, replace In and Out flow coefficients 
+    # with PEST placeholder names
+    resCFLines = False
+    for line in DSM2InpId:
+        if line.upper().find('END') != -1:
+            # end of reservoir coefficient lines
+            resCFLines = False
+        if not resCFLines:
+            PTFId.write(line.rstrip()+'\n')
+        else:
+            lineParts = line.split()
+            # RES_NAME NODE COEF_IN COEF_OUT
+            resName = lineParts[headersList.index('RES_NAME')]
+            resNode = lineParts[headersList.index('NODE')]
+            # find which fields have the reservoir flow coeffs (COEF_IN and COEF_OUT)
+            lineParts[CF_InLoc] = '|RESCFIN:' + resName + ':' + resNode + '|' 
+            lineParts[CF_OutLoc] = '|RESCFOUT:' + resName + ':' + resNode + '|'
+            for i in range(len(lineParts)): 
+                PTFId.write('%s ' % lineParts[i])
+            PTFId.write('\n')
+        if re.search('RES_NAME +.*COEF_IN',line,re.I):
+            # reservoir coefficient block header line, reservoir lines follow
+            resCFLines = True
+            headersList = resCFList[0]
+            CF_InLoc = headersList.index('COEF_IN')
+            CF_OutLoc = headersList.index('COEF_OUT')
     PTFId.close()
     DSM2InpId.close()
     ##
