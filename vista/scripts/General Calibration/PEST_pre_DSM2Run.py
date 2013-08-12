@@ -11,13 +11,17 @@ from vista.time import TimeFactory, TimeFormat, DefaultTimeFormat
 from gov.ca.dsm2.input.parser import Parser
 from gov.ca.dsm2.input.parser import Tables
 from gov.ca.dsm2.input.model import *
+####################################################################
+# NOTE: After changing this, copy to the PEST Condor Calibration directory,
+# D:\delta\models\Historical_v81_Beta_Release\201X-Calibration\PEST\Calib
+#
 # Pre-processor for DSM2 Hydro and Qual runs for PEST calibration.
 # Since DIV, DRAIN (both flows), and DRAIN-EC are considered calibration
 # parameters, their values will be adjusted during the PEST calibration
 # with this pre-processor before each pair of Hydro/Qual runs.
 #
 # Also adjust cross-section width or elevation values.
-#
+###################################################################
 def updateDSSAgVals(In_DSSFile, Out_DSSFile, coeffDict):
     count = 0
     try: os.remove(Out_DSSFile)
