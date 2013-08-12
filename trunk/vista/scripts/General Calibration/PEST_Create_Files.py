@@ -1,9 +1,7 @@
-import os, glob, datetime, random
+import re, os, glob, datetime, random
 from vtimeseries import *
-#from vista.time import *
 from vdss import *
 from vista.set import *
-#from vista.set import Group
 from vista.set import PathnamePredicate
 from vista.db.dss import *
 from vutils import *
@@ -45,7 +43,10 @@ if __name__ == '__main__':
     # Create a .pst file (PEST Control File), a PEST Template File (.tpl),
     # and a .ins file (PEST Instruction File) for the PEST calibration of DSM2
     #
-    # DSM2 dates; these should match the DSM2 calibration run config file
+    sq = "'"
+    dq = '"'
+    bs = "\\"
+    # DSM2 run dates; these should match the DSM2 calibration BaseRun-1 config file
     runStartDateStr = '01SEP2008 2400'
     runEndDateStr = '30SEP2009 2400'
     runStartDateObj = TF.createTime(runStartDateStr)
@@ -63,13 +64,14 @@ if __name__ == '__main__':
     calibEndDateStr = calibEndDateObj.format()
     calibTW = TF.createTimeWindow(calibStartDateObj, calibEndDateObj)
     # DSM2 directories and files
-    BaseDir = 'D:/delta/models/Historical_v81_Beta_Release/'
-    CommonDir = BaseDir + 'common_input/NAVD/'
-    CalibDir = BaseDir + '201X-Calibration/'
-    TimeSeriesDir = BaseDir + 'timeseries/'
-    BaseRunDir = CalibDir + 'BaseRun-1/Output/'
-    HydroEchoFile = BaseRunDir + 'hydro_echo_HIST-CLB2K-BASE-v81_1Beta_1.inp'
-    QualEchoFile = BaseRunDir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_1Beta_0.inp'
+    RootDir = 'D:/delta/models/Historical_v81_Beta_Release/'
+    CommonDir = RootDir + 'common_input/NAVD/'
+    CalibDir = RootDir + '201X-Calibration/'
+    TimeSeriesDir = RootDir + 'timeseries/'
+    BaseRun0Dir = CalibDir + 'BaseRun-0/Output/'
+    BaseRun1Dir = CalibDir + 'BaseRun-1/Output/'
+    HydroEchoFile = BaseRun1Dir + 'hydro_echo_HIST-CLB2K-BASE-v81_1Beta_1.inp'
+    QualEchoFile = BaseRun1Dir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_1Beta_0.inp'
     DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
     ChanInpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
@@ -162,6 +164,7 @@ if __name__ == '__main__':
     # Pest directories and files
     #
     PESTDir = CalibDir + 'PEST/Calib/'
+    PESTFile = 'DSM2.pst'
     PESTChanTplFile = ChanInpFile.split('.')[0] + '.tpl'
     PESTGateTplFile = GateInpFile.split('.')[0] + '.tpl'
     PESTResTplFile = ResInpFile.split('.')[0] + '.tpl'
@@ -186,7 +189,7 @@ if __name__ == '__main__':
     PTXFId = open(PESTDir + PESTTplXCFile,'w')
     PTXFId.write('ptf @\n')
     #
-    PCFId = open(PESTDir + 'DSM2.pst','w')
+    PCFId = open(PESTDir + PESTFile,'w')
     #
     ObsTempFile1 = PESTDir + 'temp1.txt'
     OTF1Id = open(ObsTempFile1,'w')
@@ -244,7 +247,7 @@ if __name__ == '__main__':
         dataset = dataset.createSlice(calibTW)
         sti = dsIndex(dataset, calibStartDateObj)
         eti = dsIndex(dataset, calibEndDateObj)
-        print 'Writing path', obsPath
+#        print 'Writing path', obsPath
         for ndx in range(sti, eti):
             nObs += 1
             el = dataset.getElementAt(ndx)
@@ -273,6 +276,8 @@ if __name__ == '__main__':
     OTF1Id.close()
     DSM2HydroId.close()
     DSM2QualId.close()
+    print 'Wrote ', DSM2HydroId.name
+    print 'Wrote ', DSM2QualId.name
     obsGroups.sort()    # ensure the data groups are alphabetical order
     #
     RSTFLE = 'restart'
@@ -357,6 +362,7 @@ if __name__ == '__main__':
         ICOR = 0
         IEIG = 0
     # print the header and PEST control info to the PEST control (.pst) file
+    PCFId.write('pcf\n')
     PCFId.write('* control data\n')
     PCFId.write('%s %s\n' % (RSTFLE, PESTMODE))
     PCFId.write('%d %d %d %d %d\n' % (NPAR, NOBS, NPARGP, NPRIOR, NOBSGP))
@@ -547,6 +553,10 @@ if __name__ == '__main__':
     PIXFId.close()
     PTAFId.close()
     PTXFId.close()
+    print 'Wrote', PIAFId.name
+    print 'Wrote', PIXFId.name
+    print 'Wrote', PTAFId.name
+    print 'Wrote', PTXFId.name
     # Observed data groups
     PCFId.write('* observation groups\n')
     for obsGroup in obsGroups:
@@ -570,7 +580,7 @@ if __name__ == '__main__':
                 PESTTplAgFile, PESTInpAgFile, \
                 PESTInsFile, DSM2OutFile))
     PCFId.close()
-    print 'Wrote file',PCFId.name
+    print 'Wrote',PCFId.name
     ##
     ## Create PEST Template Files (.tpl)
     # DSM2 channel input template
@@ -600,6 +610,7 @@ if __name__ == '__main__':
             channelLines = True
     PTFId.close()
     DSM2InpId.close()
+    print 'Wrote',PTFId.name
     # DSM2 Gate input template
     PTFId = open(PESTDir + PESTGateTplFile,'w')
     DSM2InpId = open(CommonDir + GateInpFile, 'r')
@@ -637,6 +648,7 @@ if __name__ == '__main__':
             CF_ToLoc = headersList.index('CF_TO_NODE')
     PTFId.close()
     DSM2InpId.close()
+    print 'Wrote',PTFId.name
     # DSM2 Reservoir input template
     PTFId = open(PESTDir + PESTResTplFile,'w')
     DSM2InpId = open(CommonDir + ResInpFile, 'r')
@@ -670,14 +682,17 @@ if __name__ == '__main__':
             CF_OutLoc = headersList.index('COEF_OUT')
     PTFId.close()
     DSM2InpId.close()
+    print 'Wrote',PTFId.name
     ##
     # Create the writeDSM2Output.py file for post-processing DSM2 calibration runs.
     # The post-processing generates text output of the DSS calibration stations,
     # and the PEST instruction (.ins) file. 
+    preProcFile = 'PEST_pre_DSM2Run.py'
+    postProcFile = 'PEST_post_DSM2Run.py'
     sq = "'"
     dq = '"'
     obsGroupsStr =  dq + '", "'.join(obsGroups) + dq
-    WDSM2Id = open(PESTDir + 'DSM2PESTPostProcess.py', 'w')
+    WDSM2Id = open(PESTDir + preProcFile, 'w')
     WDSM2Id.write('import sys, os\n')
     WDSM2Id.write('from vtimeseries import *\n')
     WDSM2Id.write('from vdss import *\n')
@@ -688,7 +703,7 @@ if __name__ == '__main__':
     WDSM2Id.write('TF = TimeFactory.getInstance()\n')
     WDSM2Id.write("tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
                   calibEndDateStr + "')\n")
-    WDSM2Id.write("# This post-processor was generated by PEST_pre_DSM2Run.py\n" + \
+    WDSM2Id.write("# This post-processor was generated by PEST_Create_Files.py\n" + \
                   "# It translates DSM2 DSS output for calibration to a text file,\n" + \
                   "# then generates the matching PEST instruction file for the output.\n")
     WDSM2Id.write("tempfile = 'temp.out'\n")
@@ -731,6 +746,96 @@ if __name__ == '__main__':
     #
     WDSM2Id.close()
     #
+    ## Create the run-time *.bat file for the Condor runs of PEST;
+    ## use BEOPest, not the Parallel Pest; the latter master consumes 100% CPU.
+    WDSM2Id = open(PESTDir + 'dsm2-run4BEOPEST.bat', 'w')
+    WDSM2Id.write("echo off\n")
+    WDSM2Id.write("Rem This file created by PEST_Create_Files.py\n")
+    WDSM2Id.write("Rem Calibrate DSM2 using BEOPEST & HTCondor.\n")
+    WDSM2Id.write("set HYDROEXE=" + RootDir.replace("/","\\") + "hydro.exe\n")
+    WDSM2Id.write("set QUALEXE=" + RootDir.replace("/","\\") + "qual.exe\n")
+    WDSM2Id.write("set PESTDIR=" + PESTDir.replace("/","\\") + "\n")
+    WDSM2Id.write("set CONDORBINDIR=c:\\condor\\bin\\\n")
+    WDSM2Id.write("set VISTABINDIR=c:\\condor\\vista\\bin\\\n")
+    WDSM2Id.write("set PESTBINDIR=c:\\condor\\PEST\\bin\\\n")
+    WDSM2Id.write("set DSM2RUN=HIST-CLB2K-BASE-v81_1Beta_0\n")
+    WDSM2Id.write("set CONFIGFILE=config_calib.inp\n")
+    WDSM2Id.write("set STUDYNAME=" + PESTFile.replace(".pst","") + "\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("set TSFILES=dicu_201203-calib.dss, dicu_201203.dss, dicuwq_200611_expand-calib.dss, " + \
+                  "dicuwq_200611_expand.dss, dicuwq_3vals_extended.dss, events.dss, " + \
+                  "gates-v8-06212012.dss, hist_19902012.dss\n")
+    WDSM2Id.write("set CMNFILES=boundary_flow_delta_historical_20090715.inp, " + \
+                  "boundary_stage_delta_historical_NAVD_20121214.inp, channel_ic_std_delta_grid_NAVD_20121214.inp, " + \
+                  "channel_std_delta_grid_NAVD_20121214.inp, gate_std_delta_grid_NAVD_20121214.inp, " + \
+                  "group_sourcetracking_20090715.inp, node_concentration_delta_historical_qual_20121214.inp, " + \
+                  "node_concentration_dicu_ec_20090715.inp, node_concentration_jones_qual_20090715.inp, " + \
+                  "oprule_hist_temp_barriers_NAVD_20121214.inp, oprule_historical_gate_20110418.inp, " + \
+                  "output_channel_hydro_v81_calibration_20121214.inp, output_channel_std_hydro_boundary_20090715.inp, " + \
+                  "output_channel_std_hydro_rki_20090715.inp, output_channel_std_qual_named_20090715.inp, " + \
+                  "output_channel_std_qual_rki_20090715.inp, output_channel_std_qual_rki_addmore_20121214.inp, " + \
+                  "output_reservoir_std_hydro_named_20090715.inp, output_reservoir_std_qual_named_20090715.inp, " + \
+                  "reservoir_concentration_dicu_ec_20090715.inp, reservoir_ic_std_delta_grid_NAVD_20121214.inp, " + \
+                  "reservoir_std_delta_grid_NAVD_20121214.inp, source_flow_delta_historical_20110708.inp, " + \
+                  "source_flow_dicu_historical_20090715.inp, source_flow_jones_hydro_20090806.inp\n")
+    WDSM2Id.write("set PESTFILES=" + PESTFile + ", " + PESTChanTplFile + ", " + PESTGateTplFile + ", " + \
+                  PESTResTplFile + ", " + PESTInsFile + ", " + PESTInpAgFile + ", " + PESTTplAgFile + ", " + \
+                  PESTInpXCFile + ", " + PESTTplXCFile + "\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("rem create a scratch directory for condor runs\n")
+    WDSM2Id.write("set RUNDIR=%PESTDIR%Condor\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("if not exist %RUNDIR% mkdir %RUNDIR%\n")
+    WDSM2Id.write("del /q %RUNDIR%\\*\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("@copy /v /b %HYDROEXE% %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /b %QUALEXE% %RUNDIR%\n")
+    WDSM2Id.write("@xcopy /i/q " + re.sub("/$","",TimeSeriesDir).replace("/",bs) + " %RUNDIR%\n")
+    WDSM2Id.write("@xcopy /i/q " + re.sub("/$", "", CommonDir).replace("/",bs) + " %RUNDIR%\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("@copy /v /y *.py %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y *.pst %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y *.tpl %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y *.inp %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y *.ins %RUNDIR%\n")
+
+    WDSM2Id.write("@copy /y dsm2-base.sub %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("@copy /v /y %CONFIGFILE% %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y " + BaseRun0Dir.replace("/","\\") + "%DSM2RUN%.?rf %RUNDIR%\n")
+    WDSM2Id.write("@copy /v /y hydro_calib.inp %RUNDIR%\hydro.inp\n")
+    WDSM2Id.write("@copy /v /y qual_ec_calib.inp %RUNDIR%\qual_ec.inp\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("cd %RUNDIR%\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("rem Create condor_dsm2.bat file for Hydro and Qual runs\n")
+    WDSM2Id.write("echo set START_DATE=" + dq + runStartDateStr + dq + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo echo Running hydro >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo hydro.exe %%1 >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo echo Running qual >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo qual.exe %%2 >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
+    WDSM2Id.write("rem post-process to prepare output for PEST\n")
+    WDSM2Id.write("echo %VISTABINDIR%vscript.bat " + postProcFile + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("rem finish Condor submit file for PEST\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("echo transfer_input_files = %PESTFILES%, " + \
+                  "hydro.exe, qual.exe, %DSM2RUN%.qrf, %DSM2RUN%.hrf, %CONFIGFILE%, " + \
+                  "hydro.inp, qual_ec.inp, %CMNFILES%, %TSFILES% >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("echo arguments = %STUDYNAME% /H bdomo-002:4004 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("echo queue 75 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("%CONDORBINDIR%condor_submit dsm2.sub\n")
+    WDSM2Id.write("echo Submitted beopest slaves jobs to condor.\n")
+    WDSM2Id.write("popd\n")
+    WDSM2Id.write("%PESTBINDIR%beopest64.exe %STUDYNAME% /H :4004\n")
+    #
+    WDSM2Id.close()
+    print 'Wrote', WDSM2Id.name
     print 'End processing all files', datetime.today()
     sys.exit()
 #
