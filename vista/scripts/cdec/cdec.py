@@ -288,4 +288,10 @@ def retrieve(station_name,sensor_number,start_date,end_date='now',verbose=1):
 	retrieve_station_metadata(station)
 	retrieve_station_sensors(station)
 	sensor = station.findSensorByNumber(str(sensor_number))
+	if not sensor:
+		print 'Could not find sensor_number: %s for station_name: %s'%(sensor_number, station_name)
+		print 'available sensors for %s'%station_name
+		for sensor in station.sensors:
+			print 'SensorId: %s, Sensor Number: %s, Type: %s, Sub Type: %s, Data Available: %s'%(sensor.id, sensor.sensor_number, sensor.type, sensor.subType, sensor.dataAvailable)
+			return None
 	return retrieve_ts(station,sensor,start_date, end_date,1)
