@@ -78,7 +78,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Properties;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -92,9 +91,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.table.TableModel;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import vista.app.commands.OpenConnectionSessionCommand;
 import vista.app.commands.OpenDSSFileCommand;
@@ -244,9 +242,10 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 			for (int j = 0; j < dssfiles.length; j++) {
 				if (dssfiles[j] == null)
 					continue;
-				Executor.execute(new OpenDSSFileCommand(MainGUI.getContext(), dssfiles[j], _sessionView), _sessionView);
+				Executor.execute(new OpenDSSFileCommand(MainGUI.getContext(),
+						dssfiles[j], _sessionView), _sessionView);
 			}
-			dssfiles=null;
+			dssfiles = null;
 		}
 		setVisible(true);
 		// if dss files then send it to the back
@@ -510,16 +509,20 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	 * sets look and feel for this gui.
 	 */
 	private void setLookAndFeel() {
-		/*
-		 * try { for (LookAndFeelInfo info :
-		 * UIManager.getInstalledLookAndFeels()) { if
-		 * ("Nimbus".equals(info.getName())) {
-		 * UIManager.setLookAndFeel(info.getClassName()); return; } } } catch
-		 * (UnsupportedLookAndFeelException e) { // handle exception } catch
-		 * (ClassNotFoundException e) { // handle exception } catch
-		 * (InstantiationException e) { // handle exception } catch
-		 * (IllegalAccessException e) { // handle exception }
-		 */
+
+/*		try {
+			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(info.getName())) {
+					UIManager.setLookAndFeel(info.getClassName());
+					return;
+				}
+			}
+		} catch (UnsupportedLookAndFeelException e) { // handle exception
+		} catch (ClassNotFoundException e) { // handle exception
+		} catch (InstantiationException e) { // handle exception
+		} catch (IllegalAccessException e) { // handle exception
+		}
+*/
 		String laf = MainProperties.getProperty("gui.lookAndFeel");
 
 		if (laf.indexOf("vista") >= 0) {
@@ -572,8 +575,9 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 		String loadFilename = VistaUtils.getFilenameFromDialog(this,
 				FileDialog.LOAD, "ssn", "Session Files");
 		boolean addOn = true;
-		new Thread(new ExecutionRunner(new OpenSessionCommand(MainGUI
-				.getContext(), loadFilename, addOn), _sessionView)).start();
+		new Thread(new ExecutionRunner(new OpenSessionCommand(
+				MainGUI.getContext(), loadFilename, addOn), _sessionView))
+				.start();
 	}
 
 	/**
@@ -623,7 +627,9 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	 * opens connection to server
 	 */
 	private void openConnection(ActionEvent evt) {
-		Executor.execute(new OpenConnectionSessionCommand(MainGUI.getContext()), _sessionView);
+		Executor.execute(
+				new OpenConnectionSessionCommand(MainGUI.getContext()),
+				_sessionView);
 		_statusBar.setText("Opened connection");
 	}
 

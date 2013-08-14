@@ -208,22 +208,21 @@ def resample(ref,outint,offset=0):
                             vals,dflags,data.getAttributes())
 
     return rts
-def apply(ts, function, ):
+def apply(ts, function, filter=Constants.DEFAULT_FLAG_FILTER):
     """
     apply(ts, function)
-        applies to this time series the function
-         by evaluating the function at each point 
-         the function takes DataSetElement and modifying it if necessary
-         the conditional takes DataSetElement and returns 0/1 or False/True
-        http://dsm2-vista.googlecode.com/svn/trunk/vista/doc/vista/set/DataSetElement.html
+        applies to this time series the function by evaluating the function at each point
+        The function takes the value for the element, transforms and stores it in the same element into the time series 
     """
     tsi = ts.getIterator()
     while not tsi.atEnd():
         el = tsi.getElement()
-        function(el)
+        if (filter.isAcceptable(el)) :
+            el.setY(function(el.getY()))
+            tsi.putElement(el)
         tsi.advance()
 #
-def where(ts, conditional):
+def where(ts, conditional, filter=Constants.DEFAULT_FLAG_FILTER):
     """
     where(ts, conditional):
         returns a time series with a 1 where conditional evaluates to true and 0 otherwise
@@ -235,7 +234,7 @@ def where(ts, conditional):
     index=0
     while not tsi.atEnd():
         el = tsi.getElement()
-        if conditional(el):
+        if filter.isAcceptable(el) and conditional(el):
             xa[index]=0
         else:
             xa[index]=1

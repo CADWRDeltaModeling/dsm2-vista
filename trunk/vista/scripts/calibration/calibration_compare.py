@@ -75,10 +75,10 @@ def get_matching(dss,pattern):
 def removeToolbar(panel):
     components=panel.getComponents();
     panel.remove(components[-1])
-def createRegressionLine(drunm,dobsm,path):
+def create_regression_line(drunm,dobsm,legend):
     paired=dobsm.generateDataPairs(drunm,False)
     pairedData = paired.data
-    pairedData.fullName=path
+    pairedData.fullName=legend
     reg=dobsm.multipleRegression([drunm],HecMath.UNDEFINED, HecMath.UNDEFINED)
     regData=reg.data
     a=regData.yOrdinates[0][1]
@@ -107,13 +107,13 @@ def do_regression_plots(dobsm, drun1m, drun2m):
     path=DSSPathString(drun1m.path)
     path.setFPart(path.getFPart()+":1:"+obspath.getFPart())
     try:
-        regData1, pairedData1 = createRegressionLine(drun1m,dobsm,path.getPathname())
+        regData1, pairedData1 = create_regression_line(drun1m,dobsm,path.getPathname())
     except:
         return
     if drun2m != None:
         path=DSSPathString(drun2m.path)
         path.setFPart(path.getFPart()+":2:"+obspath.getFPart())
-        regData2, pairedData2 = createRegressionLine(drun2m,dobsm,path.getPathname())
+        regData2, pairedData2 = create_regression_line(drun2m,dobsm,path.getPathname())
     plots = newPlot("");
     plots.addData(regData1)
     plots.addData(pairedData1)
@@ -161,7 +161,7 @@ def saveToPNG(p,filename):
     p.paint(g)
     g.dispose();
     ImageIO.write(bi,"png", File(filename));
-def calculateRMS(run,obs):
+def calculate_rms(run,obs):
     runt = TimeSeriesMath(run)
     obst = TimeSeriesMath(obs)
     tavg = obst.abs().sum()/obst.numberValidValues()
@@ -187,33 +187,33 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
     sumwts=0
     average_interval=None;
     for l in locations:
-        dobs=get_matching(obs,'A=%s C=%s E=15MIN'%(l,type))
-        if dobs == None:
-            dobs=get_matching(obs,'A=%s C=%s E=1DAY'%(l,type))
-        if dobs == None:
-            dobs=get_matching(obs,'A=%s C=%s E=IR-DAY'%(l,type))
-        if dobs == None:
-            dobs=get_matching(obs,'A=%s C=%s E=1HOUR'%(l,type))
+        data1=get_matching(obs,'A=%s C=%s E=15MIN'%(l,type))
+        if data1 == None:
+            data1=get_matching(obs,'A=%s C=%s E=1DAY'%(l,type))
+        if data1 == None:
+            data1=get_matching(obs,'A=%s C=%s E=IR-DAY'%(l,type))
+        if data1 == None:
+            data1=get_matching(obs,'A=%s C=%s E=1HOUR'%(l,type))
         drun1=get_matching(run1,'B=%s C=%s'%(l,type))
         if run2 != None:
             drun2=get_matching(run2, 'B=%s C=%s'%(l,type))
         else:
             drun2=None
         avg_intvl="1DAY"
-        if dobs != None:
+        if data1 != None:
             if average_interval != None:
-                dobsd=TimeSeriesMath(dobs).transformTimeSeries(average_interval, None, filter_type, 0)
+                dobsd=TimeSeriesMath(data1).transformTimeSeries(average_interval, None, filter_type, 0)
             else:
-                dobsd=TimeSeriesMath(dobs)
+                dobsd=TimeSeriesMath(data1)
             if normalize:
-                dobsd=dobsd.divide(TimeSeriesMath(dobs).mean())
-            dobsm=TimeSeriesMath(dobs).transformTimeSeries(avg_intvl, None, filter_type, 0)
-            dobsm_max=TimeSeriesMath(dobs).transformTimeSeries(avg_intvl, None, "MAX", 0)
+                dobsd=dobsd.divide(TimeSeriesMath(data1).mean())
+            dobsm=TimeSeriesMath(data1).transformTimeSeries(avg_intvl, None, filter_type, 0)
+            dobsm_max=TimeSeriesMath(data1).transformTimeSeries(avg_intvl, None, "MAX", 0)
             dobsm_max.data.fullName=dobsm_max.data.fullName+"MAX"
-            dobsm_min=TimeSeriesMath(dobs).transformTimeSeries(avg_intvl, None, "MIN", 0)
+            dobsm_min=TimeSeriesMath(data1).transformTimeSeries(avg_intvl, None, "MIN", 0)
             dobsm_min.data.fullName=dobsm_min.data.fullName+"MIN"
             if normalize:
-                dobsm=dobsm.divide(TimeSeriesMath(dobs).mean())
+                dobsm=dobsm.divide(TimeSeriesMath(data1).mean())
         if drun1==None:
             continue;
         else:
@@ -245,21 +245,21 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
                 drun2m=None
         if weights != None:
             sumwts=sumwts+weights[l]
-            lrms1 = calculateRMS(drun1m.data, dobsm.data)*weights[l]
-            lrms1_min=calculateRMS(drun1m_min.data,dobsm_min.data)*weights[l]
-            lrms1_max=calculateRMS(drun1m_max.data,dobsm_max.data)*weights[l]
+            lrms1 = calculate_rms(drun1m.data, dobsm.data)*weights[l]
+            lrms1_min=calculate_rms(drun1m_min.data,dobsm_min.data)*weights[l]
+            lrms1_max=calculate_rms(drun1m_max.data,dobsm_max.data)*weights[l]
             rms1=rms1+lrms1
             rms1_min=rms1_min+lrms1_min
             rms1_max=rms1_max+lrms1_max
-            lrms2 = calculateRMS(drun2m.data,dobsm.data)*weights[l]
-            lrms2_min=calculateRMS(drun2m_min.data,dobsm_min.data)*weights[l]
-            lrms2_max=calculateRMS(drun2m_max.data,dobsm_max.data)*weights[l]
+            lrms2 = calculate_rms(drun2m.data,dobsm.data)*weights[l]
+            lrms2_min=calculate_rms(drun2m_min.data,dobsm_min.data)*weights[l]
+            lrms2_max=calculate_rms(drun2m_max.data,dobsm_max.data)*weights[l]
             rmsmap[l] = lrms1,lrms2,lrms1_min,lrms2_min,lrms1_max,lrms2_max
             rms2=rms2+lrms2
             rms2_min=rms2_min+lrms2_min
             rms2_max=rms2_max+lrms2_max
         plotd = newPlot("Hist vs New Geom [%s]"%l)
-        if dobs != None:
+        if data1 != None:
             plotd.addData(dobsd.data)
         plotd.addData(drun1d.data)
         if drun2 != None:
@@ -273,7 +273,7 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
         xaxis=plotd.getViewport(0).getAxis("x1")
         vmin =xaxis.getViewMin()+261500. # hardwired to around july 1, 2008
         xaxis.setViewLimits(vmin,vmin+10000.)
-        if dobs != None:
+        if data1 != None:
             pline = plotd.getCurve(dobsd.data)
             pline.setLineVisible(1)
             pline.setLineColor("blue")
@@ -288,7 +288,7 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
             g2dPanel.paintGfx();
         plotm = newPlot("Hist vs New Geom Monthly [%s]"%l)
         plotm.setSize(1800,1200)
-        if dobs != None:
+        if data1 != None:
             plotm.addData(dobsm.data)
            #plotm.addData(dobsm_max.data)
             #plotm.addData(dobsm_min.data)
@@ -300,7 +300,7 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
             #plotm.addData(drun2m_max.data)
             #plotm.addData(drun2m_min.data)
         plotm.showPlot()
-        if dobs != None:
+        if data1 != None:
             pline = plotm.getCurve(dobsm.data)
             pline.setLineVisible(1)
             pline.setLineColor("blue")
@@ -311,7 +311,7 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
             pline.setSymbolFillColor(pline.getLineColorString())
             pline.setSymbolLineColor(pline.getLineColorString())
         plotm.setVisible(False)
-        if dobs != None:
+        if data1 != None:
             plots=do_regression_plots(dobsm,drun1m,drun2m)
             if plots != None:
                 spanel = plots.getPlotpanel()
@@ -328,7 +328,7 @@ def doall(locations, fileobs,filerun1,filerun2,stime,etime,imageDir='d:/temp',we
         c.fill=c.BOTH
         c.weightx,c.weighty=0.5,1
         c.gridx,c.gridy,c.gridwidth,c.gridheight=0,0,10,4
-        if dobs != None:
+        if data1 != None:
             if plots != None:
                 pass
                 #mainPanel.add(spanel,c)
@@ -358,23 +358,19 @@ def gui():
     fr.add(InputPanel())
     fr.pack()
     fr.setVisible(True)
-if __name__=='__main__':
-    #gui()
-    #dir='D:/models/DSM2v8.1.x/Historical_MiniCalibration_811_MTZ_ts_corrected/'
-    dir='Z:/calibration/'
-    #dir='Z:/calibration/V810_recalibration/'
-    type='FLOW'
-    stime='01MAY2008 0000'
-    etime='30JUN2008 2400'
-    fileobs=dir+'observed/observed_flow_for_compare_plots.dss'
-    #fileobs=dir+'V810_recalibration/observeddata/observed_flow.dss'
-    #filerun1=dir+'output_test/hist_mini_calib_v811_303.dss'
-    filerun1=dir+'V810_recalibration/run26/text/output_test/hist_mini_calib_v811.dss'
+def run_compare():
+    dir='Z:/DSM2_v81_Beta_Release/' # base directory to find dss files
+    type='EC'
+    stime='01JAN2000 0000'
+    etime='31DEC2003 2400'
+    fileobs=dir+'observed_data/Observed_EC.dss'
+    filerun1=dir+'studies/historical_qual_ec_v81/output/historical_v81.dss'
     #filerun2=dir+'archives/hist_mini_calib_v811_1755.dss'
-    filerun1=dir+'output_test/hist_mini_calib_v811_0.dss'
-    filerun2=dir+'output_test/hist_mini_calib_v811_3958.dss'
+    #filerun1=dir+'output_test/hist_mini_calib_v811_0.dss'
+    #filerun2=dir+'output_test/hist_mini_calib_v811_3958.dss'
     #filerun1=dir+'run_template_copy/output_test/hist_mini_calib_v811_BASE_RUN.dss'
     #filerun2=dir+'run_template_sac_bndry/output_test/hist_mini_calib_v811_SAC_BNDRY_335.dss'
+    filerun2=None
     imageDir='z:\\temp\\'
     locations=["RSAC155","RSAC128","RSAC123","RSAC101","SSS", "SUT", "DLC", "SLTRM004","GSS"]
     #locations+=["GLC","FAL","HOL","HWB","LPS","MOK","ORQ","OSJ"]
@@ -387,4 +383,8 @@ if __name__=='__main__':
     for l in locations: weights[l]=1.0
     doall(locations,fileobs,filerun1,filerun2,stime,etime,imageDir,weights,"AVE")
     print 'END'
+
+if __name__=='__main__':
+    #gui()
+    run_compare()
     

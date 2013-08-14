@@ -288,7 +288,7 @@ public class VistaUtils {
 	/**
    *
    */
-	static String getDirOrFileFromDialog(Component comp, int type,
+   public static String getDirOrFileFromDialog(Component comp, int type,
 			String extension, String description, boolean dirOnly) {
 		Frame frame = JOptionPane.getFrameForComponent(comp);
 		String filename = null;

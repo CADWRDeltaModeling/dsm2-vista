@@ -254,6 +254,7 @@ public class DataTableFrame extends DefaultFrame {
 				isFlagged(_ref));
 		final JMenuItem addFlagsItem = new JMenuItem("Add Flags");
 		JMenuItem showStatsItem = new JMenuItem("Show Attributes & Stats");
+		JMenuItem showDetailedInfo = new JMenuItem("Show Detailed Info");
 		JMenuItem editAttrItem = new JMenuItem("Edit Attributes");
 		JMenuItem editPathnameItem = new JMenuItem("Edit Pathname");
 		JMenu exportDataItem = new JMenu("Export Data to...");
@@ -277,6 +278,7 @@ public class DataTableFrame extends DefaultFrame {
 			dataMenu.add(addFlagsItem);
 		}
 		dataMenu.add(showStatsItem);
+		dataMenu.add(showDetailedInfo);
 		dataMenu.add(editAttrItem);
 		dataMenu.add(editPathnameItem);
 		dataMenu.add(exportDataItem);
@@ -306,6 +308,11 @@ public class DataTableFrame extends DefaultFrame {
 		showStatsItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				showStatsDisplay(evt);
+			}
+		});
+		showDetailedInfo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				showDetailedInfo(evt);
 			}
 		});
 		editAttrItem.addActionListener(new ActionListener() {
@@ -461,13 +468,33 @@ public class DataTableFrame extends DefaultFrame {
 	}
 
 	/**
-	 * show flag
+	 * show stats
 	 */
 	public void showStatsDisplay(ActionEvent evt) {
 		final JDialog dialog = new JDialog(this);
 		JButton btn;
 		dialog.getContentPane().setLayout(new BorderLayout());
 		dialog.getContentPane().add(new StatsDisplayPanel(_ref.getData()),
+				BorderLayout.CENTER);
+		dialog.getContentPane()
+				.add(btn = new JButton("OK"), BorderLayout.SOUTH);
+		btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				dialog.dispose();
+			}
+		});
+		dialog.setModal(false);
+		dialog.pack();
+		dialog.show();
+	}
+	/**
+	 * show detailed info like zofset etc.
+	 */
+	public void showDetailedInfo(ActionEvent evt) {
+		final JDialog dialog = new JDialog(this);
+		JButton btn;
+		dialog.getContentPane().setLayout(new BorderLayout());
+		dialog.getContentPane().add(new DetailedInfoPanel(_ref),
 				BorderLayout.CENTER);
 		dialog.getContentPane()
 				.add(btn = new JButton("OK"), BorderLayout.SOUTH);
