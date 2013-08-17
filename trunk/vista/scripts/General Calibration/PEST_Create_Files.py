@@ -35,7 +35,46 @@ def parseInpSects(DSM2InpFile,Section):
                 sectList.append(line.split())
     EID.close()
     return(sectList)
-#                
+def countDevParams(devList,coeffList):
+    '''
+    Count the number of device parameters for PEST in devList,
+    using the flow coefficient headers in coeffList. Don't count
+    flow coefficients==0
+    '''
+    count = 0
+    # find fields with the flow coeffs
+    for rowNo in range(1,len(devList)):
+        for name in coeffList:
+            loc = devList[0].index(name)
+            if float(devList[rowNo][loc]) != 0.0:
+                count += 1
+    return count
+def shortenName(nameList,longName,maxChars,Prefix=False):
+    """
+    Shorten the long name longName using the following rules:
+    * If longName is less than or equal to maxChars, just
+      return longName
+    * Else, create a short name using optional Prefix, or nothing if empty or False,
+      and a counting integer. Try the resulting short name in nameList. If it doesn't
+      exist yet, store it in the dictionary and return the short name as the value.
+      If it exists, increment the counter and try again until a unique short name is
+      produced.
+    """
+    if len(longName) <= maxChars:
+        return longName
+    if Prefix:
+        prefx = Prefix
+    else:
+        prefx = ''
+    if not longName in nameList:
+        shortName = prefx + str(len(nameList))
+        nameList.append(longName)
+    else:
+        shortName = prefx + str(nameList.index(longName))
+    if len(shortName) > maxChars:
+        raise "Short name for",longName,"is too long, try shorter prefix"
+    return shortName
+#
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
     filter = Constants.DEFAULT_FLAG_FILTER
@@ -46,9 +85,10 @@ if __name__ == '__main__':
     sq = "'"
     dq = '"'
     bs = "\\"
-    # DSM2 run dates; these should match the DSM2 calibration BaseRun-1 config file
-    runStartDateStr = '01SEP2008 2400'
-    runEndDateStr = '30SEP2009 2400'
+    # DSM2 run dates; these must match the DSM2 calibration BaseRun-1 config file
+    runStartDateStr = '01OCT2008 0000'
+    runEndDateStr = '01OCT2009 0000'
+    #
     runStartDateObj = TF.createTime(runStartDateStr)
     runEndDateObj = TF.createTime(runEndDateStr)
     RunTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
@@ -64,14 +104,15 @@ if __name__ == '__main__':
     calibEndDateStr = calibEndDateObj.format()
     calibTW = TF.createTimeWindow(calibStartDateObj, calibEndDateObj)
     # DSM2 directories and files
-    RootDir = 'D:/delta/models/Historical_v81_Beta_Release/'
+    DSM2Mod = 'HIST-CLB2K'
+    RootDir = 'D:/delta/models/'
     CommonDir = RootDir + 'common_input/NAVD/'
     CalibDir = RootDir + '201X-Calibration/'
     TimeSeriesDir = RootDir + 'timeseries/'
     BaseRun0Dir = CalibDir + 'BaseRun-0/Output/'
     BaseRun1Dir = CalibDir + 'BaseRun-1/Output/'
-    HydroEchoFile = BaseRun1Dir + 'hydro_echo_HIST-CLB2K-BASE-v81_1Beta_1.inp'
-    QualEchoFile = BaseRun1Dir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_1Beta_0.inp'
+    HydroEchoFile = BaseRun0Dir + 'hydro_echo_' + DSM2Mod + '-BASE-v81_2_0.inp'
+    QualEchoFile = BaseRun0Dir + 'qual_ec_echo_' + DSM2Mod + '-BASE-v81_2_0.inp'
     DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
     RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
     ChanInpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
@@ -82,7 +123,7 @@ if __name__ == '__main__':
     DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
     DSM2DSSOutQualFile = 'PEST_Qual_Out.inp'
     # The DSS file containing combined Hydro and Qual output
-    DSM2DSSOutFile = 'PESTCalibOut.dss'
+    DSM2DSSOutFile = 'PESTCalib.dss'
     # The text equivalent of the DSS output, necessary for PEST
     DSM2OutFile = 'PESTCalib.out'
     # DSM2 output locations
@@ -116,17 +157,16 @@ if __name__ == '__main__':
                    'DIV-FLOW', 'DRAIN-FLOW', 'DRAIN-EC', \
                    ]
     # make sure these elements agree with ParamGroups above
-    ParamDERINCLB = [0.05, 10.0, 50.0, \
+    ParamDERINCLB = [0.001, 10.0, 50.0, \
                      0.05, \
-                     1.0, \
-                     0.01, \
+                     0.0, \
 #                     0.01, \
-                     0.01, 0.01, 0.01, \
+                     0.01, \
+                     0.1, 0.1, 0.1, \
                      ]
     #
     # Observed data files, etc.
-    # Observed data paths; the DSM2 output paths are determined from these
-    # To ensure that observed and DSM2 output data are always synched,
+    # Observed data paths; the DSM2 output paths are determined from these.
     #
     ObsPaths = [ \
             '/CDEC/ANC/EC/.*/15MIN/USBR/', \
@@ -254,11 +294,12 @@ if __name__ == '__main__':
             timeObj = TF.createTime(long(el.getX()))
             dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))
             timeStr = timeObj.format(DefaultTimeFormat('HHmm'))
+            valStr = '%15.3f' % (el.getY())
             if filter.isAcceptable(el):
-                valStr = '%15.3f' % (el.getY())
+                weight = 1.0
             else:
-                valStr = '%15s' % ('DUM')    
-            OTF1Id.write("%s%s%s%s %s %3.1f %s\n" % (staName, obsGroup, dateStr, timeStr, valStr, 1.0, obsGroup))
+                weight = 0.0
+            OTF1Id.write("%s%s%s%s %s %3.1f %s\n" % (staName, obsGroup, dateStr, timeStr, valStr, weight, obsGroup))
         #
         # write the corresponding DSM2 output line for the observed data path
         tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
@@ -267,9 +308,9 @@ if __name__ == '__main__':
         fmtStr = '%s    %3d %8d   %s     %s      inst  %s\n'
         if obsGroup.lower() == 'stage' or \
            obsGroup.lower() == 'flow':
-            DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+            DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, obsGroup, '1HOUR', DSM2DSSOutFile))
         else:
-            DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, '1HOUR', obsGroup, DSM2DSSOutFile))
+            DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, obsGroup, '1HOUR', DSM2DSSOutFile))
         #
     DSM2HydroId.write('END')
     DSM2QualId.write('END')
@@ -290,15 +331,16 @@ if __name__ == '__main__':
         NPAR += len(Channels.getChannels())
     if 'LENGTH' in ParamGroups:
         NPAR += len(Channels.getChannels())
+    if 'GATE' in ParamGroups:
+        # count only gates with non-zero flow coefficients
+        NPAR += countDevParams(gateWeirList,['CF_FROM_NODE','CF_TO_NODE'])
+        NPAR += countDevParams(gatePipeList,['CF_FROM_NODE','CF_TO_NODE'])
+    if 'RESERCF' in ParamGroups:
+        NPAR += countDevParams(resCFList,['COEF_IN','COEF_OUT'])
     if 'ELEV' in ParamGroups or \
         'WIDTH' in ParamGroups:
         for chan in Channels.getChannels():
                 NPAR += len(chan.getXsections())
-    if 'GATE' in ParamGroups:
-        NPAR += (len(gateWeirList)-1) * 2   # for to/from flow coeffs
-        NPAR += (len(gatePipeList)-1) * 2
-    if 'RESERCF' in ParamGroups:
-        NPAR += (len(resCFList)-1) * 2    # for in/out flow coeffs
     paramUp = 'DIV-FLOW'
     if paramUp in ParamGroups:
         for srcInput in srcAgInputsHydro:
@@ -328,8 +370,8 @@ if __name__ == '__main__':
     NPARGP = len(ParamGroups)
     NPRIOR = 0
     NOBSGP = len(obsGroups)
-    NTPLFLE = 2
-    NINSFLE = NOBSGP
+    NTPLFLE = 5
+    NINSFLE = 1
     PRECIS = 'single'
     DPOINT = 'point'
     NUMCOM = 1
@@ -419,10 +461,10 @@ if __name__ == '__main__':
                 (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
         #
         if paramUp == 'GATE':
-            # adjust gate coefficients directly, similar to channel parameters
-            # unfortunately gate data is not in the DSM2 Input methods by Nicky,
+            # Adjust gate coefficients directly, similar to channel parameters.
+            # Unfortunately gate data is not in the DSM2 Input methods by Nicky,
             # so it has to be read from the Hydro echo file.
-            # since DSM2 gates are split between pipes and weirs,
+            # Since DSM2 gates are split between pipes and weirs,
             # we'll follow the same pattern
             #
             headersList = gateWeirList[0]
@@ -433,38 +475,51 @@ if __name__ == '__main__':
             CF_FromLoc = headersList.index('CF_FROM_NODE')
             CF_ToLoc = headersList.index('CF_TO_NODE')
             # now write to PEST .pst file
+            gateList = []
             for row in gateWeirList:
                 try: PARVAL1 = float(row[CF_FromLoc])
                 except: continue    # headers, just continue
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFFROM:' + row[uniq1] + ':' + row[uniq2]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                # skip zero-value gate coeffs
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'WEIRCFFR:' + row[uniq1] + ':' + row[uniq2]
+                    # PEST requires the PARNME be less than or equal to 12 chars;
+                    # pass through function to ensure that
+                    PARNME = shortenName(gateList,fullName,12,'WEIRCFFR:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                 PARVAL1 = float(row[CF_ToLoc])
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFTO:' + row[uniq1] + ':' + row[uniq2]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'WEIRCFTO:' + row[uniq1] + ':' + row[uniq2]
+                    PARNME = shortenName(gateList,fullName,12,'WEIRCFTO:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
             headersList = gatePipeList[0]
-            uniq = headersList.index('GATE_NAME')
+            uniq1 = headersList.index('GATE_NAME')
+            uniq2 = headersList.index('DEVICE')
             CF_FromLoc = headersList.index('CF_FROM_NODE')
             CF_ToLoc = headersList.index('CF_TO_NODE')
             for row in gatePipeList:
                 try: PARVAL1 = float(row[CF_FromLoc])
                 except: continue    # headers, just continue
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFFROM:' + row[uniq]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'PIPECFFR:' + row[uniq1] + ':' + row[uniq2]
+                    PARNME = shortenName(gateList,fullName,12,'PIPECFFR:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                 PARVAL1 = float(row[CF_ToLoc])
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'GATECFTO:' + row[uniq]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'PIPECFTO:' + row[uniq1] + ':' + row[uniq2]
+                    PARNME = shortenName(gateList,fullName,12,'PIPECFTO:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
 #
         if paramUp == 'RESERCF':
             # adjust reservoir flow coefficients directly, similar to gate flow coeffs
@@ -476,20 +531,25 @@ if __name__ == '__main__':
             CF_InLoc = headersList.index('COEF_IN')
             CF_OutLoc = headersList.index('COEF_OUT')
             # now write to PEST .pst file
+            resList = []
             for row in resCFList:
                 try: PARVAL1 = float(row[CF_InLoc])
                 except: continue    # headers, just continue
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'RESERCFIN:' + row[uniq1] + ':' + row[uniq2]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'RESCFIN:' + row[uniq1] + ':' + row[uniq2]
+                    PARNME = shortenName(resList,fullName,12,'RESCFIN:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                 PARVAL1 = float(row[CF_OutLoc])
-                PARLBND = PARVAL1 * 0.5
-                PARUBND = PARVAL1 * 1.5
-                PARNME = 'RESERCFOUT:' + row[uniq1] + ':' + row[uniq2]
-                PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
-                    (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
+                if PARVAL1 != 0.0:
+                    PARLBND = PARVAL1 * 0.5
+                    PARUBND = PARVAL1 * 1.5
+                    fullName = 'RESCFOUT:' + row[uniq1] + ':' + row[uniq2]
+                    PARNME = shortenName(resList,fullName,12,'RESCFOUT:')
+                    PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
+                        (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
 #
         if paramUp == 'ELEV' or paramUp == 'WIDTH':
             # cross-sections in channels;
@@ -519,11 +579,15 @@ if __name__ == '__main__':
             PARLBND = 0.5  
             PARUBND = 1.5
             for srcInput in srcAgInputsHydro:
-                try: CPartUp = obsDataCParts(srcInput)
+                try: CPartUp = srcInput.path.upper().split('/')[3]
                 except: continue
                 if CPartUp == paramUp:
                     node3 = "%03d" % int(srcInput.nodeId)
-                    PARNME = paramUp+node3
+                    if paramUp == 'DRAIN-FLOW':
+                        shortName = 'DRN-Q'
+                    else:
+                        shortName = 'DIV-Q'  
+                    PARNME = shortName+node3  # shorten param name to be less than 12 chars
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # create 'dummy' input/template files for Ag calibration factors
@@ -542,7 +606,7 @@ if __name__ == '__main__':
                     try: node3 = "%03d" % int(pathParts[2])
                     except: continue
                     if CPartUp == paramUp:
-                        PARNME = paramUp + node3
+                        PARNME = 'DRN-EC' + node3
                         PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                         # create 'dummy' input/template files for Ag calibration factors
@@ -572,13 +636,15 @@ if __name__ == '__main__':
     # Model command line and I/O files
     PCFId.write('%s\n%s\n' % \
                 ('* model command line', 'condor_dsm2.bat hydro.inp qual_ec.inp'))
-    PCFId.write('%s\n%s %s\n%s %s\n%s %s\n%s %s\n%s %s' % \
+    PCFId.write('%s\n%s %s\n%s %s\n%s %s\n%s %s\n%s %s\n%s %s\n%s\n' % \
                 ('* model input/output', \
                 PESTChanTplFile, ChanInpFile, \
                 PESTGateTplFile, GateInpFile, \
                 PESTResTplFile, ResInpFile, \
                 PESTTplAgFile, PESTInpAgFile, \
-                PESTInsFile, DSM2OutFile))
+                PESTTplXCFile, PESTInpXCFile, \
+                PESTInsFile, DSM2OutFile, \
+                '* prior information'))
     PCFId.close()
     print 'Wrote',PCFId.name
     ##
@@ -593,7 +659,7 @@ if __name__ == '__main__':
     channelLines = False
     for line in DSM2InpId:
         if line.upper().find('END') != -1:
-            # end of channel lines
+            # end of section
             channelLines = False
         if not channelLines:
             PTFId.write(line)
@@ -630,20 +696,32 @@ if __name__ == '__main__':
             # GATE_NAME DEVICE NDUPLICATE (RADIUS|HEIGHT) ELEV CF_FROM_NODE CF_TO_NODE DEFAULT_OP
             gateName = lineParts[headersList.index('GATE_NAME')]
             devName = lineParts[headersList.index('DEVICE')]
-            # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
-            lineParts[CF_FromLoc] = '|GATECFFROM:' + gateName + ':' + devName + '|' 
-            lineParts[CF_ToLoc] = '|GATECFTO:' + gateName + ':' + devName + '|'
+            # accept only non-zero coeffs
+            if float(lineParts[CF_FromLoc]) != 0.0:
+                # recreate shortened gate name
+                fullName = name+'CFFR:'+gateName+':'+devName
+                shortName = shortenName(gateList,fullName,12,name+'CFFR:')
+                lineParts[CF_FromLoc] = '|' + shortName + '|' 
+            # accept only non-zero coeffs
+            if float(lineParts[CF_ToLoc]) != 0.0:
+                fullName = name+'CFTO:'+gateName+':'+devName
+                shortName = shortenName(gateList,fullName,12,name+'CFTO:')
+                lineParts[CF_ToLoc] = '|' + shortName + '|'
+            #
             for i in range(len(lineParts)): 
                 PTFId.write('%s ' % lineParts[i])
             PTFId.write('\n')
         # Pipe or Weir section?   
         if re.search('GATE_PIPE_DEVICE', line, re.I):
             headersList = gatePipeList[0]
+            name = 'PIPE'
         if re.search('GATE_WEIR_DEVICE',line,re.I):
             headersList = gateWeirList[0]
+            name = 'WEIR'
         if re.search('GATE_NAME +.*CF_(FROM|TO)_NODE +.*CF_(FROM|TO)_NODE',line,re.I):
             # gate block header line, gate lines follow
             gateLines = True
+            # find which fields have the gate flow coeffs (CF_FROM_NODE and CF_TO_NODE)
             CF_FromLoc = headersList.index('CF_FROM_NODE')
             CF_ToLoc = headersList.index('CF_TO_NODE')
     PTFId.close()
@@ -668,9 +746,13 @@ if __name__ == '__main__':
             # RES_NAME NODE COEF_IN COEF_OUT
             resName = lineParts[headersList.index('RES_NAME')]
             resNode = lineParts[headersList.index('NODE')]
-            # find which fields have the reservoir flow coeffs (COEF_IN and COEF_OUT)
-            lineParts[CF_InLoc] = '|RESCFIN:' + resName + ':' + resNode + '|' 
-            lineParts[CF_OutLoc] = '|RESCFOUT:' + resName + ':' + resNode + '|'
+            # accept only non-zero coeffs
+            if float(lineParts[CF_InLoc]) != 0.0:
+                shortName = shortenName(resList,'RESCFIN:' + resName + ':' + resNode,12,'RESCFIN:')
+                lineParts[CF_InLoc] = '|' + shortName + '|' 
+            if float(lineParts[CF_OutLoc]) != 0.0:
+                shortName = shortenName(resList,'RESCFOUT:' + resName + ':' + resNode,12,'RESCFOUT:')
+                lineParts[CF_OutLoc] = '|' + shortName + '|'
             for i in range(len(lineParts)): 
                 PTFId.write('%s ' % lineParts[i])
             PTFId.write('\n')
@@ -678,13 +760,14 @@ if __name__ == '__main__':
             # reservoir coefficient block header line, reservoir lines follow
             resCFLines = True
             headersList = resCFList[0]
+            # find which fields have the reservoir flow coeffs (COEF_IN and COEF_OUT)
             CF_InLoc = headersList.index('COEF_IN')
             CF_OutLoc = headersList.index('COEF_OUT')
     PTFId.close()
     DSM2InpId.close()
     print 'Wrote',PTFId.name
     ##
-    # Create the writeDSM2Output.py file for post-processing DSM2 calibration runs.
+    # Create the PEST_post_DSM2Run.py.py file for post-processing DSM2 calibration runs.
     # The post-processing generates text output of the DSS calibration stations,
     # and the PEST instruction (.ins) file. 
     preProcFile = 'PEST_pre_DSM2Run.py'
@@ -692,7 +775,7 @@ if __name__ == '__main__':
     sq = "'"
     dq = '"'
     obsGroupsStr =  dq + '", "'.join(obsGroups) + dq
-    WDSM2Id = open(PESTDir + preProcFile, 'w')
+    WDSM2Id = open(PESTDir + postProcFile, 'w')
     WDSM2Id.write('import sys, os\n')
     WDSM2Id.write('from vtimeseries import *\n')
     WDSM2Id.write('from vdss import *\n')
@@ -705,12 +788,15 @@ if __name__ == '__main__':
                   calibEndDateStr + "')\n")
     WDSM2Id.write("# This post-processor was generated by PEST_Create_Files.py\n" + \
                   "# It translates DSM2 DSS output for calibration to a text file,\n" + \
-                  "# then generates the matching PEST instruction file for the output.\n")
+                  "# then generates the matching PEST instruction file for the output.\n" + \
+                  "# On initial PEST start, run this using the base-1 dss output.\n")
+    WDSM2Id.write("DSM2DSSOutFile = sys.argv[1]\n")
     WDSM2Id.write("tempfile = 'temp.out'\n")
     WDSM2Id.write("fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
     WDSM2Id.write("for dataType in [" + obsGroupsStr + "]:\n")
-    WDSM2Id.write("    dssgrp = opendss('" + DSM2DSSOutFile + "')\n")
-    WDSM2Id.write("    dssgrp.filterBy('/'+dataType+'/')\n")
+    WDSM2Id.write("    dssgrp = opendss(DSM2DSSOutFile)\n")
+    WDSM2Id.write("    # use only 3-letter CDEC-style stations for PEST 20-char limit in .ins file\n")
+    WDSM2Id.write("    dssgrp.filterBy('/[A-Z0-9][A-Z0-9][A-Z0-9]/'+dataType+'/')\n")
     WDSM2Id.write("    for dssdr in dssgrp.getAllDataReferences():\n")
     WDSM2Id.write("        dssdr = DataReference.create(dssdr,tw)\n")
     WDSM2Id.write("        writeascii(tempfile, dssdr.getData())\n")
@@ -726,7 +812,7 @@ if __name__ == '__main__':
     WDSM2Id.write("fid.write('pif @\\n')\n")
     WDSM2Id.write("for line in tid:\n")
     WDSM2Id.write("    if re.search('^$', line):\n")
-    WDSM2Id.write("        fid.write('@Units :\\n')\n")
+    WDSM2Id.write("        fid.write('@Units :@\\n')\n")
     WDSM2Id.write("        continue\n")
     WDSM2Id.write("    lineSplit = line.split()\n")
     WDSM2Id.write("    if line.find('Location: ') > -1:\n")
@@ -736,13 +822,15 @@ if __name__ == '__main__':
     WDSM2Id.write("        typeStr = lineSplit[1].upper()\n")
     WDSM2Id.write("        continue\n")
     WDSM2Id.write("    if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9.-]+$',line) > -1:\n")
-    WDSM2Id.write("        dateStr = lineSplit[0]\n")
-    WDSM2Id.write("        timeStr = lineSplit[1]\n")
-    WDSM2Id.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + 'T' + timeStr + ')14:30'\n")
+    WDSM2Id.write("        timeObj = TF.createTime(lineSplit[0]+' '+lineSplit[1])\n")
+    WDSM2Id.write("        dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))\n")
+    WDSM2Id.write("        timeStr = timeObj.format(DefaultTimeFormat('HHmm'))\n")
+    WDSM2Id.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')14:30'\n")
     WDSM2Id.write("        fid.write(dataID + '\\n')\n")
     WDSM2Id.write("fid.close()\n")
     WDSM2Id.write("tid.close()\n")
     WDSM2Id.write("sys.exit()\n")
+    print 'Wrote', WDSM2Id.name
     #
     WDSM2Id.close()
     #
@@ -752,14 +840,15 @@ if __name__ == '__main__':
     WDSM2Id.write("echo off\n")
     WDSM2Id.write("Rem This file created by PEST_Create_Files.py\n")
     WDSM2Id.write("Rem Calibrate DSM2 using BEOPEST & HTCondor.\n")
+    WDSM2Id.write("setlocal\n")
     WDSM2Id.write("set HYDROEXE=" + RootDir.replace("/","\\") + "hydro.exe\n")
     WDSM2Id.write("set QUALEXE=" + RootDir.replace("/","\\") + "qual.exe\n")
     WDSM2Id.write("set PESTDIR=" + PESTDir.replace("/","\\") + "\n")
     WDSM2Id.write("set CONDORBINDIR=c:\\condor\\bin\\\n")
     WDSM2Id.write("set VISTABINDIR=c:\\condor\\vista\\bin\\\n")
     WDSM2Id.write("set PESTBINDIR=c:\\condor\\PEST\\bin\\\n")
-    WDSM2Id.write("set DSM2RUN=HIST-CLB2K-BASE-v81_1Beta_0\n")
-    WDSM2Id.write("set CONFIGFILE=config_calib.inp\n")
+    WDSM2Id.write("set DSM2RUN0=" + DSM2Mod + "-BASE-v81_2_0\n")
+    WDSM2Id.write("set DSM2RUN1=" + DSM2Mod + "-BASE-v81_2_1\n")
     WDSM2Id.write("set STUDYNAME=" + PESTFile.replace(".pst","") + "\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("set TSFILES=dicu_201203-calib.dss, dicu_201203.dss, dicuwq_200611_expand-calib.dss, " + \
@@ -788,27 +877,37 @@ if __name__ == '__main__':
     WDSM2Id.write("if not exist %RUNDIR% mkdir %RUNDIR%\n")
     WDSM2Id.write("del /q %RUNDIR%\\*\n")
     WDSM2Id.write("\n")
-    WDSM2Id.write("@copy /v /b %HYDROEXE% %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /b %QUALEXE% %RUNDIR%\n")
-    WDSM2Id.write("@xcopy /i/q " + re.sub("/$","",TimeSeriesDir).replace("/",bs) + " %RUNDIR%\n")
-    WDSM2Id.write("@xcopy /i/q " + re.sub("/$", "", CommonDir).replace("/",bs) + " %RUNDIR%\n")
+    WDSM2Id.write("@copy /b %HYDROEXE% %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /b %QUALEXE% %RUNDIR%\\\n")
+    WDSM2Id.write("@xcopy /q " + re.sub("/$","",TimeSeriesDir).replace("/",bs) + " %RUNDIR%\\\n")
+    WDSM2Id.write("@xcopy /q " + re.sub("/$", "", CommonDir).replace("/",bs) + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
-    WDSM2Id.write("@copy /v /y *.py %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y *.pst %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y *.tpl %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y *.inp %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y *.ins %RUNDIR%\n")
+    WDSM2Id.write("@copy /y *.py %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y *.pst %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y *.tpl %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y *.inp %RUNDIR%\\\n")
 
     WDSM2Id.write("@copy /y dsm2-base.sub %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("@copy /v /y %CONFIGFILE% %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y " + BaseRun0Dir.replace("/","\\") + "%DSM2RUN%.?rf %RUNDIR%\n")
-    WDSM2Id.write("@copy /v /y hydro_calib.inp %RUNDIR%\hydro.inp\n")
-    WDSM2Id.write("@copy /v /y qual_ec_calib.inp %RUNDIR%\qual_ec.inp\n")
+    WDSM2Id.write("@copy /y " + BaseRun0Dir.replace("/","\\") + "%DSM2RUN0%.?rf %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /b /y " + BaseRun1Dir.replace("/","\\") + DSM2DSSOutFile + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("cd %RUNDIR%\n")
+    WDSM2Id.write("@ren config_calib.inp config.inp\n")
+    WDSM2Id.write("@ren hydro_calib.inp hydro.inp\n")
+    WDSM2Id.write("@ren qual_ec_calib.inp qual_ec.inp\n")
+    
+    WDSM2Id.write("rem Add calibration output to Hydro and Qual .inp files\n")
+    WDSM2Id.write("echo OUTPUT_TIME_SERIES >> hydro.inp\n")
+    WDSM2Id.write("echo " + DSM2DSSOutHydroFile + " >> hydro.inp\n")
+    WDSM2Id.write("echo END >> hydro.inp\n")
+    WDSM2Id.write("echo OUTPUT_TIME_SERIES >> qual_ec.inp\n")
+    WDSM2Id.write("echo " + DSM2DSSOutQualFile + " >> qual_ec.inp\n")
+    WDSM2Id.write("echo END >> qual_ec.inp\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem Create condor_dsm2.bat file for Hydro and Qual runs\n")
     WDSM2Id.write("echo set START_DATE=" + dq + runStartDateStr + dq + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("rem pre-process to prepare instruction file for PEST\n")
+    WDSM2Id.write("echo call %VISTABINDIR%vscript.bat " + preProcFile + " >> condor_dsm2.bat\n")
     WDSM2Id.write("echo echo Running hydro >> condor_dsm2.bat\n")
     WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
     WDSM2Id.write("echo hydro.exe %%1 >> condor_dsm2.bat\n")
@@ -818,16 +917,22 @@ if __name__ == '__main__':
     WDSM2Id.write("echo qual.exe %%2 >> condor_dsm2.bat\n")
     WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
     WDSM2Id.write("rem post-process to prepare output for PEST\n")
-    WDSM2Id.write("echo %VISTABINDIR%vscript.bat " + postProcFile + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo call %VISTABINDIR%vscript.bat " + postProcFile + \
+                  " " + DSM2DSSOutFile + " >> condor_dsm2.bat\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem finish Condor submit file for PEST\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("echo transfer_input_files = %PESTFILES%, " + \
-                  "hydro.exe, qual.exe, %DSM2RUN%.qrf, %DSM2RUN%.hrf, %CONFIGFILE%, " + \
+                  "hydro.exe, qual.exe, %DSM2RUN0%.qrf, %DSM2RUN0%.hrf, config.inp, " + \
                   "hydro.inp, qual_ec.inp, %CMNFILES%, %TSFILES% >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("echo arguments = %STUDYNAME% /H bdomo-002:4004 >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("echo queue 75 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("\n")
+    WDSM2Id.write("rem prepare base run output for PEST/DSM2 run\n")
+    WDSM2Id.write("call %VISTABINDIR%vscript.bat " + preProcFile + "\n")
+    WDSM2Id.write("call %VISTABINDIR%vscript.bat " + postProcFile + \
+                  " " + DSM2DSSOutFile + "\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("%CONDORBINDIR%condor_submit dsm2.sub\n")
     WDSM2Id.write("echo Submitted beopest slaves jobs to condor.\n")
