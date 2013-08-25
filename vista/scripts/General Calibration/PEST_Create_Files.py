@@ -99,7 +99,7 @@ if __name__ == '__main__':
     # to allow for a list of multiple start/end calibration dates.
     calibTimeOffsetObj = TF.createTimeInterval('56DAY')
     calibStartDateObj = runEndDateObj - calibTimeOffsetObj
-    calibEndDateObj = runEndDateObj
+    calibEndDateObj = runEndDateObj - TF.createTimeInterval('12HOUR')
     calibStartDateStr = calibStartDateObj.format()
     calibEndDateStr = calibEndDateObj.format()
     calibTW = TF.createTimeWindow(calibStartDateObj, calibEndDateObj)
@@ -286,7 +286,7 @@ if __name__ == '__main__':
             dataset = per_avg(dataset,'1HOUR')
         dataset = dataset.createSlice(calibTW)
         sti = dsIndex(dataset, calibStartDateObj)
-        eti = dsIndex(dataset, calibEndDateObj)
+        eti = dsIndex(dataset, calibEndDateObj) + 1
 #        print 'Writing path', obsPath
         for ndx in range(sti, eti):
             nObs += 1
@@ -294,7 +294,10 @@ if __name__ == '__main__':
             timeObj = TF.createTime(long(el.getX()))
             dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))
             timeStr = timeObj.format(DefaultTimeFormat('HHmm'))
-            valStr = '%15.3f' % (el.getY())
+            val = el.getY()
+            if dataset.getAttributes().getYUnits().upper() == 'MS/CM':
+                val *= 1000.
+            valStr = '%15.3f' % (val)
             if filter.isAcceptable(el):
                 weight = 1.0
             else:
@@ -780,7 +783,7 @@ if __name__ == '__main__':
     WDSM2Id.write('from vtimeseries import *\n')
     WDSM2Id.write('from vdss import *\n')
     WDSM2Id.write('from vista.set import *\n')
-    WDSM2Id.write('from vista.db.dss import *\n')
+    WDSM2Id.write('#from vista.db.dss import *\n')
     WDSM2Id.write('from vutils import *\n')
     WDSM2Id.write('from vista.time import TimeFactory\n')
     WDSM2Id.write('TF = TimeFactory.getInstance()\n')
@@ -801,7 +804,7 @@ if __name__ == '__main__':
     WDSM2Id.write("        dssdr = DataReference.create(dssdr,tw)\n")
     WDSM2Id.write("        writeascii(tempfile, dssdr.getData())\n")
     WDSM2Id.write("        tid = open(tempfile, 'r')\n")
-    WDSM2Id.write("        fid.write(tid.read())\n")
+    WDSM2Id.write("        fid.write(tid.read().replace('\t','    '))\n")
     WDSM2Id.write("        tid.close()\n")
     WDSM2Id.write("fid.close()\n")
     WDSM2Id.write("if os.path.exists(tempfile):\n")
@@ -825,7 +828,7 @@ if __name__ == '__main__':
     WDSM2Id.write("        timeObj = TF.createTime(lineSplit[0]+' '+lineSplit[1])\n")
     WDSM2Id.write("        dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))\n")
     WDSM2Id.write("        timeStr = timeObj.format(DefaultTimeFormat('HHmm'))\n")
-    WDSM2Id.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')14:30'\n")
+    WDSM2Id.write("        dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')15:30'\n")
     WDSM2Id.write("        fid.write(dataID + '\\n')\n")
     WDSM2Id.write("fid.close()\n")
     WDSM2Id.write("tid.close()\n")
@@ -905,9 +908,10 @@ if __name__ == '__main__':
     WDSM2Id.write("echo END >> qual_ec.inp\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem Create condor_dsm2.bat file for Hydro and Qual runs\n")
-    WDSM2Id.write("echo set START_DATE=" + dq + runStartDateStr + dq + " >> condor_dsm2.bat\n")
     WDSM2Id.write("rem pre-process to prepare instruction file for PEST\n")
+    WDSM2Id.write("echo echo Running Pre-Processor >> condor_dsm2.bat\n")
     WDSM2Id.write("echo call %VISTABINDIR%vscript.bat " + preProcFile + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo del /f/q PESTCalib.dss >> condor_dsm2.bat\n")
     WDSM2Id.write("echo echo Running hydro >> condor_dsm2.bat\n")
     WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
     WDSM2Id.write("echo hydro.exe %%1 >> condor_dsm2.bat\n")
@@ -917,17 +921,21 @@ if __name__ == '__main__':
     WDSM2Id.write("echo qual.exe %%2 >> condor_dsm2.bat\n")
     WDSM2Id.write("echo time /t >> condor_dsm2.bat\n")
     WDSM2Id.write("rem post-process to prepare output for PEST\n")
+    WDSM2Id.write("echo echo Running Post-Processor >> condor_dsm2.bat\n")
     WDSM2Id.write("echo call %VISTABINDIR%vscript.bat " + postProcFile + \
                   " " + DSM2DSSOutFile + " >> condor_dsm2.bat\n")
+    WDSM2Id.write("echo call %PESTBINDIR%pestchek.exe DSM2 >> condor_dsm2.bat\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem finish Condor submit file for PEST\n")
     WDSM2Id.write("\n")
-    WDSM2Id.write("echo transfer_input_files = %PESTFILES%, " + \
+    WDSM2Id.write("echo transfer_input_files = condor_dsm2.bat, " + \
+                  preProcFile + ", " + postProcFile + ", " + \
+                  DSM2DSSOutHydroFile + ", " + DSM2DSSOutQualFile + ", %PESTFILES%, " + \
                   "hydro.exe, qual.exe, %DSM2RUN0%.qrf, %DSM2RUN0%.hrf, config.inp, " + \
                   "hydro.inp, qual_ec.inp, %CMNFILES%, %TSFILES% >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("echo arguments = %STUDYNAME% /H bdomo-002:4004 >> %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("echo queue 75 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("echo queue 2 >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem prepare base run output for PEST/DSM2 run\n")
     WDSM2Id.write("call %VISTABINDIR%vscript.bat " + preProcFile + "\n")
