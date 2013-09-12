@@ -61,6 +61,7 @@ import vista.graph.Curve;
 import vista.graph.CurveAttr;
 import vista.graph.CurveDataModel;
 import vista.graph.FlaggedCurve;
+import vista.graph.FlaggedCurve2D;
 import vista.graph.GraphUtils;
 import vista.graph.ReferenceCurve;
 import vista.set.DataReference;
@@ -143,7 +144,7 @@ public class CurveFactory {
 	/**
    *
    */
-	private static Curve createFlaggedCurve(DataSet ds, int xAxisPos,
+	public static Curve createFlaggedCurve(DataSet ds, int xAxisPos,
 			int yAxisPos, String legend) {
 		CurveDataModel cdm = null;
 		if (ds instanceof RegularTimeSeries) {
@@ -181,7 +182,7 @@ public class CurveFactory {
 	/**
    *
    */
-	private static Curve createCurve(DataSet ds, int xAxisPos, int yAxisPos,
+	public static Curve createCurve(DataSet ds, int xAxisPos, int yAxisPos,
 			String legend) {
 		if (ds instanceof RegularTimeSeries)
 			return createCurve((RegularTimeSeries) ds, xAxisPos, yAxisPos,
@@ -200,7 +201,7 @@ public class CurveFactory {
    *
    */
 
-	private static Curve createCurve(RegularTimeSeries rts, int xAxisPos,
+	public static Curve createCurve(RegularTimeSeries rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
 		CurveDataModel cdm = null;
@@ -220,7 +221,7 @@ public class CurveFactory {
 	/**
    *
    */
-	private static Curve createCurve(IrregularTimeSeries rts, int xAxisPos,
+	public static Curve createCurve(IrregularTimeSeries rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
 		CurveDataModel cdm = new InstValCurveModel(rts, AppUtils
@@ -233,7 +234,7 @@ public class CurveFactory {
 	/**
    *
    */
-	private static Curve createCurve(DefaultDataSet rts, int xAxisPos,
+	public static Curve createCurve(DefaultDataSet rts, int xAxisPos,
 			int yAxisPos, String legend) {
 		DataSetAttr attr = rts.getAttributes();
 		CurveDataModel cdm = new InstValCurveModel(rts, AppUtils
