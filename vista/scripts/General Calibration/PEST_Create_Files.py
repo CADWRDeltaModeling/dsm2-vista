@@ -126,7 +126,7 @@ if __name__ == '__main__':
     global obsGroups
     # what type of PEST parallel run?
     typePEST = 'beo'
-    typePEST = 'genie'
+    #typePEST = 'genie'
     # DSM2 runs: restart or cold start?
     useRestart = True
     # DSM2 run dates; these must match the DSM2 calibration BaseRun-1 or BaseRun-2 config file
@@ -163,17 +163,17 @@ if __name__ == '__main__':
     # DSM2 directories and files
     DSM2Mod = 'HIST-CLB2K'
     RootDir = 'D:/delta/models/'
-    CommonDir = RootDir + 'common_input/NAVD/'
+    CommonDir = RootDir + 'dsm2_v8/common_input/'
     CalibDir = RootDir + '201X-Calibration/'
-    TimeSeriesDir = RootDir + 'timeseries/'
+    TimeSeriesDir = RootDir + 'dsm2_v8/timeseries/'
     BaseRun0Dir = CalibDir + 'BaseRun-0/Output/'
     BaseRun1Dir = CalibDir + 'BaseRun-1/Output/'
-    HydroEchoFile = BaseRun0Dir + 'hydro_echo_' + DSM2Mod + '-BASE-v81_2_0.inp'
-    QualEchoFile = BaseRun0Dir + 'qual_ec_echo_' + DSM2Mod + '-BASE-v81_2_0.inp'
-    DivRtnQFile = TimeSeriesDir + 'dicu_201203.dss'
-    RtnECFile = TimeSeriesDir + 'dicuwq_200611_expand.dss'
-    ChanInpFile = 'channel_std_delta_grid_NAVD_20121214.inp'
-    GateInpFile = 'gate_std_delta_grid_NAVD_20121214.inp'
+    HydroEchoFile = BaseRun1Dir + 'hydro_echo_HIST-CLB2K-BASE-v81_2_1.inp'
+    QualEchoFile = BaseRun1Dir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_2_1.inp'
+    DivRtnQFile = 'dicu_201203.dss'
+    RtnECFile = 'dicuwq_3vals_extended.dss'
+    ChanInpFile = 'channel_std_delta_grid_NAVD_20121214-calib.inp'
+    GateInpFile = 'gate_std_delta_grid_20110418_NAVD.inp'
     ResInpFile = 'reservoir_std_delta_grid_NAVD_20121214.inp'
     ChanCalibFile = 'Calib-channels.inp'
     GateCalibFile = 'Calib-gates.inp'
@@ -235,29 +235,29 @@ if __name__ == '__main__':
     #
     # Use either Width or Elev, not both
     paramGroups = [\
-                   'MANN' \
-                   ,'DISP' \
+#                   'MANN' \
+#                   ,'DISP' \
 #                   ,'LENGTH' \
-#                   'GATECF' \
+#                   ,'GATECF' \
 #                   ,'RESERCF' \
 #                   ,'WIDTH' \
 #                   ,'ELEV' \
-#                   'DIV-FLOW' \
-#                   ,'DRAIN-FLOW' \
-#                   ,'DRAIN-EC' \
+                   'DIV-FLOW' \
+                   ,'DRAIN-FLOW' \
+                   ,'DRAIN-EC' \
                    ]
     # make sure these elements agree with paramGroups above
     paramDERINCLB = [\
-                     0.001 \
-                     ,10.0 \
+#                     0.001 \
+#                     ,10.0 \
 #                     ,50.0 \
-#                     0.05 \
+#                     ,0.05 \
 #                     ,0.05 \
 #                     ,0.01 \
 #                     ,0.01 \
-#                     0.1 \
-#                     ,0.1 \
-#                     ,0.1 \
+                     0.1 \
+                     ,0.1 \
+                     ,0.1 \
                      ]
     #
     # Observed data files, etc.
@@ -366,7 +366,8 @@ if __name__ == '__main__':
         eti = dsIndex(dataset, calibEndDateObj) + 1
 #        print 'Writing path', obsPath
         # calculate weight for this path; this weight will be used
-        # for all observations in the path
+        # for all observations in the path, except for bad
+        # or missing data, which is given weight = 0
         arrPathVals = SetUtils.createYArray(dataset)
         meanPath = Stats.avg(dataset)
         avgPath = 0.0; count = 0
@@ -508,8 +509,8 @@ if __name__ == '__main__':
     FACPARMAX = 5.0
     FACORIG = 0.001
     PHIREDSWH = 0.1
-    NOPTMAX = -1
-#     NOPTMAX = 10
+#    NOPTMAX = -1
+    NOPTMAX = 3
     PHIREDSTP = 0.005
     NPHISTP = 4
     NPHINORED = 3
@@ -568,12 +569,12 @@ if __name__ == '__main__':
                 PARNME = paramUp + chan3
                 if paramUp == 'MANN':
                     PARVAL1 = chan.getMannings()
-                    PARLBND = PARVAL1/5. 
-                    PARUBND = PARVAL1*5.
+                    PARLBND = PARVAL1/1.3 
+                    PARUBND = PARVAL1*1.3
                 if paramUp == 'DISP':
                     PARVAL1 = chan.getDispersion()
-                    PARLBND = PARVAL1/10. 
-                    PARUBND = PARVAL1*10.
+                    PARLBND = PARVAL1/2. 
+                    PARUBND = PARVAL1*2.
                 if paramUp == 'LENGTH':
                     PARVAL1 = chan.getLength()
                     PARLBND = PARVAL1 / 1.2   
@@ -829,16 +830,12 @@ if __name__ == '__main__':
         # with PEST placeholder names
         channelLines = False
         for line in DSM2InpId:
-    #         if re.search('^ *CHANNEL *$',line,re.I):
-    #             PTFId.write(line)
-    #             continue
             if re.search('^ *END',line,re.I):
                 # end of section
                 channelLines = False
-    #             if channelLines:
-    #                 PTFId.write(line)
-    #                 break
             if channelLines:
+                if re.search('^ *#', line): # comment line, continue
+                    continue
                 lineParts = line.split()
                 # CHAN_NO  LENGTH  MANNING  DISPERSION  UPNODE  DOWNNODE
                 chanNo = int(lineParts[0])
@@ -1120,28 +1117,19 @@ if __name__ == '__main__':
         WDSM2Id.write("for /f "+dq+"delims=[] tokens=2"+dq+ \
                       " %%a in ('ping -4 %computername% -n 1 ^| findstr "+dq+"["+dq+"') do (set MYIP=%%a)\n")
     WDSM2Id.write("\n")
-    WDSM2Id.write("set CMNFILES=boundary_flow_delta_historical_20090715.inp, " + \
-                  "boundary_stage_delta_historical_NAVD_20121214.inp, channel_ic_std_delta_grid_NAVD_20121214.inp, " + \
-                  "channel_std_delta_grid_NAVD_20121214.inp, gate_std_delta_grid_NAVD_20121214.inp, " + \
-                  "group_sourcetracking_20090715.inp, node_concentration_delta_historical_qual_20121214.inp, " + \
-                  "node_concentration_dicu_ec_20090715.inp, node_concentration_jones_qual_20090715.inp, " + \
-                  "oprule_hist_temp_barriers_NAVD_20121214.inp, oprule_historical_gate_20110418.inp, " + \
-                  "output_channel_hydro_v81_calibration_20121214.inp, output_channel_std_hydro_boundary_20090715.inp, " + \
-                  "output_channel_std_hydro_rki_20090715.inp, output_channel_std_qual_named_20090715.inp, " + \
-                  "output_channel_std_qual_rki_20090715.inp, output_channel_std_qual_rki_addmore_20121214.inp, " + \
-                  "output_reservoir_std_hydro_named_20090715.inp, output_reservoir_std_qual_named_20090715.inp, " + \
-                  "reservoir_concentration_dicu_ec_20090715.inp, reservoir_ic_std_delta_grid_NAVD_20121214.inp, " + \
-                  "reservoir_std_delta_grid_NAVD_20121214.inp, source_flow_delta_historical_20110708.inp, " + \
-                  "source_flow_dicu_historical_20090715.inp, source_flow_jones_hydro_20090806.inp\n")
-    
-    writeStr = "set TSFILES=dicu_201203.dss, dicuwq_200611_expand.dss, dicuwq_3vals_extended.dss, " + \
+    cmnFiles = glob.glob(CommonDir + '*.inp')
+    WDSM2Id.write("set CMNFILES=")
+    for f in cmnFiles:
+        fn = os.path.basename(f)
+        WDSM2Id.write(fn + ", ")
+    WDSM2Id.write("\n")    
+    writeStr = "set TSFILES=" + DivRtnQFile + ", " + RtnECFile + ", " + \
                   "events.dss, gates-v8-06212012.dss, hist_19902012.dss"
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups:
-        writeStr += ", dicu_201203-calib.dss" 
+        writeStr += ", " + DivRtnQFile.replace('.dss','-calib.dss')
     if 'DRAIN-EC' in paramGroups:
-        writeStr += ", dicuwq_200611_expand-calib.dss" 
+        writeStr += ", " + RtnECFile.replace('.dss','-calib.dss')
     WDSM2Id.write(writeStr + "\n")
-    
     writeStr = "set PESTFILES=" + PESTFile + ", " + PESTInsFile
     if 'MANN' in paramGroups or \
         'DISP' in paramGroups or \
@@ -1227,7 +1215,7 @@ if __name__ == '__main__':
         writeStr += ", " + GateCalibFile
     if 'RESERCF' in paramGroups:
         writeStr += ", " + ResCalibFile
-    writeStr += ", %CMNFILES%, %TSFILES% >> %RUNDIR%\\dsm2.sub\n"
+    writeStr += ", %CMNFILES% %TSFILES% >> %RUNDIR%\\dsm2.sub\n"
     WDSM2Id.write(writeStr)
     WDSM2Id.write("\n")
     # command and arguments depend on which PEST is to be used
@@ -1245,15 +1233,17 @@ if __name__ == '__main__':
     WDSM2Id.write("if ERRORLEVEL 1 exit /b 1\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("%CONDORBINDIR%condor_submit dsm2.sub\n")
+    WDSM2Id.write("if ERRORLEVEL 1 exit /b 1\n")
     WDSM2Id.write("echo Submitted " + typePEST + " slave jobs to condor.\n")
-    WDSM2Id.write("popd\n")
+    WDSM2Id.write("REM delay a few seconds before running the main PEST programs\n")
+    WDSM2Id.write("ping -n 5 127.0.0.1 > nul\n")
     if typePEST == 'genie':
-        WDSM2Id.write("REM delay a few seconds before running the main PEST programs\n")
-        WDSM2Id.write("ping -n 5 127.0.0.1 > nul\n")
+        WDSM2Id.write("popd\n")
         WDSM2Id.write("start /min cmd /c %PESTBINDIR%GMAN64.exe /port 4004 /ip %MYIP% ^> gman.out\n")
         WDSM2Id.write("ping -n 5 127.0.0.1 > nul\n")
         WDSM2Id.write("start /min cmd /c %PESTBINDIR%GPEST64.exe %STUDYNAME% /H %MYIP%:4004 ^> gpest.out\n")
     elif typePEST == 'beo':
+        #WDSM2Id.write("start %PESTBINDIR%BEOPEST64.exe %STUDYNAME% /H :4004 ^> beo.out\n")
         WDSM2Id.write("%PESTBINDIR%BEOPEST64.exe %STUDYNAME% /H :4004\n")
     #
     WDSM2Id.close()
