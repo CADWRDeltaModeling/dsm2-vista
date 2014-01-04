@@ -75,32 +75,6 @@ def shortenName(nameList,longName,maxChars,Prefix=False):
         raise "Short name for",longName,"is too long, try shorter prefix"
     return shortName
 #
-def calcPriors():
-    """
-    Calculate the priors, if any, for this setup
-    """
-    listPI = []
-    if 'MANN' in paramGroups:
-        PIGrpName = 'MANN_PI'
-        PIWeight = 100
-        obsGroups.append(PIGrpName)
-        for chan in Channels.getChannels():
-            chan3 = "%03d" % int(chan.getId())
-            PILBL = 'MANN' + chan3 + '_PI'
-            PIVAL = chan.getMannings()
-            listPI.append([PILBL,PIVAL,PIWeight,PIGrpName])
-            #PIVAL = chan.getDispersion()
-    if 'DISP' in paramGroups:
-        PIGrpName = 'DISP_PI'
-        PIWeight = 50
-        obsGroups.append(PIGrpName)
-        for chan in Channels.getChannels():
-            chan3 = "%03d" % int(chan.getId())
-            PILBL = 'DISP' + chan3 + '_PI'
-            PIVAL = chan.getDispersion()
-            listPI.append([PILBL,PIVAL,PIWeight,PIGrpName])
-    return listPI
-#
 def getObsGroup(pathname):
     """
     Create the observed group name from the pathname (input);
@@ -219,10 +193,16 @@ if __name__ == '__main__':
                 ('ANH', 52, 366), \
                 ('CLL', 436, 5733), \
                 ('FAL', 279, 4500), \
+                ('GLC', 207, 0), \
+                ('GCT', 207, 0), \
                 ('HLT', 155, 0), \
                 ('HOL', 117, 2670), \
                 ('JER', 83, 4213), \
+                ('MHR', 129, 1000), \
+                ('MSD', 6, 3930), \
+                ('OBD', 80, 0), \
                 ('OBI', 106, 2718), \
+                ('OH1', 56, 0), \
                 ('OH4', 90, 3021), \
                 ('OLD', 71, 3116), \
                 ('PRI', 42, 286), \
@@ -231,7 +211,52 @@ if __name__ == '__main__':
                 ('SJJ', 83, 4213), \
                 ('SSS', 383, 9454), \
                 ('SUT', 379, 500), \
+                ('UNI', 125, 700), \
                    ]
+    # Observed data files, etc.
+    # Observed data paths; the DSM2 output paths are determined from these.
+    obsPaths = [ \
+            '/CDEC/ANC/EC/.*/15MIN/USBR/', \
+            '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
+            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
+            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/GCT/EC/.*/15MIN/DWR/', \
+            '/CDEC/GLC/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/HLT/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/JER/EC/.*/1HOUR/USBR/', \
+            '/CDEC/MHR/EC/.*/15MIN/DWR/', \
+            '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/MSD/EC/.*/15MIN/DWR-CENTRALDISTRICT/', \
+            '/CDEC/MSD/FLOW/.*/15MIN/DWR-CENTRALDISTRICT/', \
+            '/CDEC/OBD/EC/.*/15MIN/DWR/', \
+            '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
+            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
+            '/CDEC/OH1/FLOW/.*/15MIN/DWR/', \
+            '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/OLD/EC/.*/15MIN/DWR-OM/', \
+            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
+            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/UNI/EC/.*/15MIN/USBR/', \
+            '/FILL\+CHAN/RSAC054/EC/.*/1HOUR/DWR-DMS-201203_CORRECTED/', \
+            ]
+    # sort the paths to reproduce them in the same order
+    # from the DSM2 output paths; sorting will be alphabetically
+    # by C part (data type), then B part (location)
+    obsPaths = sorted(obsPaths, key=obsDataBParts)
+    obsPaths = sorted(obsPaths, key=obsDataCParts)
     #
     # Use either Width or Elev, not both
     paramGroups = [\
@@ -259,39 +284,6 @@ if __name__ == '__main__':
                      ,0.1 \
                      ,0.1 \
                      ]
-    #
-    # Observed data files, etc.
-    # Observed data paths; the DSM2 output paths are determined from these.
-    #
-    obsPaths = [ \
-            '/CDEC/ANC/EC/.*/15MIN/USBR/', \
-            '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
-            '/CDEC/JER/EC/.*/1HOUR/USBR/', \
-            '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
-            '/FILL\+CHAN/RSAC054/EC/.*/1HOUR/DWR-DMS-201203_CORRECTED/', \
-            '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/HLT/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
-            '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
-            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
-            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
-            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
-            ]
-    # sort the paths to reproduce them in the same order
-    # from the DSM2 output paths; sorting will be alphabetically
-    # by C part (data type), then B part (location)
-    obsPaths = sorted(obsPaths, key=obsDataBParts)
-    obsPaths = sorted(obsPaths, key=obsDataCParts)
     #
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups or 'DRAIN-EC' in paramGroups:
         PIAFId = open(PESTDir + PESTInpAgFile,'w')
@@ -475,9 +467,8 @@ if __name__ == '__main__':
                     NPAR += 1
     NOBS = nObs
     NPARGP = len(paramGroups)
-    priorList = calcPriors()
-    NPRIOR = len(priorList)
-    NOBSGP = len(obsGroups)
+    NPRIOR = NPAR # every parameter has prior information
+    NOBSGP = len(obsGroups)+NPARGP
     NTPLFLE = 0
     if 'MANN' in paramGroups or \
         'DISP' in paramGroups or \
@@ -546,8 +537,15 @@ if __name__ == '__main__':
     #
     for param in paramGroups:
         DERINCLB = paramDERINCLB[paramGroups.index(param)]
+        paramGrp = param.upper()
+        if paramGrp == 'DRAIN-FLOW':
+            paramGrp = 'DRN-Q'
+        if paramGrp == 'DIV-FLOW':
+            paramGrp = 'DIV-Q'  
+        if paramGrp == 'DRAIN-EC':
+            paramGrp = 'DRN-EC'
         PCFId.write('%s %s %4.3f %5.4f %s %3.1f %s\n' % \
-                    (param.upper(),INCTYP,DERINC,DERINCLB,FORCEN,DERINCMUL,DERMTHD))
+                    (paramGrp,INCTYP,DERINC,DERINCLB,FORCEN,DERINCMUL,DERMTHD))
     #
     # parameter data
     PCFId.write('* parameter data\n')
@@ -582,7 +580,7 @@ if __name__ == '__main__':
                 PCFId.write('%s %s %s %12.4f %12.4f %12.4f %s %5.2f %5.2f %1d\n' % \
                 (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                 # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
         #
         if paramUp == 'GATECF':
             # Adjust gate coefficients directly, similar to channel parameters.
@@ -614,7 +612,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
                 PARVAL1 = float(row[CF_ToLoc])
                 if PARVAL1 != 0.0:
                     PARLBND = PARVAL1 * 0.5
@@ -624,7 +622,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
             headersList = gatePipeList[0]
             uniq1 = headersList.index('GATE_NAME')
             uniq2 = headersList.index('DEVICE')
@@ -641,7 +639,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
                 PARVAL1 = float(row[CF_ToLoc])
                 if PARVAL1 != 0.0:
                     PARLBND = PARVAL1 * 0.5
@@ -651,7 +649,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
 #
         if paramUp == 'RESERCF':
             # adjust reservoir flow coefficients directly, similar to gate flow coeffs
@@ -675,7 +673,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
                 PARVAL1 = float(row[CF_OutLoc])
                 if PARVAL1 != 0.0:
                     PARLBND = PARVAL1 * 0.5
@@ -685,7 +683,7 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
 #
         if paramUp == 'ELEV' or paramUp == 'WIDTH':
             # cross-sections in channels;
@@ -704,18 +702,20 @@ if __name__ == '__main__':
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # create 'dummy' input/template files for x-sect calibration factors
-                    PIXFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+#                    PIXFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+                    PIXFId.write('%s %10.4f\n' % (PARNME,1.0))
                     PTXFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
         if paramUp == 'DIV-FLOW' or \
             paramUp == 'DRAIN-FLOW':
             # these calibration parameters, being timeseries, will be updated by a pre-processor
             # vscript before each DSM2 run. As with channel cross-sections, PEST will calibrate
             # 3 coefficients for each node.
+            stdev3 = 2.0
             PARVAL1 = 1.0
-            PARLBND = 0.5  
-            PARUBND = 1.5
+            PARLBND = PARVAL1 / stdev3
+            PARUBND = PARVAL1 * stdev3
             for srcInput in srcAgInputsHydro:
                 try: CPartUp = srcInput.path.upper().split('/')[3]
                 except: continue
@@ -725,19 +725,22 @@ if __name__ == '__main__':
                         shortName = 'DRN-Q'
                     else:
                         shortName = 'DIV-Q'  
+                    PARGP = shortName  # shorten param group name to be less than 12 chars
                     PARNME = shortName+node3  # shorten param name to be less than 12 chars
                     PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                     (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                     # create 'dummy' input/template files for Ag calibration factors
-                    PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+#                    PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+                    PIAFId.write('%s %10.4f\n' % (PARNME,1.0))
                     PTAFId.write('%s %s\n' % (PARNME,'@' + PARNME + '     @'))
                     # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                    paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
         if paramUp == 'DRAIN-EC':
             # similar to Div/Drain flows, but have to use rows from the input table
+            stdev3 = 4.0
             PARVAL1 = 1.0
-            PARLBND = 0.5  
-            PARUBND = 1.5
+            PARLBND = PARVAL1 / stdev3
+            PARUBND = PARVAL1 * stdev3
             for row in tableNodeConc.getValues():
                 path = row[5]
                 if path.find('/') >= 0:
@@ -746,14 +749,17 @@ if __name__ == '__main__':
                     try: node3 = "%03d" % int(pathParts[2])
                     except: continue
                     if CPartUp == paramUp:
-                        PARNME = 'DRN-EC' + node3
+                        shortName = 'DRN-EC'
+                        PARGP = shortName  # shorten param group name to be less than 12 chars
+                        PARNME = shortName + node3
                         PCFId.write('%s %s %s %10.3f %10.3f %10.3f %s %5.2f %5.2f %1d\n' % \
                         (PARNME,PARTRANS,PARCHGLIM,PARVAL1,PARLBND,PARUBND,PARGP,SCALE,OFFSET,DERCOM))
                         # create 'dummy' input/template files for Ag calibration factors
-                        PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+#                        PIAFId.write('%s %10.4f\n' % (PARNME,random.uniform(PARLBND, PARUBND)))
+                        PIAFId.write('%s %10.4f\n' % (PARNME,1.0))
                         PTAFId.write('%s %s\n' % (PARNME,'@' + PARNME + '  @'))
                         # save parameter name, initial value, and upper/lower bounds for Prior Information calcs later
-                        paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND]
+                        paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
     #
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups or 'DRAIN-EC' in paramGroups:
         PIAFId.close()
@@ -773,8 +779,18 @@ if __name__ == '__main__':
         except: pass
     # Observed data groups
     PCFId.write('* observation groups\n')
+    # Observed groups must also list prior information groups
     for obsGroup in obsGroups:
         PCFId.write('%s\n' % (obsGroup))
+    for paramGroup in paramGroups:
+        paramGrp = paramGroup.upper()
+        if paramGrp == 'DRAIN-FLOW':
+            paramGrp = 'DRN-Q'
+        if paramGrp == 'DIV-FLOW':
+            paramGrp = 'DIV-Q'  
+        if paramGrp == 'DRAIN-EC':
+            paramGrp = 'DRN-EC'
+        PCFId.write('%s\n' % (paramGrp+'_PI'))
     #
     # append the temp observed data file previously created
     OTF1Id = open(ObsTempFile1,'r')
@@ -799,19 +815,22 @@ if __name__ == '__main__':
     if 'ELEV' in paramGroups or 'WIDTH' in paramGroups:
         PCFId.write('%s %s\n' % (PESTTplXCFile, PESTInpXCFile))
     PCFId.write('%s %s\n* prior information\n' % (PESTInsFile, DSM2OutFile))
-    # write prior information, if any
-    # [PILBL,PIVAL,PIWeight,PIGrpName]
+    # write prior information
+    # paramInfo[PARNME] = [value, lower, upper, group name]
+    # make a sorted list of the parameter names so the .pst file is more readable
+    paramList = []
+    for p in paramInfo:
+        paramList.append(p)
+    paramList.sort()
     PIFAC = 1.0
-    for prior in priorList:
-        PILBL = prior[0]
-        PARNME = PILBL.replace('_PI','')
-        PIVAL = prior[1]
-        #WEIGHT = prior[2]
+    for PARNME in paramList:
+        PILBL = PARNME + '_PI'
+        PIVAL = paramInfo[PARNME][0]
         # for the Prior weight, assume the given lower/upper bounds of the parameters
         # are 3 Std Devs each from the mean.
         stDev = (paramInfo[PARNME][2]-paramInfo[PARNME][1])/6.
         WEIGHT = 1./stDev
-        OBGNME = prior[3]
+        OBGNME = paramInfo[PARNME][3] + '_PI'
         PCFId.write('%s %3.1f * %s = %12.3E %12.3E %s\n' %\
                      (PILBL, PIFAC, PARNME, PIVAL, WEIGHT, OBGNME))
     PCFId.close()
@@ -1123,13 +1142,10 @@ if __name__ == '__main__':
         fn = os.path.basename(f)
         WDSM2Id.write(fn + ", ")
     WDSM2Id.write("\n")    
-    writeStr = "set TSFILES=" + DivRtnQFile + ", " + RtnECFile + ", " + \
-                  "events.dss, gates-v8-06212012.dss, hist_19902012.dss"
-    if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups:
-        writeStr += ", " + DivRtnQFile.replace('.dss','-calib.dss')
-    if 'DRAIN-EC' in paramGroups:
-        writeStr += ", " + RtnECFile.replace('.dss','-calib.dss')
-    WDSM2Id.write(writeStr + "\n")
+    WDSM2Id.write("set TSFILES=" + \
+        DivRtnQFile.replace('.dss','-calib.dss') + ", " + \
+        RtnECFile.replace('.dss','-calib.dss') + ", " + \
+        "events.dss, gates-v8-06212012.dss, hist_19902012.dss\n")
     writeStr = "set PESTFILES=" + PESTFile + ", " + PESTInsFile
     if 'MANN' in paramGroups or \
         'DISP' in paramGroups or \
@@ -1169,6 +1185,8 @@ if __name__ == '__main__':
     WDSM2Id.write("\n")
     WDSM2Id.write("cd %RUNDIR%\n")
     WDSM2Id.write("@ren config_calib.inp config.inp\n")
+    WDSM2Id.write("@copy /b /y " + DivRtnQFile + " " + DivRtnQFile.replace(".dss","") + "-calib.dss\n")
+    WDSM2Id.write("@copy /b /y " + RtnECFile + " " + RtnECFile.replace(".dss","") + "-calib.dss\n")
     if useRestart:
         WDSM2Id.write("@ren hydro_calib_restart.inp hydro.inp\n")
         WDSM2Id.write("@ren qual_ec_calib_restart.inp qual_ec.inp\n")
@@ -1226,7 +1244,7 @@ if __name__ == '__main__':
     elif typePEST == 'beo':
         WDSM2Id.write("echo executable = %PESTBINDIR%BEOPEST64.exe >> %RUNDIR%\\dsm2.sub\n")
         WDSM2Id.write("echo arguments = %STUDYNAME% /H %COMPUTERNAME%:4004 >> %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("echo queue 30 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("echo queue 20 >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem do a base run to make sure it works\n")
     WDSM2Id.write("call dsm2run.bat\n")
