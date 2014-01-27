@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # are consistent (0000 vs 2400)
     runStartDateStr = runStartDateObj.format()
     runEndDateStr = runEndDateObj.format()
-    RunTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
+    runTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
     # Qual start date is one day after Hydro
     runStartDateObj_Qual = runStartDateObj + TF.createTimeInterval('1DAY')
     runStartDateStr_Qual = runStartDateObj_Qual.format()
@@ -191,7 +191,11 @@ if __name__ == '__main__':
     DSM2ObsLoc = [ \
                 ('ANC', 52, 366), \
                 ('ANH', 52, 366), \
+                ('BDT', 10, 9400), \
+                ('CLC', 232, 500), \
                 ('CLL', 436, 5733), \
+                ('CNT', 247, 0), \
+                ('DMC', 216, 2000), \
                 ('FAL', 279, 4500), \
                 ('GLC', 207, 0), \
                 ('GCT', 207, 0), \
@@ -199,58 +203,92 @@ if __name__ == '__main__':
                 ('HOL', 117, 2670), \
                 ('JER', 83, 4213), \
                 ('MHR', 129, 1000), \
+                ('MDM', 144, 838), \
                 ('MSD', 6, 3930), \
+                ('MTB', 133, 3641), \
+                ('PCT', 452, 190), \
                 ('OBD', 80, 0), \
                 ('OBI', 106, 2718), \
                 ('OH1', 56, 0), \
                 ('OH4', 90, 3021), \
                 ('OLD', 71, 3116), \
                 ('PRI', 42, 286), \
+                ('RRI', 20, 2520), \
                 ('RSAC054', 441, 5398), \
+                ('SAL', 349, 9672), \
                 ('SJG', 14, 3281), \
                 ('SJJ', 83, 4213), \
                 ('SSS', 383, 9454), \
                 ('SUT', 379, 500), \
+#                ('TMS', 309, 7593), \
+                ('TSL', 310, 540), \
                 ('UNI', 125, 700), \
+                ('VCU', 229, 1328), \
                    ]
     # Observed data files, etc.
     # Observed data paths; the DSM2 output paths are determined from these.
     obsPaths = [ \
             '/CDEC/ANC/EC/.*/15MIN/USBR/', \
             '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
-            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/BDT/EC/.*/15MIN/DWR-OM/', \
+            '/CDEC/CLC/EC/.*/1HOUR/DWR-OM/', \
             '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
-            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/CNT/EC/.*/15MIN/USBR/', \
+            '/CDEC/DMC/EC/.*/15MIN/USBR/', \
             '/CDEC/GCT/EC/.*/15MIN/DWR/', \
-            '/CDEC/GLC/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/HLT/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/GLC/EC/.*/15MIN/USGS/', \
+            '/CDEC/HLT/EC/.*/15MIN/USGS/', \
             '/CDEC/JER/EC/.*/1HOUR/USBR/', \
             '/CDEC/MHR/EC/.*/15MIN/DWR/', \
-            '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
             '/CDEC/MSD/EC/.*/15MIN/DWR-CENTRALDISTRICT/', \
-            '/CDEC/MSD/FLOW/.*/15MIN/DWR-CENTRALDISTRICT/', \
+            '/CDEC/MTB/EC/.*/15MIN/DWR/', \
             '/CDEC/OBD/EC/.*/15MIN/DWR/', \
-            '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
-            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
-            '/CDEC/OH1/FLOW/.*/15MIN/DWR/', \
-            '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
             '/CDEC/OLD/EC/.*/15MIN/DWR-OM/', \
-            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
-            '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/UNI/EC/.*/15MIN/USBR/', \
+            '/CDEC/PCT/EC/.*/15MIN/USBR/', \
+            '/CDEC/PRI/EC/.*/15MIN/USGS/', \
+            '/CDEC/RRI/EC/.*/15MIN/DWR/', \
             '/FILL\+CHAN/RSAC054/EC/.*/1HOUR/DWR-DMS-201203_CORRECTED/', \
+            '/CDEC/SAL/EC/.*/15MIN/USBR/', \
+#            '/CDEC/TMS/EC/.*/15MIN/DWR/', \
+            '/CDEC/TSL/EC/.*/15MIN/USGS/', \
+            '/CDEC/UNI/EC/.*/15MIN/USBR/', \
+            '/CDEC/VCU/EC/.*/15MIN/USGS/', \
+             '/CDEC/BDT/FLOW/.*/15MIN/DWR-OM/', \
+             '/CDEC/GLC/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/MDM/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/MSD/FLOW/.*/15MIN/DWR-CENTRALDISTRICT/', \
+             '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
+             '/CDEC/OH1/FLOW/.*/15MIN/DWR/', \
+             '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/RRI/FLOW/.*/15MIN/DWR/', \
+             '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/TSL/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/VCU/FLOW/.*/15MIN/USGS/', \
+             '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
+             '/CDEC/BDT/STAGE/.*/15MIN/DWR-OM/', \
+             '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/GCT/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/HLT/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/MDM/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/MTB/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
+             '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
+             '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/RRI/STAGE/.*/15MIN/DWR/', \
+             '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/TSL/STAGE/.*/15MIN/USGS/', \
+             '/CDEC/VCU/STAGE/.*/15MIN/USGS/', \
             ]
     # sort the paths to reproduce them in the same order
     # from the DSM2 output paths; sorting will be alphabetically
@@ -261,28 +299,28 @@ if __name__ == '__main__':
     # Use either Width or Elev, not both
     paramGroups = [\
 #                   'MANN' \
-#                   ,'DISP' \
+                   'DISP' \
 #                   ,'LENGTH' \
-#                   ,'GATECF' \
+#                   'GATECF' \
 #                   ,'RESERCF' \
 #                   ,'WIDTH' \
 #                   ,'ELEV' \
-                   'DIV-FLOW' \
-                   ,'DRAIN-FLOW' \
-                   ,'DRAIN-EC' \
+#                   'DIV-FLOW' \
+#                   ,'DRAIN-FLOW' \
+#                   ,'DRAIN-EC' \
                    ]
     # make sure these elements agree with paramGroups above
     paramDERINCLB = [\
 #                     0.001 \
-#                     ,10.0 \
+                     10.0 \
 #                     ,50.0 \
-#                     ,0.05 \
+#                     0.05 \
 #                     ,0.05 \
 #                     ,0.01 \
 #                     ,0.01 \
-                     0.1 \
-                     ,0.1 \
-                     ,0.1 \
+#                     0.1 \
+#                     ,0.1 \
+#                     ,0.1 \
                      ]
     #
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups or 'DRAIN-EC' in paramGroups:
@@ -488,34 +526,33 @@ if __name__ == '__main__':
     NUMCOM = 1
     JACFILE = 0
     MESSFILE = 0
-    RLAMBDA1 = 1.0
     RLAMFAC = 2.0
     PHIRATSUF = 0.3
     PHIREDLAM = 0.01
-    if RLAMBDA1 == 0:
-        NUMLAM = 1
-    else:
-        NUMLAM = 7    
     RELPARMAX = 5.0
     FACPARMAX = 5.0
     FACORIG = 0.001
     PHIREDSWH = 0.1
-#    NOPTMAX = -1
-    NOPTMAX = 3
+    NOPTMAX = -1
+    NOPTMAX = 5
     PHIREDSTP = 0.005
     NPHISTP = 4
     NPHINORED = 3
     RELPARSTP = 0.01
     NRELPAR = 3
-    if PESTMODE != 'regularisation':
-        ICOV = 1
-        ICOR = 1
-        IEIG = 1
-    else:
-        ICOV = 0
-        ICOR = 0
-        IEIG = 0
-    # print the header and PEST control info to the PEST control (.pst) file
+    ICOV = 0
+    ICOR = 0
+    IEIG = 0
+    # SVD values
+    SVDMODE = 1
+    MAXSING = 50
+    EIGTHRESH = 1.0E-3
+    EIGWRITE = 1
+    # Marquadt Lambda
+    # ignore PEST manual about NUMLAM=0 when using SVD
+    RLAMBDA1 = 1.0
+    NUMLAM = 15
+# print the header and PEST control info to the PEST control (.pst) file
     PCFId.write('pcf\n')
     PCFId.write('* control data\n')
     PCFId.write('%s %s\n' % (RSTFLE, PESTMODE))
@@ -526,6 +563,12 @@ if __name__ == '__main__':
     PCFId.write('%f\n' % (PHIREDSWH))
     PCFId.write('%d %f %d %d %f %d\n' % (NOPTMAX, PHIREDSTP, NPHISTP, NPHINORED, RELPARSTP, NRELPAR))
     PCFId.write('%d %d %d\n' % (ICOV, ICOR, IEIG))
+    #
+    if SVDMODE == 1:
+        PCFId.write('* singular value decomposition\n')
+        PCFId.write('%d\n' % SVDMODE)
+        PCFId.write('%d %10.5E\n' % (MAXSING, EIGTHRESH))
+        PCFId.write('%d\n' % (EIGWRITE))
     #
     # parameter groups
     PCFId.write('* parameter groups\n')
@@ -538,12 +581,17 @@ if __name__ == '__main__':
     for param in paramGroups:
         DERINCLB = paramDERINCLB[paramGroups.index(param)]
         paramGrp = param.upper()
+        if paramGrp == 'DISP':
+            DERINC = 0.40
         if paramGrp == 'DRAIN-FLOW':
             paramGrp = 'DRN-Q'
+            DERINC = 0.10
         if paramGrp == 'DIV-FLOW':
             paramGrp = 'DIV-Q'  
+            DERINC = 0.10
         if paramGrp == 'DRAIN-EC':
             paramGrp = 'DRN-EC'
+            DERINC = 0.20
         PCFId.write('%s %s %4.3f %5.4f %s %3.1f %s\n' % \
                     (paramGrp,INCTYP,DERINC,DERINCLB,FORCEN,DERINCMUL,DERMTHD))
     #
@@ -567,12 +615,12 @@ if __name__ == '__main__':
                 PARNME = paramUp + chan3
                 if paramUp == 'MANN':
                     PARVAL1 = chan.getMannings()
-                    PARLBND = PARVAL1/1.3 
-                    PARUBND = PARVAL1*1.3
+                    PARLBND = PARVAL1/1.5
+                    PARUBND = PARVAL1*1.5
                 if paramUp == 'DISP':
                     PARVAL1 = chan.getDispersion()
-                    PARLBND = PARVAL1/2. 
-                    PARUBND = PARVAL1*2.
+                    PARLBND = PARVAL1/3.0
+                    PARUBND = PARVAL1*3.0
                 if paramUp == 'LENGTH':
                     PARVAL1 = chan.getLength()
                     PARLBND = PARVAL1 / 1.2   
@@ -712,10 +760,15 @@ if __name__ == '__main__':
             # these calibration parameters, being timeseries, will be updated by a pre-processor
             # vscript before each DSM2 run. As with channel cross-sections, PEST will calibrate
             # 3 coefficients for each node.
-            stdev3 = 2.0
+            if paramUp == 'DIV-FLOW':
+                stdev3Up = 1.2
+                stdev3Lo = 1.5
+            if paramUp == 'DRAIN-FLOW':
+                stdev3Up = 1.5
+                stdev3Lo = 1.2
             PARVAL1 = 1.0
-            PARLBND = PARVAL1 / stdev3
-            PARUBND = PARVAL1 * stdev3
+            PARLBND = PARVAL1 / stdev3Lo
+            PARUBND = PARVAL1 * stdev3Up
             for srcInput in srcAgInputsHydro:
                 try: CPartUp = srcInput.path.upper().split('/')[3]
                 except: continue
@@ -737,7 +790,7 @@ if __name__ == '__main__':
                     paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
         if paramUp == 'DRAIN-EC':
             # similar to Div/Drain flows, but have to use rows from the input table
-            stdev3 = 4.0
+            stdev3 = 2.0
             PARVAL1 = 1.0
             PARLBND = PARVAL1 / stdev3
             PARUBND = PARVAL1 * stdev3
@@ -831,7 +884,7 @@ if __name__ == '__main__':
         stDev = (paramInfo[PARNME][2]-paramInfo[PARNME][1])/6.
         WEIGHT = 1./stDev
         OBGNME = paramInfo[PARNME][3] + '_PI'
-        PCFId.write('%s %3.1f * %s = %12.3E %12.3E %s\n' %\
+        PCFId.write('%s %5.2f * %s = %15.5E %15.5E %s\n' %\
                      (PILBL, PIFAC, PARNME, PIVAL, WEIGHT, OBGNME))
     PCFId.close()
     print 'Wrote',PCFId.name
@@ -865,15 +918,15 @@ if __name__ == '__main__':
                 downNode = int(lineParts[5])
                 PTFId.write('%3d ' % (chanNo))
                 if 'LENGTH' in paramGroups:
-                    PTFId.write('@LENGTH%03d@ ' % (chanNo))
+                    PTFId.write('@LENGTH%03d@  ' % (chanNo))
                 else:
                     PTFId.write('%10d  ' % (chanLen))
                 if 'MANN' in paramGroups:
-                    PTFId.write('@MANN%03d @ ' % (chanNo))
+                    PTFId.write('@MANN%03d     @  ' % (chanNo))
                 else:
                     PTFId.write('%10.4f ' % (chanMann))
                 if 'DISP' in paramGroups:
-                    PTFId.write('@DISP%03d  @' % (chanNo))
+                    PTFId.write('@DISP%03d     @  ' % (chanNo))
                 else:
                     PTFId.write('%10.4f ' % (chanDisp))
                 PTFId.write('%5d %5d\n' % (upNode, downNode))
@@ -923,12 +976,12 @@ if __name__ == '__main__':
                     # recreate shortened gate name
                     fullName = name+'CFFR:'+gateName+':'+devName
                     shortName = shortenName(gateList,fullName,12,name+'CFFR:')
-                    lineParts[CF_FromLoc] = '|' + shortName + '|' 
+                    lineParts[CF_FromLoc] = '|' + shortName + '      |' 
                 # accept only non-zero coeffs
                 if float(lineParts[CF_ToLoc]) != 0.0:
                     fullName = name+'CFTO:'+gateName+':'+devName
                     shortName = shortenName(gateList,fullName,12,name+'CFTO:')
-                    lineParts[CF_ToLoc] = '|' + shortName + '|'
+                    lineParts[CF_ToLoc] = '|' + shortName + '      |'
                 #
                 for i in range(len(lineParts)): 
                     PTFId.write('%s ' % lineParts[i])
@@ -971,10 +1024,10 @@ if __name__ == '__main__':
                 # accept only non-zero coeffs
                 if float(lineParts[CF_InLoc]) != 0.0:
                     shortName = shortenName(resList,'RESCFIN:' + resName + ':' + resNode,12,'RESCFIN:')
-                    lineParts[CF_InLoc] = '|' + shortName + '|' 
+                    lineParts[CF_InLoc] = '|' + shortName + '     |' 
                 if float(lineParts[CF_OutLoc]) != 0.0:
                     shortName = shortenName(resList,'RESCFOUT:' + resName + ':' + resNode,12,'RESCFOUT:')
-                    lineParts[CF_OutLoc] = '|' + shortName + '|'
+                    lineParts[CF_OutLoc] = '|' + shortName + '     |'
                 for i in range(len(lineParts)): 
                     PTFId.write('%s ' % lineParts[i])
                 PTFId.write('\n')
@@ -1009,6 +1062,20 @@ if __name__ == '__main__':
     WDSM2Id.write('#from vista.db.dss import *\n')
     WDSM2Id.write('from vutils import *\n')
     WDSM2Id.write('from vista.time import TimeFactory\n')
+    WDSM2Id.write('def writeText(filename,ds,outputFlags=False):\n')
+    WDSM2Id.write('    """\n')
+    WDSM2Id.write('    writeText(filename,ds,outputFlags=False)\n')
+    WDSM2Id.write('    Writes the given data set to the given filename,\n')
+    WDSM2Id.write('    using full precision available in the DSS file.\n')
+    WDSM2Id.write('    """\n')
+    WDSM2Id.write('    fid = open(filename,"w")\n')
+    WDSM2Id.write('    fid.write(SetUtils.getHeader(ds).toString().replace("\\r",""))\n')
+    WDSM2Id.write('    for i in range(len(ds)):\n')
+    WDSM2Id.write('        dse = ds.getElementAt(i)\n')
+    WDSM2Id.write('        fid.write("%s %15.10E\\n" % (dse.getXString(), dse.getY()))\n')
+    WDSM2Id.write('    fid.close()\n')
+    WDSM2Id.write('    return\n')
+    WDSM2Id.write('#\n')
     WDSM2Id.write('if __name__ == "__main__":\n')
     WDSM2Id.write("    TF = TimeFactory.getInstance()\n")
     WDSM2Id.write("    tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
@@ -1027,7 +1094,7 @@ if __name__ == '__main__':
     WDSM2Id.write("        for dssdr in dssgrp.getAllDataReferences():\n")
     WDSM2Id.write("            try: dssdr = DataReference.create(dssdr,tw)\n")
     WDSM2Id.write("            except: raise 'Error with DataReference(dssdr)'\n")
-    WDSM2Id.write("            writeascii(tempfile, dssdr.getData())\n")
+    WDSM2Id.write("            writeText(tempfile, dssdr.getData())\n")
     WDSM2Id.write("            tid = open(tempfile, 'r')\n")
     WDSM2Id.write("            fid.write(tid.read().replace('\t','    '))\n")
     WDSM2Id.write("            tid.close()\n")
@@ -1050,11 +1117,11 @@ if __name__ == '__main__':
     WDSM2Id.write("        if line.find('Type: ') > -1:\n")
     WDSM2Id.write("            typeStr = lineSplit[1].upper()\n")
     WDSM2Id.write("            continue\n")
-    WDSM2Id.write("        if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9.-]+$',line) > -1:\n")
+    WDSM2Id.write("        if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9eE.+-]+$',line) > -1:\n")
     WDSM2Id.write("            timeObj = TF.createTime(lineSplit[0]+' '+lineSplit[1])\n")
     WDSM2Id.write("            dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))\n")
     WDSM2Id.write("            timeStr = timeObj.format(DefaultTimeFormat('HHmm'))\n")
-    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')15:30'\n")
+    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')15:40'\n")
     WDSM2Id.write("            fid.write(dataID + '\\n')\n")
     WDSM2Id.write("    fid.close()\n")
     WDSM2Id.write("    tid.close()\n")
@@ -1074,11 +1141,18 @@ if __name__ == '__main__':
     WCONId.write("set /a bigdelay=(%random% %% 10)+5\n")
     WCONId.write("echo Delay %bigdelay% seconds\n")
     WCONId.write("ping -n %bigdelay% 127.0.0.1 > nul\n")
-    WCONId.write("echo Running on %COMPUTERNAME%\n")
+    WCONId.write("for /f \"tokens=2 delims=[]\" %%f in ('ping -4 -n 1 %COMPUTERNAME% " +
+                 "^| c:\Windows\system32\\find.exe /i \"pinging\"') do set IP=%%f\n")
+    WCONId.write("echo Running on %COMPUTERNAME% (%IP%)\n")
+    WCONId.write("echo  in directory %CD%\n")
     WCONId.write("echo Running Pre-Processor\n")
     WCONId.write("call %VISTABINDIR%vscript.bat " + preProcFile + "\n")
-    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
-    WCONId.write("if exist PESTCalib.dss del /f/q PESTCalib.dss\n")
+    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO PreProcCont\n")
+    WCONId.write("Rem here for pre-process runtime error\n")
+    WCONId.write("echo Pre-Process ERRORLEVEL %ERRORLEVEL%\n")
+    WCONId.write("exit /b 1\n")
+    WCONId.write(":PreProcCont\n")
+    WCONId.write("if exist " + DSM2DSSOutFile + " del /f/q " + DSM2DSSOutFile + "\n")
     WCONId.write("set /a smalldelay=(%random% %% 3)+2\n")
     WCONId.write("ping -n %smalldelay% 127.0.0.1 > nul\n")
     WCONId.write("rem run times\n")
@@ -1091,7 +1165,16 @@ if __name__ == '__main__':
     WCONId.write("echo Running hydro\n")
     WCONId.write("time /t\n")
     WCONId.write("hydro.exe hydro.inp\n")
-    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
+    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO QualCont\n")
+    WCONId.write("Rem here for Hydro runtime error\n")
+    WCONId.write("echo Hydro ERRORLEVEL %ERRORLEVEL%\n")
+    WCONId.write("xcopy /y /c /q hydro_echo_HIST-CLB2K.inp " + bs + bs + \
+                 "bdomo-002\\condor" + bs + "returnedFiles\n")
+    WCONId.write("if exist " + PESTInpAgFile + " xcopy /y /c /q " + \
+                 PESTInpAgFile + " " + bs + bs + \
+                 "bdomo-002\\condor" + bs + "returnedFiles\n")
+    WCONId.write("exit /b 1\n")
+    WCONId.write(":QualCont\n")
     WCONId.write("time /t\n")
     WCONId.write("echo Running qual\n")
     WCONId.write("time /t\n")
@@ -1105,7 +1188,11 @@ if __name__ == '__main__':
     WCONId.write("echo Running Post-Processor\n")
     WCONId.write("call %VISTABINDIR%vscript.bat " + postProcFile + \
                   " " + DSM2DSSOutFile + "\n")
-    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
+    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO PostProcCont\n")
+    WCONId.write("Rem here for post-process runtime error\n")
+    WCONId.write("echo Post-Process ERRORLEVEL %ERRORLEVEL%\n")
+    WCONId.write("exit /b 1\n")
+    WCONId.write(":PostProcCont\n")
     WCONId.write("rem Idiotic MS equivalent of touch\n")
     WCONId.write("copy /b dummy.txt +,,\n")
     WCONId.write("set /a smalldelay=(%random% %% 10)+5\n")
@@ -1174,6 +1261,7 @@ if __name__ == '__main__':
     WDSM2Id.write("@xcopy /q " + re.sub("/$", "", CommonDir).replace("/",bs) + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("@copy /y *.py %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y *.rmf %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.pst %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.tpl %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.inp %RUNDIR%\\\n")
@@ -1219,6 +1307,15 @@ if __name__ == '__main__':
     WDSM2Id.write("echo END >> qual_ec.inp\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem finish Condor submit file for PEST\n")
+    # minimum disk size is about 50MB + 500MB per year for DSM2 + PEST
+    # Note: 476 MB is the highest usage I've seen for 1 year.
+    #nYearsRun = runTSWin ??
+    if useRestart:
+        nYearsRun = 1.
+    else:
+        nYearsRun = 2.
+    diskSize = 50 + 500 * nYearsRun 
+    WDSM2Id.write("echo request_disk = " + str(int(diskSize+0.5)) + " MB >> %RUNDIR%\\dsm2.sub\n")
     writeStr = "echo transfer_input_files = dsm2run.bat, " + \
                   preProcFile + ", " + postProcFile + ", " + \
                   DSM2DSSOutHydroFile + ", " + DSM2DSSOutQualFile + ", %PESTFILES%, " + \
