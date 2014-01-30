@@ -98,52 +98,66 @@ if __name__ == '__main__':
     dq = '"'
     bs = "\\"
     global obsGroups
+    ##
+    ## Basic Settings
+    ##
     # what type of PEST parallel run?
     typePEST = 'beo'
     #typePEST = 'genie'
+    ##
     # DSM2 runs: restart or cold start?
     useRestart = True
-    # DSM2 run dates; these must match the DSM2 calibration BaseRun-1 or BaseRun-2 config file
+    ##
+    # run blocks (run periods); use 1 for calibration, the other for validation
+    useB1 = True
+    useB2 = False
+    ##
+    # DSM2 run dates; these must match the DSM2 BaseRun dates
+    time = '0000'
+    day = '01'
+    mon = 'OCT'
+    B1EndYear = 2009
+    B2EndYear = 2002
+    # runLength is years
     if useRestart:
-        runStartDateStr = '01OCT2008 0000'
+        runLength = 1
     else:
-        runStartDateStr = '01OCT2007 0000'
-    runEndDateStr = '01OCT2009 0000'
+        runLength = 2
     # compare obs/model data this time back from model run end time 
-    cmpDataTimeLength = '56DAY'
+    cmpDataTimeLength = '112DAY'
+    #cmpDataTimeLength = '55DAY'
     #
-    runStartDateObj = TF.createTime(runStartDateStr)
-    runEndDateObj = TF.createTime(runEndDateStr)
-    # create the strings again to ensure that midnight times
-    # are consistent (0000 vs 2400)
-    runStartDateStr = runStartDateObj.format()
-    runEndDateStr = runEndDateObj.format()
-    runTSWin = TF.createTimeWindow(runStartDateObj, runEndDateObj)
-    # Qual start date is one day after Hydro
-    runStartDateObj_Qual = runStartDateObj + TF.createTimeInterval('1DAY')
-    runStartDateStr_Qual = runStartDateObj_Qual.format()
-    runEndDateObj_Qual = runEndDateObj - TF.createTimeInterval('1DAY')
-    runEndDateStr_Qual = runEndDateObj_Qual.format()
-    # Calibration start and end dates must be within the run dates, 
+    B1StartDateObj_Hydro = TF.createTime(day+mon+str(B1EndYear-runLength)+' '+time)
+    B1EndDateObj_Hydro = TF.createTime(day+mon+str(B1EndYear)+' '+time)
+    B2StartDateObj_Hydro = TF.createTime(day+mon+str(B2EndYear-runLength)+' '+time)
+    B2EndDateObj_Hydro = TF.createTime('31DEC'+str(B2EndYear)+' '+time)
+    #
+    B1TSWin_Hydro = TF.createTimeWindow(B1StartDateObj_Hydro, B1EndDateObj_Hydro)
+    # Qual start/end dates are one day after/before Hydro
+    B1StartDateObj_Qual = B1StartDateObj_Hydro + TF.createTimeInterval('1DAY')
+    B1EndDateObj_Qual = B1EndDateObj_Hydro  - TF.createTimeInterval('1DAY')
+    B2StartDateObj_Qual = B2StartDateObj_Hydro + TF.createTimeInterval('1DAY')
+    B2EndDateObj_Qual = B2EndDateObj_Hydro - TF.createTimeInterval('1DAY')
+    # Comparison start and end dates must be within the run dates, 
     # and are used for observed and DSM2 comparison data. 
-    # A delayed calibration date allows DSM2 to equilibrate. 
-    # Later these could be modified to allow for a list of 
-    # multiple start/end calibration dates.
-    calibStartDateObj = runEndDateObj - TF.createTimeInterval(cmpDataTimeLength)
-    calibEndDateObj = runEndDateObj_Qual - TF.createTimeInterval('1DAY')
-    calibStartDateStr = calibStartDateObj.format()
-    calibEndDateStr = calibEndDateObj.format()
-    calibTW = TF.createTimeWindow(calibStartDateObj, calibEndDateObj)
+    # A delayed comparison date allows DSM2 to equilibrate with
+    # its new parameters. 
+    B1CmpStartDateObj = B1EndDateObj_Qual - TF.createTimeInterval(cmpDataTimeLength)
+    B1CmpEndDateObj = B1EndDateObj_Qual - TF.createTimeInterval('1DAY')
+    B1CmpTW = TF.createTimeWindow(B1CmpStartDateObj, B1CmpEndDateObj)
+    B2CmpStartDateObj = B2EndDateObj_Qual - TF.createTimeInterval(cmpDataTimeLength)
+    B2CmpEndDateObj = B2EndDateObj_Qual - TF.createTimeInterval('1DAY')
+    B2CmpTW = TF.createTimeWindow(B2CmpStartDateObj, B2CmpEndDateObj)
     # DSM2 directories and files
     DSM2Mod = 'HIST-CLB2K'
+    DSM2Run = 'BASE-v812'
     RootDir = 'D:/delta/models/'
     CommonDir = RootDir + 'dsm2_v8/common_input/'
     CalibDir = RootDir + '201X-Calibration/'
     TimeSeriesDir = RootDir + 'dsm2_v8/timeseries/'
-    BaseRun0Dir = CalibDir + 'BaseRun-0/Output/'
-    BaseRun1Dir = CalibDir + 'BaseRun-1/Output/'
-    HydroEchoFile = BaseRun1Dir + 'hydro_echo_HIST-CLB2K-BASE-v81_2_1.inp'
-    QualEchoFile = BaseRun1Dir + 'qual_ec_echo_HIST-CLB2K-BASE-v81_2_1.inp'
+    BaseRunDir = CalibDir + 'BaseRun-PEST/Output/'
+    HydroEchoFile = BaseRunDir + 'hydro_echo_' + DSM2Mod + '-' + DSM2Run + '-B1.inp'
+    QualEchoFile = BaseRunDir + 'qual_echo_' + DSM2Mod + '-' + DSM2Run + '-B1.inp'
     DivRtnQFile = 'dicu_201203.dss'
     RtnECFile = 'dicuwq_3vals_extended.dss'
     ChanInpFile = 'channel_std_delta_grid_NAVD_20121214-calib.inp'
@@ -169,7 +183,7 @@ if __name__ == '__main__':
     DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
     DSM2DSSOutQualFile = 'PEST_Qual_Out.inp'
     # The DSS file containing combined Hydro and Qual output
-    DSM2DSSOutFile = 'PESTCalib.dss'
+    CalibDSSOutFile = 'PESTCalib.dss'
     # The text equivalent of the DSS output, necessary for PEST
     DSM2OutFile = 'PESTCalib.out'
     # Pest directories and files
@@ -266,29 +280,29 @@ if __name__ == '__main__':
              '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
              '/CDEC/TSL/FLOW/.*/15MIN/USGS/', \
              '/CDEC/VCU/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
-             '/CDEC/BDT/STAGE/.*/15MIN/DWR-OM/', \
-             '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/GCT/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/HLT/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/MDM/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/MTB/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
-             '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
-             '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/RRI/STAGE/.*/15MIN/DWR/', \
-             '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/TSL/STAGE/.*/15MIN/USGS/', \
-             '/CDEC/VCU/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/BDT/STAGE/.*/15MIN/DWR-OM/', \
+            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/GCT/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/HLT/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/MDM/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/MTB/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
+            '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
+            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/RRI/STAGE/.*/15MIN/DWR/', \
+            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/TSL/STAGE/.*/15MIN/USGS/', \
+            '/CDEC/VCU/STAGE/.*/15MIN/USGS/', \
             ]
     # sort the paths to reproduce them in the same order
     # from the DSM2 output paths; sorting will be alphabetically
@@ -298,8 +312,8 @@ if __name__ == '__main__':
     #
     # Use either Width or Elev, not both
     paramGroups = [\
-#                   'MANN' \
-                   'DISP' \
+                   'MANN' \
+#                   'DISP' \
 #                   ,'LENGTH' \
 #                   'GATECF' \
 #                   ,'RESERCF' \
@@ -311,8 +325,8 @@ if __name__ == '__main__':
                    ]
     # make sure these elements agree with paramGroups above
     paramDERINCLB = [\
-#                     0.001 \
-                     10.0 \
+                     0.001 \
+#                     10.0 \
 #                     ,50.0 \
 #                     0.05 \
 #                     ,0.05 \
@@ -391,9 +405,9 @@ if __name__ == '__main__':
         # average 15MIN data to 1HOUR
         if dataref[0].getPathname().getPart(Pathname.E_PART) == '15MIN':
             dataset = per_avg(dataset,'1HOUR')
-        dataset = dataset.createSlice(calibTW)
-        sti = dsIndex(dataset, calibStartDateObj)
-        eti = dsIndex(dataset, calibEndDateObj) + 1
+        dataset = dataset.createSlice(B1CmpTW)
+        sti = dsIndex(dataset, B1CmpStartDateObj)
+        eti = dsIndex(dataset, B1CmpEndDateObj) + 1
 #        print 'Writing path', obsPath
         # calculate weight for this path; this weight will be used
         # for all observations in the path, except for bad
@@ -429,7 +443,8 @@ if __name__ == '__main__':
                 weight = pathWeight
             else:
                 weight = 0.0
-            OTF1Id.write("%s%s%s%s %s %12.5E %s\n" % (staName, dataType, dateStr, timeStr, valStr, weight, obsGroup))
+            OTF1Id.write("%-20s %s %12.5E %s\n" % \
+                         (staName+dataType+dateStr+timeStr, valStr, weight, obsGroup))
         #
         # write the corresponding DSM2 output line for the observed data path
         tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
@@ -444,10 +459,10 @@ if __name__ == '__main__':
         if dataType.lower() == 'stage' or \
            dataType.lower() == 'flow':
             DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, \
-                                        dataType, '1HOUR', perType, DSM2DSSOutFile))
+                                        dataType, '1HOUR', perType, CalibDSSOutFile))
         else:
             DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, \
-                                        dataType, '1HOUR', perType, DSM2DSSOutFile))
+                                        dataType, '1HOUR', perType, CalibDSSOutFile))
         #
     DSM2HydroId.write('END')
     DSM2QualId.write('END')
@@ -1078,18 +1093,18 @@ if __name__ == '__main__':
     WDSM2Id.write('#\n')
     WDSM2Id.write('if __name__ == "__main__":\n')
     WDSM2Id.write("    TF = TimeFactory.getInstance()\n")
-    WDSM2Id.write("    tw = TF.createTimeWindow('" + calibStartDateStr + " - " + \
-                  calibEndDateStr + "')\n")
+    WDSM2Id.write("    tw = TF.createTimeWindow('" + B1CmpStartDateObj.format() + " - " + \
+                  B1CmpEndDateObj.format() + "')\n")
     WDSM2Id.write("    # This post-processor was generated by PEST_Create_Files.py\n" + \
                   "    # It translates DSM2 DSS output for calibration to a text file,\n" + \
                   "    # then generates the matching PEST instruction file for the output.\n" + \
                   "    # On initial PEST start, run this using the base-1 dss output.\n")
-    WDSM2Id.write("    DSM2DSSOutFile = sys.argv[1]\n")
+    WDSM2Id.write("    CalibDSSOutFile = sys.argv[1]\n")
     WDSM2Id.write("    tempfile = 'temp.out'\n")
     WDSM2Id.write("    try: fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
     WDSM2Id.write("    except: raise 'Error opening " + DSM2OutFile + "'\n")
     WDSM2Id.write("    for dataType in [" + dataTypesStr + "]:\n")
-    WDSM2Id.write("        dssgrp = opendss(DSM2DSSOutFile)\n")
+    WDSM2Id.write("        dssgrp = opendss(CalibDSSOutFile)\n")
     WDSM2Id.write("        dssgrp.filterBy('/'+dataType+'/')\n")
     WDSM2Id.write("        for dssdr in dssgrp.getAllDataReferences():\n")
     WDSM2Id.write("            try: dssdr = DataReference.create(dssdr,tw)\n")
@@ -1132,74 +1147,82 @@ if __name__ == '__main__':
     #
     ## Create the run-time *.bat files for the Condor runs of PEST;
     ## this varies somewhat depending on type of PEST parallelization
+    # Create batch file for Hydro and Qual runs under PEST
     WCONId = open(PESTDir + 'dsm2run.bat', 'w')
-    # Create condor_dsm2.bat file for Hydro and Qual runs
     WCONId.write("@echo off\n")
     WCONId.write("set VISTABINDIR=c:\\condor\\vista\\bin\\\n")
     WCONId.write("set PESTBINDIR=c:\\condor\\PEST\\bin\\\n")
     WCONId.write("setlocal\n")
-    WCONId.write("set /a bigdelay=(%random% %% 10)+5\n")
-    WCONId.write("echo Delay %bigdelay% seconds\n")
-    WCONId.write("ping -n %bigdelay% 127.0.0.1 > nul\n")
     WCONId.write("for /f \"tokens=2 delims=[]\" %%f in ('ping -4 -n 1 %COMPUTERNAME% " +
                  "^| c:\Windows\system32\\find.exe /i \"pinging\"') do set IP=%%f\n")
     WCONId.write("echo Running on %COMPUTERNAME% (%IP%)\n")
     WCONId.write("echo  in directory %CD%\n")
     WCONId.write("echo Running Pre-Processor\n")
     WCONId.write("call %VISTABINDIR%vscript.bat " + preProcFile + "\n")
-    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO PreProcCont\n")
-    WCONId.write("Rem here for pre-process runtime error\n")
+    WCONId.write("if %ERRORLEVEL% GTR 0 (\n")
     WCONId.write("echo Pre-Process ERRORLEVEL %ERRORLEVEL%\n")
     WCONId.write("exit /b 1\n")
-    WCONId.write(":PreProcCont\n")
-    WCONId.write("if exist " + DSM2DSSOutFile + " del /f/q " + DSM2DSSOutFile + "\n")
-    WCONId.write("set /a smalldelay=(%random% %% 3)+2\n")
-    WCONId.write("ping -n %smalldelay% 127.0.0.1 > nul\n")
-    WCONId.write("rem run times\n")
-    WCONId.write("set START_DATE=" + runStartDateStr.split()[0] + "\n")
-    WCONId.write("set START_TIME=" + runStartDateStr.split()[1] + "\n")
-    WCONId.write("set END_DATE=" + runEndDateStr.split()[0] + "\n")
-    WCONId.write("set END_TIME=" + runEndDateStr.split()[1] + "\n")
-    WCONId.write("set QUAL_START_DATE=" + runStartDateStr_Qual.split()[0] + "\n")
-    WCONId.write("set QUAL_END_DATE=" + runEndDateStr_Qual.split()[0] + "\n")
-    WCONId.write("echo Running hydro\n")
+    WCONId.write(")\n")
+    if useB1:
+        WCONId.write("if exist " + CalibDSSOutFile + " del /f/q " + CalibDSSOutFile + "\n")
+        WCONId.write("set START_DATE=" + B1StartDateObj_Hydro.format().split()[0] + "\n")
+        WCONId.write("set START_TIME=" + B1StartDateObj_Hydro.format().split()[1] + "\n")
+        WCONId.write("set END_DATE=" + B1EndDateObj_Hydro.format().split()[0] + "\n")
+        WCONId.write("set END_TIME=" + B1EndDateObj_Hydro.format().split()[1] + "\n")
+        WCONId.write("set QUAL_START_DATE=" + B1StartDateObj_Qual.format().split()[0] + "\n")
+        WCONId.write("set QUAL_END_DATE=" + B1EndDateObj_Qual.format().split()[0] + "\n")
+        WCONId.write("set HYDRORSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B1.hrf\n")
+        WCONId.write("set QUALRSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B1.qrf\n")
+        WCONId.write("call :RUNDSM2\n")
+    if useB2:
+        WCONId.write("set START_DATE=" + B2StartDateObj_Hydro.format().split()[0] + "\n")
+        WCONId.write("set START_TIME=" + B2StartDateObj_Hydro.format().split()[1] + "\n")
+        WCONId.write("set END_DATE=" + B2EndDateObj_Hydro.format().split()[0] + "\n")
+        WCONId.write("set END_TIME=" + B2EndDateObj_Hydro.format().split()[1] + "\n")
+        WCONId.write("set QUAL_START_DATE=" + B2StartDateObj_Qual.format().split()[0] + "\n")
+        WCONId.write("set QUAL_END_DATE=" + B2EndDateObj_Qual.format().split()[0] + "\n")
+        WCONId.write("set HYDRORSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B2.hrf\n")
+        WCONId.write("set QUALRSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B2.qrf\n")
+        WCONId.write("call :RUNDSM2\n")
+    WCONId.write("rem post-process to prepare output for PEST\n\n")
+    WCONId.write("echo Running Post-Processor\n")
+    WCONId.write("call %VISTABINDIR%vscript.bat " + postProcFile + \
+                  " " + CalibDSSOutFile + "\n")
+    WCONId.write("if %ERRORLEVEL% GTR 0 (\n")
+    WCONId.write("echo Post-Process ERRORLEVEL %ERRORLEVEL%\n")
+    WCONId.write("exit /b 1\n")
+    WCONId.write(")\n")
+    WCONId.write("rem Idiotic MS equivalent of touch\n")
+    WCONId.write("copy /b dummy.txt +,,\n")
+#    WCONId.write("call %PESTBINDIR%pestchek.exe DSM2\n")
+#    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
+    WCONId.write("exit /b 0\n")
+    WCONId.write("\n")
+    WCONId.write(":RUNDSM2\n")
+    WCONId.write("echo Starting DSM2 on %START_DATE%\n")
     WCONId.write("time /t\n")
     WCONId.write("hydro.exe hydro.inp\n")
-    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO QualCont\n")
-    WCONId.write("Rem here for Hydro runtime error\n")
+    WCONId.write("if %errorlevel% GTR 0 (\n")
     WCONId.write("echo Hydro ERRORLEVEL %ERRORLEVEL%\n")
-    WCONId.write("xcopy /y /c /q hydro_echo_HIST-CLB2K.inp " + bs + bs + \
+    WCONId.write("echo Error in Hydro run.\n")
+    WCONId.write("xcopy /y /c /q hydro_echo_*.inp " + bs + bs + \
                  "bdomo-002\\condor" + bs + "returnedFiles\n")
     WCONId.write("if exist " + PESTInpAgFile + " xcopy /y /c /q " + \
                  PESTInpAgFile + " " + bs + bs + \
                  "bdomo-002\\condor" + bs + "returnedFiles\n")
-    WCONId.write("exit /b 1\n")
-    WCONId.write(":QualCont\n")
-    WCONId.write("time /t\n")
-    WCONId.write("echo Running qual\n")
+    WCONId.write("exit 1\n")
+    WCONId.write(")\n")
+    WCONId.write("echo Hydro run OK\n")
     WCONId.write("time /t\n")
     WCONId.write("qual.exe qual_ec.inp\n")
-    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
+    WCONId.write("if %errorlevel% GTR 0 (\n")
+    WCONId.write("echo Qual ERRORLEVEL %ERRORLEVEL%\n")
+    WCONId.write("echo Error in Qual run.\n")
+    WCONId.write("exit 1\n")
+    WCONId.write(")\n")
+    WCONId.write("echo Qual run OK\n")
     WCONId.write("time /t\n")
-    WCONId.write("set /a smalldelay=(%random% %% 10)+5\n")
-    WCONId.write("ping -n %smalldelay% 127.0.0.1 > nul\n")
-    WCONId.write("\n")
-    WCONId.write("rem post-process to prepare output for PEST\n\n")
-    WCONId.write("echo Running Post-Processor\n")
-    WCONId.write("call %VISTABINDIR%vscript.bat " + postProcFile + \
-                  " " + DSM2DSSOutFile + "\n")
-    WCONId.write("if %ERRORLEVEL% EQU 0 GOTO PostProcCont\n")
-    WCONId.write("Rem here for post-process runtime error\n")
-    WCONId.write("echo Post-Process ERRORLEVEL %ERRORLEVEL%\n")
-    WCONId.write("exit /b 1\n")
-    WCONId.write(":PostProcCont\n")
-    WCONId.write("rem Idiotic MS equivalent of touch\n")
-    WCONId.write("copy /b dummy.txt +,,\n")
-    WCONId.write("set /a smalldelay=(%random% %% 10)+5\n")
-#    WCONId.write("ping -n %smalldelay% 127.0.0.1 > nul\n")
-#    WCONId.write("call %PESTBINDIR%pestchek.exe DSM2\n")
-#    WCONId.write("if ERRORLEVEL 1 exit /b 1\n")
-    WCONId.write("exit /b 0\n")
+    WCONId.write("exit /b 0\n")    
     WCONId.close()
     print 'Wrote', WCONId.name
     # Create the main .bat file to start a parallel PEST calibration.
@@ -1216,7 +1239,6 @@ if __name__ == '__main__':
     WDSM2Id.write("set CONDORBINDIR=c:\\condor\\bin\\\n")
     WDSM2Id.write("set VISTABINDIR=c:\\condor\\vista\\bin\\\n")
     WDSM2Id.write("set PESTBINDIR=c:\\condor\\PEST\\bin\\\n")
-    WDSM2Id.write("set DSM2RUN0=BASE-v81_2_0\n")
     WDSM2Id.write("set STUDYNAME=" + PESTFile.replace(".pst","") + "\n")
     if typePEST == 'genie':
         WDSM2Id.write("rem get this machine's IP number\n")
@@ -1268,8 +1290,8 @@ if __name__ == '__main__':
     WDSM2Id.write("@copy /y dummy.txt %RUNDIR%\\\n")
 
     WDSM2Id.write("@copy /y " + fileSub + " %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("@copy /y " + BaseRun0Dir.replace("/","\\") + "*%DSM2RUN0%.?rf %RUNDIR%\\\n")
-    WDSM2Id.write("@copy /b /y " + BaseRun1Dir.replace("/","\\") + DSM2DSSOutFile + " %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y " + BaseRunDir.replace("/","\\") + "*"+DSM2Run+"-B?.?rf %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /b /y " + BaseRunDir.replace("/","\\") + CalibDSSOutFile + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("cd %RUNDIR%\n")
     WDSM2Id.write("@ren config_calib.inp config.inp\n")
@@ -1320,8 +1342,9 @@ if __name__ == '__main__':
                   preProcFile + ", " + postProcFile + ", " + \
                   DSM2DSSOutHydroFile + ", " + DSM2DSSOutQualFile + ", %PESTFILES%, " + \
                   "hydro.exe, qual.exe, hydro.inp, qual_ec.inp, " \
-                  + DSM2Mod + "-%DSM2RUN0%.qrf, " \
-                  + DSM2Mod + "-%DSM2RUN0%.hrf, config.inp, dummy.txt"
+                  + DSM2Mod + "-" + DSM2Run + "-B1.hrf, " + DSM2Mod + "-" + DSM2Run + "-B2.hrf, " \
+                  + DSM2Mod + "-" + DSM2Run + "-B1.qrf, " + DSM2Mod + "-" + DSM2Run + "-B2.qrf, " \
+                  + " config.inp, dummy.txt"
     if 'MANN' in paramGroups or \
         'DISP' in paramGroups or \
         'LENGTH' in paramGroups:
