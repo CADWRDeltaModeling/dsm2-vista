@@ -83,9 +83,8 @@ def getObsGroup(pathname):
     the C Part and B Part (location) together. Comment out
     whichever line below you don't want it to be.
     """
-    obsGrp = obsDataBParts(pathname)+':'+obsDataCParts(pathname)
-    #obsGrp = obsDataCParts(pathname)
-    return obsGrp
+    obsGrp = obsDataBParts(pathname).upper()+':'+obsDataCParts(pathname).upper()
+    return obsGrp.replace('STAGE','STG').replace('FLOW','Q')
 #
 if __name__ == '__main__':
     TF = TimeFactory.getInstance()
@@ -112,27 +111,21 @@ if __name__ == '__main__':
     useB1 = True
     useB2 = False
     ##
-    # DSM2 run dates; these must match the DSM2 BaseRun dates
-    time = '0000'
-    day = '01'
-    mon = 'OCT'
-    B1EndYear = 2009
-    B2EndYear = 2002
+    # DSM2 start run dates; these must match the DSM2 BaseRun dates
+    # if a restart file is used
     # runLength is years
-    if useRestart:
-        runLength = 1
-    else:
-        runLength = 2
+    B1StartDateObj_Hydro = TF.createTime('01OCT2008 0000')
+    B2StartDateObj_Hydro = TF.createTime('01OCT2001 0000')
+    if not useRestart:
+        B1StartDateObj_Hydro = B1StartDateObj_Hydro - TF.createTimeInterval('1YEAR')
+        B2StartDateObj_Hydro = B2StartDateObj_Hydro - TF.createTimeInterval('1YEAR')
+    #
+    B1EndDateObj_Hydro = TF.createTime('01OCT2009 0000')
+    B2EndDateObj_Hydro = TF.createTime('31DEC2002 0000')    
     # compare obs/model data this time back from model run end time 
     cmpDataTimeLength = '112DAY'
     #cmpDataTimeLength = '55DAY'
     #
-    B1StartDateObj_Hydro = TF.createTime(day+mon+str(B1EndYear-runLength)+' '+time)
-    B1EndDateObj_Hydro = TF.createTime(day+mon+str(B1EndYear)+' '+time)
-    B2StartDateObj_Hydro = TF.createTime(day+mon+str(B2EndYear-runLength)+' '+time)
-    B2EndDateObj_Hydro = TF.createTime('31DEC'+str(B2EndYear)+' '+time)
-    #
-    B1TSWin_Hydro = TF.createTimeWindow(B1StartDateObj_Hydro, B1EndDateObj_Hydro)
     # Qual start/end dates are one day after/before Hydro
     B1StartDateObj_Qual = B1StartDateObj_Hydro + TF.createTimeInterval('1DAY')
     B1EndDateObj_Qual = B1EndDateObj_Hydro  - TF.createTimeInterval('1DAY')
@@ -148,6 +141,9 @@ if __name__ == '__main__':
     B2CmpStartDateObj = B2EndDateObj_Qual - TF.createTimeInterval(cmpDataTimeLength)
     B2CmpEndDateObj = B2EndDateObj_Qual - TF.createTimeInterval('1DAY')
     B2CmpTW = TF.createTimeWindow(B2CmpStartDateObj, B2CmpEndDateObj)
+    # Block with weight==1 is calibration, weight==0 is validation
+    B1Weights = 1.
+    B2Weights = 0.
     # DSM2 directories and files
     DSM2Mod = 'HIST-CLB2K'
     DSM2Run = 'BASE-v812'
@@ -178,6 +174,8 @@ if __name__ == '__main__':
     #
     obsDataDir = CalibDir + 'Observed Data/'
     obsDataFile = obsDataDir + 'CalibObsData.dss'
+    obsDataPaths = obsDataDir + 'CalibObsData.txt'
+    obsDSM2ChanLocs = CalibDir + 'DSM2_Locs.txt'
     # PEST outputs for Hydro and Qual runs, these contain output paths
     # matching observed data paths
     DSM2DSSOutHydroFile = 'PEST_Hydro_Out.inp'
@@ -199,111 +197,54 @@ if __name__ == '__main__':
     # remove old files
     for f in glob.glob(PESTDir + '*.tpl'):
         os.remove(f)
+    ##
+    # read DSM2 base run info
+    p = Parser()
+    tablesHydro = p.parseModel(HydroEchoFile)
+    tablesQual = p.parseModel(QualEchoFile)
+    Channels = tablesHydro.toChannels()
+    bndryInputsHydro = tablesHydro.toBoundaryInputs()
+    srcAgInputsHydro = bndryInputsHydro.getSourceFlowInputs()
+    bndryInputsQual = tablesQual.toBoundaryInputs()
+    #srcAgInputsQual = bndryInputsQual.getSourceFlowInputs()
+    tableNodeConc = tablesQual.getTableNamed('NODE_CONCENTRATION')
+    # read the gate input file for gate data
+    gatePipeList = parseInpSects(CommonDir + GateInpFile,'GATE_PIPE_DEVICE')
+    gateWeirList = parseInpSects(CommonDir + GateInpFile,'GATE_WEIR_DEVICE')
+    # read the reservoir input file for reservoir connection data
+    resCFList = parseInpSects(CommonDir + ResInpFile,'RESERVOIR_CONNECTION')
+    #
+    # Observed data files, etc.
+    # Observed data paths; the DSM2 output paths are determined from these.
+    ##
+    ## All observed data should already be in RTS 1HOUR time interval,
+    ## checked for errors, units reconciled, etc.
+    ##
+    obsPaths = []
+    fid = open(obsDataPaths, 'r')
+    for line in fid.readlines():
+        if line[0] == '#':
+            continue
+        obsPaths.append(line.rstrip())
+    fid.close()
     # DSM2 output locations
     # Each observed B part (location) must have a corresponding
     # DSM2 channel/length in this list of tuples
-    DSM2ObsLoc = [ \
-                ('ANC', 52, 366), \
-                ('ANH', 52, 366), \
-                ('BDT', 10, 9400), \
-                ('CLC', 232, 500), \
-                ('CLL', 436, 5733), \
-                ('CNT', 247, 0), \
-                ('DMC', 216, 2000), \
-                ('FAL', 279, 4500), \
-                ('GLC', 207, 0), \
-                ('GCT', 207, 0), \
-                ('HLT', 155, 0), \
-                ('HOL', 117, 2670), \
-                ('JER', 83, 4213), \
-                ('MHR', 129, 1000), \
-                ('MDM', 144, 838), \
-                ('MSD', 6, 3930), \
-                ('MTB', 133, 3641), \
-                ('PCT', 452, 190), \
-                ('OBD', 80, 0), \
-                ('OBI', 106, 2718), \
-                ('OH1', 56, 0), \
-                ('OH4', 90, 3021), \
-                ('OLD', 71, 3116), \
-                ('PRI', 42, 286), \
-                ('RRI', 20, 2520), \
-                ('RSAC054', 441, 5398), \
-                ('SAL', 349, 9672), \
-                ('SJG', 14, 3281), \
-                ('SJJ', 83, 4213), \
-                ('SSS', 383, 9454), \
-                ('SUT', 379, 500), \
-#                ('TMS', 309, 7593), \
-                ('TSL', 310, 540), \
-                ('UNI', 125, 700), \
-                ('VCU', 229, 1328), \
-                   ]
-    # Observed data files, etc.
-    # Observed data paths; the DSM2 output paths are determined from these.
-    obsPaths = [ \
-            '/CDEC/ANC/EC/.*/15MIN/USBR/', \
-            '/CDEC/ANH/EC/.*/1HOUR/DWR-OM/', \
-            '/CDEC/BDT/EC/.*/15MIN/DWR-OM/', \
-            '/CDEC/CLC/EC/.*/1HOUR/DWR-OM/', \
-            '/CDEC/CLL/EC/.*/1HOUR/USBR/', \
-            '/CDEC/CNT/EC/.*/15MIN/USBR/', \
-            '/CDEC/DMC/EC/.*/15MIN/USBR/', \
-            '/CDEC/GCT/EC/.*/15MIN/DWR/', \
-            '/CDEC/GLC/EC/.*/15MIN/USGS/', \
-            '/CDEC/HLT/EC/.*/15MIN/USGS/', \
-            '/CDEC/JER/EC/.*/1HOUR/USBR/', \
-            '/CDEC/MHR/EC/.*/15MIN/DWR/', \
-            '/CDEC/MSD/EC/.*/15MIN/DWR-CENTRALDISTRICT/', \
-            '/CDEC/MTB/EC/.*/15MIN/DWR/', \
-            '/CDEC/OBD/EC/.*/15MIN/DWR/', \
-            '/CDEC/OLD/EC/.*/15MIN/DWR-OM/', \
-            '/CDEC/PCT/EC/.*/15MIN/USBR/', \
-            '/CDEC/PRI/EC/.*/15MIN/USGS/', \
-            '/CDEC/RRI/EC/.*/15MIN/DWR/', \
-            '/FILL\+CHAN/RSAC054/EC/.*/1HOUR/DWR-DMS-201203_CORRECTED/', \
-            '/CDEC/SAL/EC/.*/15MIN/USBR/', \
-#            '/CDEC/TMS/EC/.*/15MIN/DWR/', \
-            '/CDEC/TSL/EC/.*/15MIN/USGS/', \
-            '/CDEC/UNI/EC/.*/15MIN/USBR/', \
-            '/CDEC/VCU/EC/.*/15MIN/USGS/', \
-             '/CDEC/BDT/FLOW/.*/15MIN/DWR-OM/', \
-             '/CDEC/GLC/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/HOL/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/MDM/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/MSD/FLOW/.*/15MIN/DWR-CENTRALDISTRICT/', \
-             '/CDEC/OBI/FLOW/.*/1HOUR/USGS/', \
-             '/CDEC/OH1/FLOW/.*/15MIN/DWR/', \
-             '/CDEC/PRI/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/RRI/FLOW/.*/15MIN/DWR/', \
-             '/CDEC/SJJ/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/SUT/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/TSL/FLOW/.*/15MIN/USGS/', \
-             '/CDEC/VCU/FLOW/.*/15MIN/USGS/', \
-            '/CDEC/ANH/STAGE/.*/1HOUR/DWR-OM/', \
-            '/CDEC/BDT/STAGE/.*/15MIN/DWR-OM/', \
-            '/CDEC/FAL/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/GCT/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/GLC/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/HLT/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/HOL/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/MDM/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/MHR/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/MTB/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/OBD/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/OBI/STAGE/.*/1HOUR/USGS/', \
-            '/CDEC/OH1/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/OH4/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/OLD/STAGE/.*/1HOUR/DWR-OM/', \
-            '/CDEC/PRI/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/RRI/STAGE/.*/15MIN/DWR/', \
-            '/CDEC/SJG/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SJJ/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SSS/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/SUT/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/TSL/STAGE/.*/15MIN/USGS/', \
-            '/CDEC/VCU/STAGE/.*/15MIN/USGS/', \
-            ]
+    DSM2ObsLoc = []
+    fid = open(obsDSM2ChanLocs,'r')
+    for line in fid.readlines():
+        if line[0] == '#':
+            continue
+        tmp = line.rstrip().split()
+        sta = tmp[0]
+        chanNo = int(tmp[1])
+        chanDist = tmp[2]
+        if chanDist != 'END':
+            chanDist = int(chanDist)
+        else:
+            chanDist = Channels.getChannel(str(chanNo)).getLength()
+        DSM2ObsLoc.append(tuple([sta, chanNo, chanDist]))
+    fid.close()
     # sort the paths to reproduce them in the same order
     # from the DSM2 output paths; sorting will be alphabetically
     # by C part (data type), then B part (location)
@@ -313,7 +254,7 @@ if __name__ == '__main__':
     # Use either Width or Elev, not both
     paramGroups = [\
                    'MANN' \
-#                   'DISP' \
+                   ,'DISP' \
 #                   ,'LENGTH' \
 #                   'GATECF' \
 #                   ,'RESERCF' \
@@ -326,7 +267,7 @@ if __name__ == '__main__':
     # make sure these elements agree with paramGroups above
     paramDERINCLB = [\
                      0.001 \
-#                     10.0 \
+                     ,10.0 \
 #                     ,50.0 \
 #                     0.05 \
 #                     ,0.05 \
@@ -351,23 +292,7 @@ if __name__ == '__main__':
     ObsTempFile1 = PESTDir + 'temp1.txt'
     OTF1Id = open(ObsTempFile1,'w')
     #
-    # read DSM2 base run info
-    p = Parser()
-    tablesHydro = p.parseModel(HydroEchoFile)
-    tablesQual = p.parseModel(QualEchoFile)
-    Channels = tablesHydro.toChannels()
-    bndryInputsHydro = tablesHydro.toBoundaryInputs()
-    srcAgInputsHydro = bndryInputsHydro.getSourceFlowInputs()
-    bndryInputsQual = tablesQual.toBoundaryInputs()
-    #srcAgInputsQual = bndryInputsQual.getSourceFlowInputs()
-    tableNodeConc = tablesQual.getTableNamed('NODE_CONCENTRATION')
-    # read the gate input file for gate data
-    gatePipeList = parseInpSects(CommonDir + GateInpFile,'GATE_PIPE_DEVICE')
-    gateWeirList = parseInpSects(CommonDir + GateInpFile,'GATE_WEIR_DEVICE')
-    # read the reservoir input file for reservoir connection data
-    resCFList = parseInpSects(CommonDir + ResInpFile,'RESERVOIR_CONNECTION')
-    #
-    # read observed data file for desired locations and date range
+    # read observed data DSS file at desired locations and date range
     # write observed data to a temporary file for later inclusion in
     # the .pst file.
     #
@@ -385,85 +310,134 @@ if __name__ == '__main__':
     DSM2QualId.write('# PEST Calibration output for QUAL.\n' \
                       'OUTPUT_CHANNEL\n' \
                       'NAME CHAN_NO DISTANCE VARIABLE INTERVAL PERIOD_OP FILE\n')
-    for obsPath in obsPaths:
-        g = find(dss_group,obsPath)
-        dataref = g.getAllDataReferences()
-        if len(dataref) > 1:
-            print 'Error, too many observed DSS paths for',obsPath
-            sys.exit()
-        if len(dataref) < 1:
-            print 'Error, no observed DSS paths for', obsPath
-            sys.exit()
-        obsGroup = getObsGroup(dataref[0].getPathname().toString())
-        if obsGroup not in obsGroups:
-            obsGroups += [obsGroup]
-        staName = dataref[0].getPathname().getPart(Pathname.B_PART)
-        dataType = dataref[0].getPathname().getPart(Pathname.C_PART)
-        if dataType not in dataTypes:
-            dataTypes += [dataType]
-        dataset = dataref[0].getData()
-        # average 15MIN data to 1HOUR
-        if dataref[0].getPathname().getPart(Pathname.E_PART) == '15MIN':
-            dataset = per_avg(dataset,'1HOUR')
-        dataset = dataset.createSlice(B1CmpTW)
-        sti = dsIndex(dataset, B1CmpStartDateObj)
-        eti = dsIndex(dataset, B1CmpEndDateObj) + 1
-#        print 'Writing path', obsPath
-        # calculate weight for this path; this weight will be used
-        # for all observations in the path, except for bad
-        # or missing data, which is given weight = 0
-        arrPathVals = SetUtils.createYArray(dataset)
-        meanPath = Stats.avg(dataset)
-        avgPath = 0.0; count = 0
-        for ndx in range(sti, eti):
-            el = dataset.getElementAt(ndx)
-            val = el.getY()
-            if filter.isAcceptable(el):
-                avgPath += abs(val)
-                count += 1
-        avgPath /= count
-        stdDevPath = Stats.sdev(dataset)
-        if dataset.getAttributes().getYUnits().upper() == 'MS/CM':
-            meanPath *= 1000.
-            avgPath *= 1000.
-            stdDevPath *= 1000.
-        pathWeight = 1./abs(avgPath)
-        #pathWeight = 1./stdDevPath
-        for ndx in range(sti, eti):
-            nObs += 1
-            el = dataset.getElementAt(ndx)
-            timeObj = TF.createTime(long(el.getX()))
-            dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))
-            timeStr = timeObj.format(DefaultTimeFormat('HHmm'))
-            val = el.getY()
-            if dataset.getAttributes().getYUnits().upper() == 'MS/CM':
-                val *= 1000.
-            valStr = '%15.3f' % (val)
-            if filter.isAcceptable(el):
-                weight = pathWeight
+    for useBlock in [1, 2]:
+        if useBlock == 1:
+            if not useB1:
+                continue
             else:
-                weight = 0.0
-            OTF1Id.write("%-20s %s %12.5E %s\n" % \
-                         (staName+dataType+dateStr+timeStr, valStr, weight, obsGroup))
-        #
-        # write the corresponding DSM2 output line for the observed data path
-        tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
-        chan_No = tup[1]
-        chan_Dist = tup[2]
-        fmtStr = '%s    %3d %8d   %s     %s      %s  %s\n'
-        # special case for Martinez EC output, to match observed data period type
-        if staName == 'RSAC054' and dataType == 'EC':
-            perType = 'ave'
-        else:
-            perType = 'inst'
-        if dataType.lower() == 'stage' or \
-           dataType.lower() == 'flow':
-            DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, \
-                                        dataType, '1HOUR', perType, CalibDSSOutFile))
-        else:
-            DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, \
-                                        dataType, '1HOUR', perType, CalibDSSOutFile))
-        #
+                print 'Processing observed data, Block 1',B1CmpTW.toString()
+                print
+                CmpTW = B1CmpTW
+                CmpStartDateObj = B1CmpStartDateObj
+                CmpEndDateObj = B1CmpEndDateObj
+                BlockWeight = B1Weights
+        if useBlock == 2:
+            if not useB2:
+                continue
+            else:
+                print 'Processing observed data, Block 2', B2CmpTW.toString()
+                print
+                CmpTW = B2CmpTW
+                CmpStartDateObj = B2CmpStartDateObj
+                CmpEndDateObj = B2CmpEndDateObj
+                BlockWeight = B2Weights
+        for obsPath in obsPaths:
+            g = find(dss_group,obsPath.replace('+','\+'))
+            dataref = g.getAllDataReferences()
+            if len(dataref) > 1:
+                print 'Error, too many observed DSS paths for',obsPath
+                sys.exit()
+            if len(dataref) < 1:
+                print 'Dropping path', obsPath, 'observed DSS path not found'
+                #del obsPaths[obsPaths.index(obsPath)]
+                continue
+            staName = dataref[0].getPathname().getPart(Pathname.B_PART)
+            dataType = dataref[0].getPathname().getPart(Pathname.C_PART)
+            dataset = dataref[0].getData()
+            perType = dataset.getAttributes().getYType().upper()
+            #print staName, dataType
+            if perType == "PER-INST":
+                perType = "INST"
+            if perType == "PER-AVER":
+                perType = "AVE"
+            #
+            if len(staName) > 7:
+                print 'Dropping path', obsPath, 'station name', staName, 'too long'
+                #del obsPaths[obsPaths.index(obsPath)]
+                continue
+            dataset = dataset.createSlice(CmpTW)
+            if dataset == None:
+                print 'Dropping path', obsPath, 'no observed data in time window'
+                #del obsPaths[obsPaths.index(obsPath)]
+                continue
+            # check for a corresponding DSM2 channel output for the observed data
+            try: tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
+            except:
+                print 'Dropping path', obsPath, 'no channel location for station', staName
+                #del obsPaths[obsPaths.index(obsPath)]
+                continue
+            # get data, assign 0 weight if missing, correct EC units,
+            # write to temp file
+            sti = dsIndex(dataset, CmpStartDateObj, strict=True)
+            eti = dsIndex(dataset, CmpEndDateObj, strict=True)
+            if sti == None or eti == None:
+                print 'Dropping path', obsPath, 'only partial observed data in time window'
+                #del obsPaths[obsPaths.index(obsPath)]
+                continue
+            eti += 1            
+            obsGroup = getObsGroup(dataref[0].getPathname().toString())
+            if obsGroup not in obsGroups:
+                obsGroups.append(obsGroup)
+            if dataType not in dataTypes:
+                dataTypes.append(dataType)
+            # calculate weight for this path; this weight will be used
+            # for all observations in the path, except for bad
+            # or missing data, which is given weight = 0
+            arrPathVals = SetUtils.createYArray(dataset)
+            try:
+                meanPath = Stats.avg(dataset)
+            except:
+                print 'Dropping path', obsPath, 'no valid data in time window'
+                continue
+            avgPath = 0.0; count = 0
+            for ndx in range(sti, eti):
+                el = dataset.getElementAt(ndx)
+                val = el.getY()
+                if filter.isAcceptable(el):
+                    avgPath += abs(val)
+                    count += 1
+            avgPath /= count
+            stdDevPath = Stats.sdev(dataset)
+            # use micro mhos/cm (micro siemens/cm) for all ECs
+            if dataset.getAttributes().getYUnits().upper() == 'MS/CM' or \
+                dataset.getAttributes().getYUnits().upper() == 'MMHOS/CM':
+                meanPath *= 1000.
+                avgPath *= 1000.
+                stdDevPath *= 1000.
+            pathWeight = 1./abs(stdDevPath)
+            #pathWeight = 1./stdDevPath
+            for ndx in range(sti, eti):
+                nObs += 1
+                el = dataset.getElementAt(ndx)
+                timeObj = TF.createTime(long(el.getX()))
+                dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))
+                timeStr = timeObj.format(DefaultTimeFormat('HHmm'))
+                val = el.getY()
+                if dataset.getAttributes().getYUnits().upper() == 'MS/CM' or \
+                    dataset.getAttributes().getYUnits().upper() == 'MMHOS/CM':
+                    val *= 1000.
+                valStr = '%15.3f' % (val)
+                if filter.isAcceptable(el):
+                    weight = pathWeight*BlockWeight
+                else:
+                    weight = 0.0
+                
+                dT = dataType.replace('STAGE','STG').replace('FLOW','Q')
+                OTF1Id.write("%-30s %s %12.5E %s\n" % \
+                             (staName+dT+dateStr+timeStr, valStr, weight, obsGroup))
+            # write the corresponding DSM2 output line for the observed data path
+            chan_No = tup[1]
+            chan_Dist = tup[2]
+            fmtStr = '%s    %3d %8d   %s     %s      %s  %s\n'
+            if dataType.lower() == 'stage' or \
+               dataType.lower() == 'flow':
+                DSM2HydroId.write(fmtStr % (staName, chan_No, chan_Dist, \
+                                            dataType, '1HOUR', perType, CalibDSSOutFile))
+            else:
+                DSM2QualId.write( fmtStr % (staName, chan_No, chan_Dist, \
+                                            dataType, '1HOUR', perType, CalibDSSOutFile))
+        # End obsPaths loop
+    # End of useBlock loop
     DSM2HydroId.write('END')
     DSM2QualId.write('END')
     OTF1Id.close()
@@ -549,7 +523,8 @@ if __name__ == '__main__':
     FACORIG = 0.001
     PHIREDSWH = 0.1
     NOPTMAX = -1
-    NOPTMAX = 5
+    NOPTMAX = 0
+    NOPTMAX = 10
     PHIREDSTP = 0.005
     NPHISTP = 4
     NPHINORED = 3
@@ -560,8 +535,8 @@ if __name__ == '__main__':
     IEIG = 0
     # SVD values
     SVDMODE = 1
-    MAXSING = 50
-    EIGTHRESH = 1.0E-3
+    MAXSING = 60
+    EIGTHRESH = 1.0E-5
     EIGWRITE = 1
     # Marquadt Lambda
     # ignore PEST manual about NUMLAM=0 when using SVD
@@ -634,8 +609,8 @@ if __name__ == '__main__':
                     PARUBND = PARVAL1*1.5
                 if paramUp == 'DISP':
                     PARVAL1 = chan.getDispersion()
-                    PARLBND = PARVAL1/3.0
-                    PARUBND = PARVAL1*3.0
+                    PARLBND = PARVAL1/10.0
+                    PARUBND = PARVAL1*10.0
                 if paramUp == 'LENGTH':
                     PARVAL1 = chan.getLength()
                     PARLBND = PARVAL1 / 1.2   
@@ -1093,8 +1068,13 @@ if __name__ == '__main__':
     WDSM2Id.write('#\n')
     WDSM2Id.write('if __name__ == "__main__":\n')
     WDSM2Id.write("    TF = TimeFactory.getInstance()\n")
-    WDSM2Id.write("    tw = TF.createTimeWindow('" + B1CmpStartDateObj.format() + " - " + \
-                  B1CmpEndDateObj.format() + "')\n")
+    WDSM2Id.write("    twList = []\n")
+    if useB1:
+        WDSM2Id.write("    twList.append(TF.createTimeWindow('" + B1CmpStartDateObj.format() + " - " + \
+                      B1CmpEndDateObj.format() + "'))\n")
+    if useB2:
+        WDSM2Id.write("    twList.append(TF.createTimeWindow('" + B2CmpStartDateObj.format() + " - " + \
+                      B2CmpEndDateObj.format() + "'))\n")
     WDSM2Id.write("    # This post-processor was generated by PEST_Create_Files.py\n" + \
                   "    # It translates DSM2 DSS output for calibration to a text file,\n" + \
                   "    # then generates the matching PEST instruction file for the output.\n" + \
@@ -1103,16 +1083,19 @@ if __name__ == '__main__':
     WDSM2Id.write("    tempfile = 'temp.out'\n")
     WDSM2Id.write("    try: fid = open(" + sq + DSM2OutFile + sq + ", 'w')\n")
     WDSM2Id.write("    except: raise 'Error opening " + DSM2OutFile + "'\n")
-    WDSM2Id.write("    for dataType in [" + dataTypesStr + "]:\n")
-    WDSM2Id.write("        dssgrp = opendss(CalibDSSOutFile)\n")
-    WDSM2Id.write("        dssgrp.filterBy('/'+dataType+'/')\n")
-    WDSM2Id.write("        for dssdr in dssgrp.getAllDataReferences():\n")
-    WDSM2Id.write("            try: dssdr = DataReference.create(dssdr,tw)\n")
-    WDSM2Id.write("            except: raise 'Error with DataReference(dssdr)'\n")
-    WDSM2Id.write("            writeText(tempfile, dssdr.getData())\n")
-    WDSM2Id.write("            tid = open(tempfile, 'r')\n")
-    WDSM2Id.write("            fid.write(tid.read().replace('\t','    '))\n")
-    WDSM2Id.write("            tid.close()\n")
+    WDSM2Id.write("    for tw in twList:\n")
+    WDSM2Id.write("        for dataType in [" + dataTypesStr + "]:\n")
+    WDSM2Id.write("            dssgrp = opendss(CalibDSSOutFile)\n")
+    WDSM2Id.write("            dssgrp.filterBy('/'+dataType+'/')\n")
+    WDSM2Id.write("            for dssdr in dssgrp.getAllDataReferences():\n")
+    WDSM2Id.write("                try:\n")
+    WDSM2Id.write("                    dssdr = DataReference.create(dssdr,tw)\n")
+    WDSM2Id.write("                    writeText(tempfile, dssdr.getData())\n")
+    WDSM2Id.write("                except: raise 'Error with ',dssdr\n")
+    WDSM2Id.write("                tid = open(tempfile, 'r')\n")
+    WDSM2Id.write("                fid.write(tid.read().replace('\t','    '))\n")
+    WDSM2Id.write("                tid.close()\n")
+    WDSM2Id.write("    #\n")
     WDSM2Id.write("    fid.close()\n")
     WDSM2Id.write("    print 'Wrote', fid.name\n")
     WDSM2Id.write("    if os.path.exists(tempfile):\n")
@@ -1131,12 +1114,13 @@ if __name__ == '__main__':
     WDSM2Id.write("            continue\n")
     WDSM2Id.write("        if line.find('Type: ') > -1:\n")
     WDSM2Id.write("            typeStr = lineSplit[1].upper()\n")
+    WDSM2Id.write("            typeStr = typeStr.replace('STAGE','STG').replace('FLOW','Q')\n")
     WDSM2Id.write("            continue\n")
     WDSM2Id.write("        if re.search('^[0-9][0-9][A-Z][A-Z][A-Z][12][90][78901][0-9] [0-2][0-9][0-9][0-9][ \t]+[0-9eE.+-]+$',line) > -1:\n")
     WDSM2Id.write("            timeObj = TF.createTime(lineSplit[0]+' '+lineSplit[1])\n")
     WDSM2Id.write("            dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))\n")
     WDSM2Id.write("            timeStr = timeObj.format(DefaultTimeFormat('HHmm'))\n")
-    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')15:40'\n")
+    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')25:80'\n")
     WDSM2Id.write("            fid.write(dataID + '\\n')\n")
     WDSM2Id.write("    fid.close()\n")
     WDSM2Id.write("    tid.close()\n")
@@ -1200,6 +1184,7 @@ if __name__ == '__main__':
     WCONId.write("\n")
     WCONId.write(":RUNDSM2\n")
     WCONId.write("echo Starting DSM2 on %START_DATE%\n")
+    WCONId.write("ping -n 2 127.0.0.1 > nul\n")
     WCONId.write("time /t\n")
     WCONId.write("hydro.exe hydro.inp\n")
     WCONId.write("if %errorlevel% GTR 0 (\n")
@@ -1213,6 +1198,7 @@ if __name__ == '__main__':
     WCONId.write("exit 1\n")
     WCONId.write(")\n")
     WCONId.write("echo Hydro run OK\n")
+    WCONId.write("ping -n 2 127.0.0.1 > nul\n")
     WCONId.write("time /t\n")
     WCONId.write("qual.exe qual_ec.inp\n")
     WCONId.write("if %errorlevel% GTR 0 (\n")
@@ -1222,6 +1208,7 @@ if __name__ == '__main__':
     WCONId.write(")\n")
     WCONId.write("echo Qual run OK\n")
     WCONId.write("time /t\n")
+    WCONId.write("ping -n 2 127.0.0.1 > nul\n")
     WCONId.write("exit /b 0\n")    
     WCONId.close()
     print 'Wrote', WCONId.name
