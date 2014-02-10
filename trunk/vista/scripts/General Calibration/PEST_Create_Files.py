@@ -109,7 +109,7 @@ if __name__ == '__main__':
     ##
     # run blocks (run periods); use 1 for calibration, the other for validation
     useB1 = True
-    useB2 = False
+    useB2 = True
     ##
     # DSM2 start run dates; these must match the DSM2 BaseRun dates
     # if a restart file is used
@@ -250,33 +250,23 @@ if __name__ == '__main__':
     # by C part (data type), then B part (location)
     obsPaths = sorted(obsPaths, key=obsDataBParts)
     obsPaths = sorted(obsPaths, key=obsDataCParts)
-    #
+    # Observed Parameter Groups
     # Use either Width or Elev, not both
-    paramGroups = [\
-                   'MANN' \
-                   ,'DISP' \
-#                   ,'LENGTH' \
-#                   'GATECF' \
-#                   ,'RESERCF' \
-#                   ,'WIDTH' \
-#                   ,'ELEV' \
-#                   'DIV-FLOW' \
-#                   ,'DRAIN-FLOW' \
-#                   ,'DRAIN-EC' \
-                   ]
-    # make sure these elements agree with paramGroups above
-    paramDERINCLB = [\
-                     0.001 \
-                     ,10.0 \
-#                     ,50.0 \
-#                     0.05 \
-#                     ,0.05 \
-#                     ,0.01 \
-#                     ,0.01 \
-#                     0.1 \
-#                     ,0.1 \
-#                     ,0.1 \
-                     ]
+    paramGrpDER = [ \
+                   ['MANN',0.001] \
+#                   ['DISP',10.0] \
+#                    ['LENGTH' ,50.0], \
+#                    ['GATECF' ,0.05], \
+#                    ['RESERCF' ,0.05], \
+#                    ['WIDTH' ,0.01], \
+#                    ['ELEV' ,0.01], \
+#                    ['DIV-FLOW' ,0.1], \
+#                    ['DRAIN-FLOW' ,0.1], \
+#                    ['DRAIN-EC' ,0.1] \
+        ]
+    paramGroups, paramDERINCLB = zip(*paramGrpDER)
+    paramGroups = list(paramGroups)
+    paramDERINCLB = list(paramDERINCLB)
     #
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups or 'DRAIN-EC' in paramGroups:
         PIAFId = open(PESTDir + PESTInpAgFile,'w')
@@ -538,6 +528,13 @@ if __name__ == '__main__':
     MAXSING = 60
     EIGTHRESH = 1.0E-5
     EIGWRITE = 1
+    # Least Squares values
+    LSQRMODE = 0
+    LSQR_ATOL = 1.e-10
+    LSQR_BTOL = 1.e-10
+    LSQR_CONLIM = 1.e3
+    LSQR_ITNLIM = 10000
+    LSQRWRITE = 1
     # Marquadt Lambda
     # ignore PEST manual about NUMLAM=0 when using SVD
     RLAMBDA1 = 1.0
@@ -557,9 +554,14 @@ if __name__ == '__main__':
     if SVDMODE == 1:
         PCFId.write('* singular value decomposition\n')
         PCFId.write('%d\n' % SVDMODE)
+        PCFId.write('%10.5E %10.5E %10.5E %d\n' % (LSQR_ATOL, LSQR_BTOL, LSQR_CONLIM, LSQR_ITNLIM))
+        PCFId.write('%d\n' % (LSQRWRITE))
+    #
+    if LSQRMODE == 1:
+        PCFId.write('* lsqr\n')
+        PCFId.write('%d\n' % SVDMODE)
         PCFId.write('%d %10.5E\n' % (MAXSING, EIGTHRESH))
         PCFId.write('%d\n' % (EIGWRITE))
-    #
     # parameter groups
     PCFId.write('* parameter groups\n')
     INCTYP = 'relative'
