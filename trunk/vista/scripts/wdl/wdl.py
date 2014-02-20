@@ -27,7 +27,7 @@ class WDLStationAnalyteData:
             v = float(value)
         except ValueError, ve:
             v = Constants.MISSING_VALUE
-            print 'Missing value: ' + value
+            #print 'Missing value: ' + value
         self.vals.append([t, v])
     def toITS(self):
         svals = sorted(self.vals, lambda x, y: x[0] - y[0])
@@ -184,45 +184,45 @@ def download_counties(filename,idnumlst,sdate,edate):
 #(1) by search map, by specifying county, by specifying station id
 #program first read a configuration file
 if __name__ == '__main__':
-    filename='d:/temp/wdl.dss'
-    searchby="MAP"
-    sdate=""
-    edate=""
-    if len(sys.argv) > 1:  #search by map
+    cfgfile='Y:/Observed Data/WDL/wdl.cfg'
+    if len(sys.argv) > 1:  # config file on command line
         cfgfile = sys.argv[1]
-        idnumfile = ""
-        #read configuration file 
-        fin=open(cfgfile,"r")
+    idnumfile = ""
+    # read configuration file 
+    fin=open(cfgfile,"r")
+    lines = fin.readlines()
+    fin.close()
+    for line in lines:
+        if line.find("#") > -1:  # don't use comment line
+            continue
+        strlst = line.rstrip()
+        # do splits on 1st or 2nd whitespace to allow spaces in filename
+        if strlst.upper().find("DSSPATH") > -1:
+            filename = strlst.split(None,1)[1]
+        elif strlst.upper().find("SDATE") > -1:
+            sdate = strlst.split(None,1)[1]
+        elif strlst.upper().find("EDATE") > -1:
+            edate = strlst.split(None,1)[1]
+        elif strlst.upper().find("SEARCHBY") > -1:
+            searchby = strlst.upper().split(None,2)[1]
+            if searchby == "STATIONID" or searchby == "COUNTY":
+                idnumfile = strlst.split(None,2)[2]
+                if len(idnumfile)<1:  # no file specified
+                    searchby = "MAP"
+    print 'Will write WDL data to DSS file',filename
+    if searchby == "MAP":
+        download_delta_stations_from_map(filename,sdate,edate)
+    else:
+        fin=open(idnumfile,"r")
         lines = fin.readlines()
         fin.close()
+        idnumlst = []
         for line in lines:
-            strlst = line.split()
-            keywd = strlst[0].upper()
-            if keywd == "DSSPATH":
-                filename = strlst[1]
-            if keywd == "SDATE":
-                sdate = strlst[1]
-            if keywd == "EDATE":
-                edate = strlst[1]
-            if keywd == "SEARCHBY":
-                searchby = strlst[1].upper()
-                if searchby == "STATIONID" or searchby == "COUNTY":
-                    idnumfile = strlst[2]
-                    if len(idnumfile)<1:  #no file specified
-                        searchby = "MAP"
-        if searchby == "MAP":
-            download_delta_stations_from_map(filename,sdate,edate)
+            if line.find("#") == -1:  #not use comment line
+                idnumlst.append(line.strip()) # get rid of \n
+        if searchby == "STATIONID":
+            write_to_dss(filename,idnumlst,0,sdate,edate)
         else:
-            fin=open(idnumfile,"r")
-            lines = fin.readlines()
-            fin.close()
-            idnumlst = []
-            for line in lines:
-                if line.find("#") == -1:  #not use comment line
-                    idnumlst.append(line.strip()) # get rid of \n
-            if searchby == "STATIONID":
-                write_to_dss(filename,idnumlst,0,sdate,edate)
-            else:
-                download_counties(filename,idnumlst,sdate,edate)
-        print 'Done downloading data to %s'%filename
+            download_counties(filename,idnumlst,sdate,edate)
+    print 'Done downloading data to %s'%filename
 #
