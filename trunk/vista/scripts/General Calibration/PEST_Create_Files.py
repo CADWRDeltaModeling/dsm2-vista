@@ -133,9 +133,8 @@ if __name__ == '__main__':
     sq = "'"
     dq = '"'
     bs = "\\"
-    global obsGroups
     ##
-    ## Basic Settings
+    ## Basic Settings/Most commonly changed settings
     ##
     # what type of PEST parallel run?
     typePEST = 'beo'
@@ -145,8 +144,8 @@ if __name__ == '__main__':
     useRestart = True
     ##
     # run blocks (run periods); use 1 for calibration, the other for validation
-    useB1 = True
-    useB2 = False
+    useB1 = False
+    useB2 = True
     if useB1 and useB2:
         raise 'Use Block 1 or Block 2, not both.'
     if not useB1 and not useB2:
@@ -155,6 +154,27 @@ if __name__ == '__main__':
     # use tied/fixed parameters?
     useTiedFixed = True
     ##
+    # Observed Parameter Groups
+    # Use either Width or Elev, not both
+    paramGrpDER = [ \
+                   ['MANN',0.001] \
+                   #['DISP',10.0] \
+#                    ['LENGTH' ,50.0], \
+#                    ['GATECF' ,0.05], \
+#                    ['RESERCF' ,0.05], \
+#                    ['WIDTH' ,0.01], \
+#                    ['ELEV' ,0.01], \
+#                    ['DIV-FLOW' ,0.1], \
+#                    ['DRAIN-FLOW' ,0.1], \
+#                    ['DRAIN-EC' ,0.1] \
+        ]
+    # compare obs/model data this time back from model run end time 
+    cmpDataTimeLength = '112DAY'
+    #cmpDataTimeLength = '55DAY'
+    #
+    paramGroups, paramDERINCLB = zip(*paramGrpDER)
+    paramGroups = list(paramGroups)
+    paramDERINCLB = list(paramDERINCLB)
     # DSM2 start run dates; these must match the DSM2 BaseRun dates
     # if a restart file is used
     # runLength is years
@@ -166,10 +186,6 @@ if __name__ == '__main__':
     #
     B1EndDateObj_Hydro = TF.createTime('01OCT2009 0000')
     B2EndDateObj_Hydro = TF.createTime('31DEC2002 0000')    
-    # compare obs/model data this time back from model run end time 
-    cmpDataTimeLength = '112DAY'
-    #cmpDataTimeLength = '55DAY'
-    #
     # Qual start/end dates are one day after/before Hydro
     B1StartDateObj_Qual = B1StartDateObj_Hydro + TF.createTimeInterval('1DAY')
     B1EndDateObj_Qual = B1EndDateObj_Hydro  - TF.createTimeInterval('1DAY')
@@ -296,23 +312,6 @@ if __name__ == '__main__':
     # by C part (data type), then B part (location)
     obsPaths = sorted(obsPaths, key=obsDataBParts)
     obsPaths = sorted(obsPaths, key=obsDataCParts)
-    # Observed Parameter Groups
-    # Use either Width or Elev, not both
-    paramGrpDER = [ \
-                   ['MANN',0.001] \
-                   #['DISP',10.0] \
-#                    ['LENGTH' ,50.0], \
-#                    ['GATECF' ,0.05], \
-#                    ['RESERCF' ,0.05], \
-#                    ['WIDTH' ,0.01], \
-#                    ['ELEV' ,0.01], \
-#                    ['DIV-FLOW' ,0.1], \
-#                    ['DRAIN-FLOW' ,0.1], \
-#                    ['DRAIN-EC' ,0.1] \
-        ]
-    paramGroups, paramDERINCLB = zip(*paramGrpDER)
-    paramGroups = list(paramGroups)
-    paramDERINCLB = list(paramDERINCLB)
     #
     if 'DIV-FLOW' in paramGroups or 'DRAIN-FLOW' in paramGroups or 'DRAIN-EC' in paramGroups:
         PIAFId = open(PESTDir + PESTInpAgFile,'w')
@@ -370,18 +369,23 @@ if __name__ == '__main__':
             print 'Dropping path', obsPath, 'observed DSS path not found'
             del obsPaths[obsPaths.index(obsPath)]
             continue
-        staName = dataref[0].getPathname().getPart(Pathname.B_PART)
-        dataType = dataref[0].getPathname().getPart(Pathname.C_PART)
-        dataset = dataref[0].getData()
+        dataref = dataref[0]
+        staName = dataref.getPathname().getPart(Pathname.B_PART)
+        dataType = dataref.getPathname().getPart(Pathname.C_PART)
+        dataTW = dataref.getTimeWindow()
+        dataset = dataref.getData()
         perType = dataset.getAttributes().getYType().upper()
-        if len(staName) > 7:
-            print 'Dropping path', obsPath, 'station name', staName, 'too long'
+        #print staName, dataType
+        dataCmpTW = dataTW.intersection(CmpTW)
+        if dataCmpTW == None:
+            print 'Dropping path', obsPath, 'no observed data in time window'
             del obsPaths[obsPaths.index(obsPath)]
             continue
-        #print staName, dataType
-        dataset = dataset.createSlice(CmpTW)
-        if dataset == None:
-            print 'Dropping path', obsPath, 'no observed data in time window'
+        dataCmpDays = (dataCmpTW.getEndTime()-dataCmpTW.getStartTime()).getIntervalInMinutes( \
+                       dataCmpTW.getStartTime())/24./60.
+        if dataCmpDays < 25.:
+            print 'Dropping path', obsPath, 'Not enough data in time window (' + \
+                str(dataCmpDays) + ' days)'
             del obsPaths[obsPaths.index(obsPath)]
             continue
         # check for a corresponding DSM2 channel output for the observed data
@@ -390,20 +394,18 @@ if __name__ == '__main__':
             print 'Dropping path', obsPath, 'no channel location for station', staName
             del obsPaths[obsPaths.index(obsPath)]
             continue
-        # get data, assign 0 weight if missing, correct EC units,
-        # write to temp file
-        sti = dsIndex(dataset, CmpStartDateObj, strict=True)
-        eti = dsIndex(dataset, CmpEndDateObj, strict=True)
-        if sti == None or eti == None:
-            print 'Dropping path', obsPath, 'only partial observed data in time window'
-            del obsPaths[obsPaths.index(obsPath)]
-            continue
+        # get data and accumulate totals for later weighting calcs
+        dataset = dataset.createSlice(CmpTW)
         countPath = Stats.countAcceptable(dataset, filter)
         if countPath <= 0:
             print 'Dropping path', obsPath, 'no valid data in time window'
             del obsPaths[obsPaths.index(obsPath)]
             continue
-        obsGroup = getObsGroup(dataref[0].getPathname().toString())
+        if len(staName) > 7:
+            print 'Dropping path', obsPath, 'station name', staName, 'too long'
+            del obsPaths[obsPaths.index(obsPath)]
+            continue
+        obsGroup = getObsGroup(dataref.getPathname().toString())
         if obsGroup not in obsGroups:
             obsGroups.append(obsGroup)
         if dataType not in dataTypes:
@@ -421,26 +423,26 @@ if __name__ == '__main__':
     # End obsPaths test loop
     for obsPath in obsPaths:
         g = find(dss_group,obsPath.replace('+','\+'))
-        dataref = g.getAllDataReferences()
-        dataset = dataref[0].getData()
-        dataset = dataset.createSlice(CmpTW)
-        staName = dataref[0].getPathname().getPart(Pathname.B_PART)
-        dataType = dataref[0].getPathname().getPart(Pathname.C_PART)
-        dataIntvl = dataref[0].getPathname().getPart(Pathname.E_PART)
+        dataref = g.getAllDataReferences()[0]
+        dfCmp = extendDataRef(dataref,CmpTW)
+        staName = dataref.getPathname().getPart(Pathname.B_PART)
+        dataType = dataref.getPathname().getPart(Pathname.C_PART)
+        dataIntvl = dataref.getPathname().getPart(Pathname.E_PART)
         perType = dataset.getAttributes().getYType().upper()
-        obsGroup = getObsGroup(dataref[0].getPathname().toString())
+        obsGroup = getObsGroup(dataref.getPathname().toString())
+        dataset = dfCmp.getData()
         # get data, assign 0 weight if missing, correct EC units,
         # write to temp file
-        sti = dsIndex(dataset, CmpStartDateObj, strict=True)
-        eti = dsIndex(dataset, CmpEndDateObj, strict=True) + 1
         # use micro mhos/cm (micro siemens/cm) for all ECs
         if dataset.getAttributes().getYUnits().upper() == 'MS/CM' or \
             dataset.getAttributes().getYUnits().upper() == 'MMHOS/CM':
             apply(dataset,elMul1000)
         pathWeight = 1./(totalDT[dataType]/countDT[dataType])
-        for ndx in range(sti, eti):
+        tsi = dataset.getIterator()
+        while not tsi.atEnd():
+            el = tsi.getElement()
             nObs += 1
-            el = dataset.getElementAt(ndx)
+            el = tsi.getElement()
             timeObj = TF.createTime(long(el.getX()))
             dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))
             timeStr = timeObj.format(DefaultTimeFormat('HHmm'))
@@ -453,6 +455,7 @@ if __name__ == '__main__':
             dT = dataType.replace('STAGE','STG').replace('FLOW','Q')
             OTF1Id.write("%-30s %s %12.5E %s\n" % \
                          (staName+dT+dateStr+timeStr, valStr, weight, obsGroup))
+            tsi.advance()
         # write the corresponding DSM2 output line for the observed data path
         tup = [t for t in DSM2ObsLoc if t[0] == staName][0]
         chanNo = tup[1]
@@ -486,7 +489,7 @@ if __name__ == '__main__':
     PESTMODE = 'estimation'
     NOPTMAX = 0
     NOPTMAX = -1
-    NOPTMAX = 4
+    #NOPTMAX = 4
     #
     # number of calibration parameters
     NPAR = 0
@@ -1446,7 +1449,7 @@ if __name__ == '__main__':
     elif typePEST == 'beo':
         WDSM2Id.write("echo executable = %PESTBINDIR%BEOPEST64.exe >> %RUNDIR%\\dsm2.sub\n")
         WDSM2Id.write("echo arguments = %STUDYNAME% /H %COMPUTERNAME%:4004 >> %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("echo queue 20 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("echo queue 40 >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem do a base run to make sure it works\n")
     WDSM2Id.write("call dsm2run.bat\n")
