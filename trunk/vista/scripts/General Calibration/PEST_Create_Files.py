@@ -1,7 +1,7 @@
 import re, os, glob, datetime, random, math
 from vtimeseries import *
 from vdss import *
-from vista.db.dss import *
+#from vista.db.dss import *
 from vutils import *
 from vista.time import TimeFactory, TimeFormat, DefaultTimeFormat
 from gov.ca.dsm2.input.parser import Parser
@@ -136,37 +136,51 @@ if __name__ == '__main__':
     ##
     ## Basic Settings/Most commonly changed settings
     ##
-    # what type of PEST parallel run?
-    typePEST = 'beo'
-    #typePEST = 'genie'
-    ##
     # DSM2 runs: restart or cold start?
     useRestart = True
-    ##
+    # continue on DSM2 failure, or fail PEST run?
+    contDSM2 = True
     # run blocks (run periods); use 1 for calibration, the other for validation
-    useB1 = False
-    useB2 = True
+    useB1 = True
+    useB2 = False
+    #
+    NOPTMAX = 0     # Only one model run
+    NOPTMAX = -1    # Jacobian (run on all params)
+    NOPTMAX = 4     # Calibration
+    NOPTMAX = 1     # Sensitivities and one calib iter
+    #
+    # Number of condor slaves
+    NCondor = 45
+    ## Allow a few to be read as command line arguments for batch scripts
+    for arg in sys.argv[1:]:
+        print 'Using argument',arg
+        exec(arg)
+    ##
     if useB1 and useB2:
         raise 'Use Block 1 or Block 2, not both.'
     if not useB1 and not useB2:
         raise 'Specify Block 1 or Block 2 to use.'
     ##
+    # what type of PEST parallel run?
+    typePEST = 'beo'
+    #typePEST = 'genie'
+    ##
     # use tied/fixed parameters?
-    useTiedFixed = True
+    useTiedFixed = False
     ##
     # Observed Parameter Groups
     # Use either Width or Elev, not both
     paramGrpDER = [ \
-                   ['MANN',0.001] \
-                   #['DISP',10.0] \
+#                    ['MANN',0.001] \
+#                    ['DISP',10.0] \
 #                    ['LENGTH' ,50.0], \
 #                    ['GATECF' ,0.05], \
 #                    ['RESERCF' ,0.05], \
 #                    ['WIDTH' ,0.01], \
 #                    ['ELEV' ,0.01], \
-#                    ['DIV-FLOW' ,0.1], \
-#                    ['DRAIN-FLOW' ,0.1], \
-#                    ['DRAIN-EC' ,0.1] \
+                    ['DIV-FLOW' ,0.1], \
+                    ['DRAIN-FLOW' ,0.1], \
+                    ['DRAIN-EC' ,0.1] \
         ]
     # compare obs/model data this time back from model run end time 
     cmpDataTimeLength = '112DAY'
@@ -204,6 +218,7 @@ if __name__ == '__main__':
     # DSM2 directories and files
     DSM2Mod = 'HIST-CLB2K'
     DSM2Run = 'BASE-v812'
+    WorkspaceDir = r'D:\workspace\vista\scripts\General Calibration'
     RootDir = 'D:/delta/models/'
     CommonDir = RootDir + 'dsm2_v8/common_input/'
     CalibDir = RootDir + '201X-Calibration/'
@@ -242,7 +257,7 @@ if __name__ == '__main__':
     # The text equivalent of the DSS output, necessary for PEST
     DSM2OutFile = 'PESTCalib.out'
     # Pest directories and files
-    PESTDir = CalibDir + 'PEST/Calib/'
+    PESTDir = CalibDir + 'PEST/'
     # PEST control file name
     PESTFile = 'DSM2.pst'
     PESTChanTplFile = ChanCalibFile.split('.')[0] + '.tpl'
@@ -416,7 +431,7 @@ if __name__ == '__main__':
             apply(dataset,elMul1000)
         # accumulate the total absolute value of each data type
         # for PEST weight of observations later
-        apply(dataset,elAbs)
+        apply(dataset,abs)
         totalPath = total(dataset)
         totalDT[dataType] += totalPath
         countDT[dataType] += countPath
@@ -485,12 +500,7 @@ if __name__ == '__main__':
     print 'Wrote', DSM2HydroId.name
     print 'Wrote', DSM2QualId.name
     obsGroups.sort()    # ensure the data groups are alphabetical order
-    # most often changed PEST inputs here
-    PESTMODE = 'estimation'
-    NOPTMAX = 0
-    NOPTMAX = -1
-    #NOPTMAX = 4
-    #
+    # PEST inputs here
     # number of calibration parameters
     NPAR = 0
     if 'MANN' in paramGroups:
@@ -534,7 +544,6 @@ if __name__ == '__main__':
                 except: continue
                 if CPartUp == paramUp:
                     NPAR += 1
-    RSTFLE = 'norestart'
     NOBS = nObs
     NPARGP = len(paramGroups)
     NPRIOR = NPAR # every parameter has prior information
@@ -559,13 +568,14 @@ if __name__ == '__main__':
             NTPLFLE += 1
     if 'ELEV' in paramGroups or 'WIDTH' in paramGroups:
             NTPLFLE += 1
+    PESTMODE = 'estimation'
+    RSTFLE = 'norestart'
     NINSFLE = 1
     PRECIS = 'single'
     DPOINT = 'point'
     NUMCOM = 1
     JACFILE = 0
     MESSFILE = 0
-    RLAMFAC = 2.0
     PHIRATSUF = 0.3
     PHIREDLAM = 0.01
     RELPARMAX = 5.0
@@ -594,7 +604,8 @@ if __name__ == '__main__':
     LSQRWRITE = 1
     # Marquadt Lambda
     # ignore PEST manual about NUMLAM=0 when using SVD
-    RLAMBDA1 = 1.0
+    RLAMBDA1 = 5.0
+    RLAMFAC = 2.0
     NUMLAM = 15
 # print the header and PEST control info to the PEST control (.pst) file
     PCFId.write('pcf\n')
@@ -634,10 +645,10 @@ if __name__ == '__main__':
             DERINC = 0.40
         if paramGrp == 'DRAIN-FLOW':
             paramGrp = 'DRN-Q'
-            DERINC = 0.10
+            DERINC = 0.20
         if paramGrp == 'DIV-FLOW':
             paramGrp = 'DIV-Q'  
-            DERINC = 0.10
+            DERINC = 0.20
         if paramGrp == 'DRAIN-EC':
             paramGrp = 'DRN-EC'
             DERINC = 0.20
@@ -829,11 +840,11 @@ if __name__ == '__main__':
             # vscript before each DSM2 run. As with channel cross-sections, PEST will calibrate
             # 3 coefficients for each node.
             if paramUp == 'DIV-FLOW':
-                stdev3Up = 1.2
-                stdev3Lo = 1.5
+                stdev3Up = 2.0
+                stdev3Lo = 3.0
             if paramUp == 'DRAIN-FLOW':
-                stdev3Up = 1.5
-                stdev3Lo = 1.2
+                stdev3Up = 3.0
+                stdev3Lo = 3.0
             PARVAL1 = 1.0
             PARLBND = PARVAL1 / stdev3Lo
             PARUBND = PARVAL1 * stdev3Up
@@ -858,7 +869,7 @@ if __name__ == '__main__':
                     paramInfo[PARNME] = [PARVAL1, PARLBND, PARUBND, PARGP]
         if paramUp == 'DRAIN-EC':
             # similar to Div/Drain flows, but have to use rows from the input table
-            stdev3 = 2.0
+            stdev3 = 5.0
             PARVAL1 = 1.0
             PARLBND = PARVAL1 / stdev3
             PARUBND = PARVAL1 * stdev3
@@ -1202,7 +1213,7 @@ if __name__ == '__main__':
     WDSM2Id.write("            timeObj = TF.createTime(lineSplit[0]+' '+lineSplit[1])\n")
     WDSM2Id.write("            dateStr = timeObj.format(DefaultTimeFormat('yyyyMMdd'))\n")
     WDSM2Id.write("            timeStr = timeObj.format(DefaultTimeFormat('HHmm'))\n")
-    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')25:80'\n")
+    WDSM2Id.write("            dataID = 'L1 (' + locStr + typeStr + dateStr + timeStr + ')16:80'\n")
     WDSM2Id.write("            fid.write(dataID + '\\n')\n")
     WDSM2Id.write("    fid.close()\n")
     WDSM2Id.write("    tid.close()\n")
@@ -1223,6 +1234,8 @@ if __name__ == '__main__':
                  "^| c:\Windows\system32\\find.exe /i \"pinging\"') do set IP=%%f\n")
     WCONId.write("echo Running on %COMPUTERNAME% (%IP%)\n")
     WCONId.write("echo  in directory %CD%\n")
+    WCONId.write("@copy /b/y " + DivRtnQFile + " " + DivRtnQFile.replace(".dss","") + "-calib.dss\n")
+    WCONId.write("@copy /b/y " + RtnECFile + " " + RtnECFile.replace(".dss","") + "-calib.dss\n")
     WCONId.write("echo Running Pre-Processor\n")
     WCONId.write("call %VISTABINDIR%vscript.bat " + preProcFile + "\n")
     WCONId.write("if %ERRORLEVEL% GTR 0 (\n")
@@ -1239,12 +1252,6 @@ if __name__ == '__main__':
         WCONId.write("set QUAL_END_DATE=" + B1EndDateObj_Qual.format().split()[0] + "\n")
         WCONId.write("set HYDRORSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B1.hrf\n")
         WCONId.write("set QUALRSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B1.qrf\n")
-        WCONId.write("call :RUNDSM2\n")
-        WCONId.write("if %ERRORLEVEL% GTR 0 (\n")
-        WCONId.write("echo DSM2 ERRORLEVEL %ERRORLEVEL%\n")
-        WCONId.write("xcopy /y /c /q Calib-Channels.inp \\bdomo-002\condor\returnedFiles\n")
-        WCONId.write("exit /b 1\n")
-        WCONId.write(")\n")
     if useB2:
         WCONId.write("if exist " + CalibDSSOutFile + " del /f/q " + CalibDSSOutFile + "\n")
         WCONId.write("set START_DATE=" + B2StartDateObj_Hydro.format().split()[0] + "\n")
@@ -1255,12 +1262,17 @@ if __name__ == '__main__':
         WCONId.write("set QUAL_END_DATE=" + B2EndDateObj_Qual.format().split()[0] + "\n")
         WCONId.write("set HYDRORSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B2.hrf\n")
         WCONId.write("set QUALRSTFILE_IN=" + DSM2Mod + "-" + DSM2Run + "-B2.qrf\n")
-        WCONId.write("call :RUNDSM2\n")
-        WCONId.write("if %ERRORLEVEL% GTR 0 (\n")
-        WCONId.write("echo DSM2 ERRORLEVEL %ERRORLEVEL%\n")
-        WCONId.write("xcopy /y /c /q Calib-Channels.inp \\bdomo-002\condor\returnedFiles\n")
-        WCONId.write("exit /b 1\n")
-        WCONId.write(")\n")
+    WCONId.write("call :RUNDSM2\n")
+    WCONId.write("set ERRLVL=%ERRORLEVEL%\n")
+    WCONId.write("if %ERRLVL% GTR 0 (\n")
+    WCONId.write("echo DSM2 ERRORLEVEL %ERRLVL%\n")
+    WCONId.write("if exist " + ChanCalibFile + " xcopy /y/c/q " + ChanCalibFile + \
+                 " " + bs + bs + "bdomo-002\\condor" + bs + "returnedFiles\n")
+    WCONId.write("if exist " + PESTInpAgFile + " xcopy /y/c/q " + PESTInpAgFile + \
+                 " " + bs + bs + "bdomo-002\\condor" + bs + "returnedFiles\n")
+    WCONId.write("if %ERRLVL% EQU 97 GOTO FIN\n")
+    WCONId.write("exit /b 1\n")
+    WCONId.write(")\n")
     WCONId.write("rem post-process to prepare output for PEST\n\n")
     WCONId.write("echo Running Post-Processor\n")
     WCONId.write("call %VISTABINDIR%vscript.bat " + postProcFile + \
@@ -1269,6 +1281,7 @@ if __name__ == '__main__':
     WCONId.write("echo Post-Process ERRORLEVEL %ERRORLEVEL%\n")
     WCONId.write("exit /b 1\n")
     WCONId.write(")\n")
+    WCONId.write(":FIN\n")
     WCONId.write("rem Idiotic MS equivalent of touch\n")
     WCONId.write("copy /b dummy.txt +,,\n")
 #    WCONId.write("call %PESTBINDIR%pestchek.exe DSM2\n")
@@ -1285,10 +1298,12 @@ if __name__ == '__main__':
     WCONId.write("echo Error in Hydro run.\n")
     WCONId.write("xcopy /y /c /q hydro_echo_*.inp " + bs + bs + \
                  "bdomo-002\\condor" + bs + "returnedFiles\n")
-    WCONId.write("if exist " + PESTInpAgFile + " xcopy /y /c /q " + \
-                 PESTInpAgFile + " " + bs + bs + \
-                 "bdomo-002\\condor" + bs + "returnedFiles\n")
-    WCONId.write("exit /b 1\n")
+    if contDSM2:
+        WCONId.write("copy /y/q " + DSM2OutFile + ".base " + DSM2OutFile + "\n")
+        WCONId.write("echo Returning base output file to PEST.\n")
+        WCONId.write("exit /b 97\n")
+    else:
+        WCONId.write("exit /b 1\n")
     WCONId.write(")\n")
     WCONId.write("echo Hydro run OK\n")
     WCONId.write("ping -n 2 127.0.0.1 > nul\n")
@@ -1297,8 +1312,14 @@ if __name__ == '__main__':
     WCONId.write("if %errorlevel% GTR 0 (\n")
     WCONId.write("echo Qual ERRORLEVEL %ERRORLEVEL%\n")
     WCONId.write("echo Error in Qual run.\n")
-    WCONId.write("xcopy /y /c /q qual_ec_echo_*.inp \\bdomo-002\condor\returnedFiles\n")
-    WCONId.write("exit /b 1\n")
+    WCONId.write("xcopy /y/c/q qual_ec_echo_*.inp \\bdomo-002\condor" + \
+                 bs + "returnedFiles\n")
+    if contDSM2:
+        WCONId.write("copy /y/q " + DSM2OutFile + ".base " + DSM2OutFile + "\n")
+        WCONId.write("echo Returning base output file to PEST.\n")
+        WCONId.write("exit /b 97\n")
+    else:
+        WCONId.write("exit /b 1\n")
     WCONId.write(")\n")
     WCONId.write("echo Qual run OK\n")
     WCONId.write("time /t\n")
@@ -1310,7 +1331,7 @@ if __name__ == '__main__':
     # This file is run once by the user for each calibration run; it copies necessary files
     # and starts the HTCondor submit jobs
     WDSM2Id = open(PESTDir + fileRun4, 'w')
-    WDSM2Id.write("echo off\n")
+    WDSM2Id.write("@echo off\n")
     WDSM2Id.write("Rem This file created by PEST_Create_Files.py\n")
     WDSM2Id.write("Rem Calibrate DSM2 using " + typePEST.upper() + " & HTCondor.\n")
     WDSM2Id.write("setlocal\n")
@@ -1332,9 +1353,7 @@ if __name__ == '__main__':
         fn = os.path.basename(f)
         WDSM2Id.write(fn + ", ")
     WDSM2Id.write("\n")    
-    WDSM2Id.write("set TSFILES=" + \
-        DivRtnQFile.replace('.dss','-calib.dss') + ", " + \
-        RtnECFile.replace('.dss','-calib.dss') + ", " + \
+    WDSM2Id.write("set TSFILES=" + DivRtnQFile + ", " + RtnECFile + ", " + \
         "events.dss, gates-v8-06212012.dss, hist_19902012.dss\n")
     writeStr = "set PESTFILES=" + PESTFile + ", " + PESTInsFile
     if 'MANN' in paramGroups or \
@@ -1355,7 +1374,7 @@ if __name__ == '__main__':
     WDSM2Id.write("set RUNDIR=%PESTDIR%Condor\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("if not exist %RUNDIR% mkdir %RUNDIR%\n")
-    WDSM2Id.write("del /q %RUNDIR%\\*.*\n")
+    WDSM2Id.write("del /q %RUNDIR%\n")
     WDSM2Id.write("if %ERRORLEVEL% GTR 0 (\n")
     WDSM2Id.write("echo Cannot delete all files in Condor dir.\n")
     WDSM2Id.write("exit /b 1\n")
@@ -1367,7 +1386,8 @@ if __name__ == '__main__':
     WDSM2Id.write("@xcopy /q " + re.sub("/$","",TimeSeriesDir).replace("/",bs) + " %RUNDIR%\\\n")
     WDSM2Id.write("@xcopy /q " + re.sub("/$", "", CommonDir).replace("/",bs) + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
-    WDSM2Id.write("@copy /y *.py %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y " + preProcFile + " %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /y " + postProcFile + " %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.rmf %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.pst %RUNDIR%\\\n")
     WDSM2Id.write("@copy /y *.tpl %RUNDIR%\\\n")
@@ -1376,12 +1396,10 @@ if __name__ == '__main__':
 
     WDSM2Id.write("@copy /y " + fileSub + " %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("@copy /y " + BaseRunDir.replace("/","\\") + "*"+DSM2Run+"-B?.?rf %RUNDIR%\\\n")
-    WDSM2Id.write("@copy /b /y " + BaseRunDir.replace("/","\\") + CalibDSSOutFile + " %RUNDIR%\\\n")
+    WDSM2Id.write("@copy /b/y " + BaseRunDir.replace("/","\\") + CalibDSSOutFile + " %RUNDIR%\\\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("cd %RUNDIR%\n")
     WDSM2Id.write("@ren config_calib.inp config.inp\n")
-    WDSM2Id.write("@copy /b /y " + DivRtnQFile + " " + DivRtnQFile.replace(".dss","") + "-calib.dss\n")
-    WDSM2Id.write("@copy /b /y " + RtnECFile + " " + RtnECFile.replace(".dss","") + "-calib.dss\n")
     if useRestart:
         WDSM2Id.write("@ren hydro_calib_restart.inp hydro.inp\n")
         WDSM2Id.write("@ren qual_ec_calib_restart.inp qual_ec.inp\n")
@@ -1424,7 +1442,7 @@ if __name__ == '__main__':
     diskSize = 50 + 500 * nYearsRun 
     WDSM2Id.write("echo request_disk = " + str(int(diskSize+0.5)) + " MB >> %RUNDIR%\\dsm2.sub\n")
     writeStr = "echo transfer_input_files = dsm2run.bat, " + \
-                  preProcFile + ", " + postProcFile + ", " + \
+                  preProcFile + ", " + postProcFile + ", " + DSM2OutFile + ".base, " + \
                   DSM2DSSOutHydroFile + ", " + DSM2DSSOutQualFile + ", %PESTFILES%, " + \
                   "hydro.exe, qual.exe, hydro.inp, qual_ec.inp, " \
                   + DSM2Mod + "-" + DSM2Run + "-B1.hrf, " + DSM2Mod + "-" + DSM2Run + "-B2.hrf, " \
@@ -1449,11 +1467,13 @@ if __name__ == '__main__':
     elif typePEST == 'beo':
         WDSM2Id.write("echo executable = %PESTBINDIR%BEOPEST64.exe >> %RUNDIR%\\dsm2.sub\n")
         WDSM2Id.write("echo arguments = %STUDYNAME% /H %COMPUTERNAME%:4004 >> %RUNDIR%\\dsm2.sub\n")
-    WDSM2Id.write("echo queue 40 >> %RUNDIR%\\dsm2.sub\n")
+    WDSM2Id.write("echo queue " + str(NCondor) + " >> %RUNDIR%\\dsm2.sub\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("rem do a base run to make sure it works\n")
     WDSM2Id.write("call dsm2run.bat\n")
     WDSM2Id.write("if ERRORLEVEL 1 exit /b 1\n")
+    WDSM2Id.write("rem use the base run output as a substitute for a dsm2 run failure\n")
+    WDSM2Id.write("@copy /b /y " + DSM2OutFile + " " + DSM2OutFile + ".base\n")
     WDSM2Id.write("\n")
     WDSM2Id.write("%CONDORBINDIR%condor_submit dsm2.sub\n")
     WDSM2Id.write("if ERRORLEVEL 1 exit /b 1\n")
@@ -1472,5 +1492,5 @@ if __name__ == '__main__':
     WDSM2Id.close()
     print 'Wrote', WDSM2Id.name
     print 'End processing all files', datetime.today().strftime("%Y-%b-%d %H:%M:%S")
-    sys.exit()
+    sys.exit(0)
 #
