@@ -19,6 +19,8 @@ class Sensor:
 		return "Sensor: %s"%self.id
 	def getDurationCode(self):
 		return DURATION_MAP[self.duration]
+	def printAll(self):
+		print 'Sensor %s: %s is of type %s/%s with units %s and duration of %s'%(self.id, self.sensor_number, self.type, self.subType, self.duration, self.units)
 #
 class Station:
 	def __init__(self,id):
@@ -37,6 +39,9 @@ class Station:
 			if (sensor.id==number):
 				return sensor
 		return None
+	def printSensors(self):
+		for sensor in self.sensors:
+			sensor.printAll()
 #
 def fetch_data_in_url(url):
 	c=HTTPConnection(CDEC_BASE_URL)

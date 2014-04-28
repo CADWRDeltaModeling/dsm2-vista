@@ -55,11 +55,13 @@
  */
 package vista.db.dss;
 
+import hec.heclib.util.HecTime;
 import hec.heclib.util.Heclib;
 import hec.heclib.util.stringContainer;
 import vista.set.DataSet;
 import vista.set.DataSetAttr;
 import vista.set.SetUtils;
+import vista.time.TimeInterval;
 
 /**
  * 
@@ -76,6 +78,7 @@ public class DSSDataWriter {
 	public static final boolean DOUBLE_PRECISION = false;
 	private String filename;
 	private int[] ifltab;
+	private int[] nvals;
 
 	/**
     *
@@ -170,6 +173,7 @@ public class DSSDataWriter {
 					delatPrecision, status);
 
 		}
+		//TODO: check status flag and throw exception
 	}
 
 	public float[] extractYValuesAsFloat(DSSData data) {

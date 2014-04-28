@@ -305,11 +305,11 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 		openConnection.setMnemonic('O');
 		JMenuItem openDSSFile = new JMenuItem("DSS File");
 		openDSSFile.setMnemonic('f');
-		JMenuItem openHydroTideFile = new JMenuItem("Hydro TideFile");
-		openHydroTideFile.setMnemonic('t');
+		JMenuItem openDSM2Tidefile = new JMenuItem("DSM2 TideFile");
+		openDSM2Tidefile.setMnemonic('t');
 		openMenu.add(openConnection);
 		openMenu.add(openDSSFile);
-		openMenu.add(openHydroTideFile);
+		openMenu.add(openDSM2Tidefile);
 		openMenu.add(openSession);
 		JMenuItem loadSession = new JMenuItem("Load");
 		loadSession.setMnemonic('l');
@@ -341,9 +341,9 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 				openDSSFile(evt);
 			}
 		});
-		openHydroTideFile.addActionListener(new ActionListener() {
+		openDSM2Tidefile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				openHydroTideFile(evt);
+				openDSM2Tidefile(evt);
 			}
 		});
 		loadSession.addActionListener(new ActionListener() {
@@ -650,9 +650,9 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	/**
 	 * opens a local file
 	 */
-	private void openHydroTideFile(ActionEvent evt) {
+	private void openDSM2Tidefile(ActionEvent evt) {
 		String filename = VistaUtils.getFilenameFromDialog(null,
-				java.awt.FileDialog.LOAD, "h5", "Hydro Tidefile");
+				java.awt.FileDialog.LOAD, "h5", "DSM2 Tidefile");
 		if (filename == null)
 			return;
 		Command com = new OpenHydroTideFileCommand(MainGUI.getContext(),

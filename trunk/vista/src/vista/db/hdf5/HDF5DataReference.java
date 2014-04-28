@@ -1,5 +1,7 @@
 package vista.db.hdf5;
 
+import hec.heclib.util.Heclib;
+
 import java.lang.ref.WeakReference;
 import java.util.List;
 
@@ -106,6 +108,13 @@ public class HDF5DataReference extends DataReference {
 								tmstr, "yyyy-MM-dd HH:mm:ss");
 					} else if (name.equals("interval")) {
 						String intervalAsString = ((String[]) value)[0];
+						//FIXME: workaround for bug in qual tidefile 
+						if (intervalAsString.toLowerCase().endsWith("m")){
+							intervalAsString += "in";
+						}
+						int intervalInMinutes = (int) TimeFactory.getInstance().createTimeInterval(intervalAsString).getIntervalInMinutes(null);
+						int[] status = new int[]{0};
+						intervalAsString = Heclib.getEPartFromInterval(intervalInMinutes, status);
 						timeInterval = TimeFactory.getInstance()
 								.createTimeInterval(intervalAsString);
 					} else if (name.equals("model")) {
@@ -196,7 +205,7 @@ public class HDF5DataReference extends DataReference {
 
 				if (getTimeWindow() == null) {
 					Time endTime = dataStartTime.create(dataStartTime);
-					endTime.incrementBy(getTimeInterval(), dData.length);
+					endTime.incrementBy(getTimeInterval(), dData.length-1);
 					setTimeWindow(TimeFactory.getInstance().createTimeWindow(
 							dataStartTime, endTime));
 				}
