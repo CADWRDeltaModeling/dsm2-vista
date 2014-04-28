@@ -1,5 +1,7 @@
 package vista.db.hdf5;
 
+import hec.heclib.util.Heclib;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,9 +69,10 @@ public class HDF5HydroGroup extends GroupProxy {
 							((int[]) attr.getValue())[0]);
 				}
 				if (attr.getName().equals("Time interval")) {
+					int[] status = new int[]{0};
+					String intervalAsString = Heclib.getEPartFromInterval(((int[])attr.getValue())[0], status);
 					timeInterval = TimeFactory.getInstance()
-							.createTimeInterval(((int[]) attr.getValue())[0],
-									TimeInterval.MIN_INTERVAL);
+							.createTimeInterval(intervalAsString);
 				}
 				if (attr.getName().equals("Number of intervals")) {
 					numberOfIntervals = ((int[]) attr.getValue())[0];
@@ -87,7 +90,7 @@ public class HDF5HydroGroup extends GroupProxy {
 						"start time, time interval or number of intervals is not defined!");
 			}
 			Time endTime = startTime.create(startTime);
-			endTime.incrementBy(timeInterval, numberOfIntervals);
+			endTime.incrementBy(timeInterval, numberOfIntervals-1);
 			TimeWindow timeWindow = TimeFactory.getInstance().createTimeWindow(
 					startTime, endTime);
 			// references for channel flow

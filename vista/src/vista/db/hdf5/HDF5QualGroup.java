@@ -1,5 +1,7 @@
 package vista.db.hdf5;
 
+import hec.heclib.util.Heclib;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +70,18 @@ public class HDF5QualGroup extends GroupProxy {
 				}
 				if (attr.getName().equals("interval")) {
 					String tistr = ((String[]) attr.getValue())[0];
+					//FIXME: workaround for bug in qual tidefile 
+					if (tistr.toLowerCase().endsWith("m")){
+						tistr += "in";
+					}
+
 					timeInterval = TimeFactory.getInstance()
 							.createTimeInterval(tistr);
+					int[] status = new int[]{0};
+					int mins = (int) timeInterval.getIntervalInMinutes(null);
+					String intervalAsString = Heclib.getEPartFromInterval(mins, status);
+					timeInterval = TimeFactory.getInstance()
+							.createTimeInterval(intervalAsString);
 				}
 				if (attr.getName().equals("model")) {
 					modelRun = ((String[]) attr.getValue())[0];
@@ -84,7 +96,7 @@ public class HDF5QualGroup extends GroupProxy {
 						"start time, time interval or number of intervals is not defined!");
 			}
 			Time endTime = startTime.create(startTime);
-			endTime.incrementBy(timeInterval, numberOfIntervals);
+			endTime.incrementBy(timeInterval, numberOfIntervals-1);
 			TimeWindow timeWindow = TimeFactory.getInstance().createTimeWindow(
 					startTime, endTime);
 			// references for channel flow

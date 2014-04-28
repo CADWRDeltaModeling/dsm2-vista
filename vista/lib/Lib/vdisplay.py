@@ -1,5 +1,5 @@
 from vista.app import DataTableFrame, \
-     DefaultGraphBuilder, CurveFactory, DataGraphFrame
+     DefaultGraphBuilder, CurveFactory, DataGraphFrame, MultiDataTableFrame
 from vista.graph import SymbolFactory, \
      Graph, Plot, AxisAttr,\
      Legend, LegendItem
