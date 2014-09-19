@@ -12,7 +12,6 @@
 	<classpathentry kind="lib" path="lib/heclib.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-8.4-702.jdbc4.jar"/>
 	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
-	<classpathentry kind="lib" path="lib/dsm2-input-model.jar" sourcepath="/dsm2-input-model"/>
 	<classpathentry kind="lib" path="lib/jyson-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/gridUtil.jar"/>
 	<classpathentry kind="lib" path="lib/hec.jar" sourcepath="/hecdssvue"/>
@@ -28,5 +27,6 @@
 	<classpathentry kind="lib" path="lib/logback-core-1.0.9.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/jdatepicker-1.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/dsm2-input-model.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

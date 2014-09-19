@@ -1,17 +1,7 @@
 import jarray
 #from hec.script import *
-from hec.heclib.dss import *
-from hec.hecmath import TimeSeriesMath, HecMath
-from hec.gfx2d import G2dDialog, G2dLine, Symbol
-from hec.io import PairedDataContainer
-from hec.gfx2d import G2dPanelProp
-from java.util import Vector
+from hecutils import *
 
-from org.w3c.dom import Document
-import java
-import math
-from java.awt import Color
-from javax.swing import *
 def removeToolbar(panel):
     components = panel.getComponents();
     panel.remove(components[-1])
@@ -30,20 +20,6 @@ def saveToPNG(p, filename):
     p.paint(g)
     g.dispose();
     ImageIO.write(bi, "png", File(filename));
-def plot(data, title):
-    plotd = newPlot(title)
-    for d in data:
-        plotd.addData(d)
-    plotd.showPlot()
-def get_matching(dss, pattern):
-    matches = dss.getCatalogedPathnames(pattern)
-    if (len(matches) >= 1):
-        return dss.get(matches[0])
-    else:
-        print 'No match for: %s, %s' % (pattern, matches)
-        return None
-def open_dss(file): 
-    return HecDss.open(file, True)
 def average(data, average_interval):
     """
     filter_type is one of

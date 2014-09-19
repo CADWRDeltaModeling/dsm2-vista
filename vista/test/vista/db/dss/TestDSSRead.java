@@ -2,6 +2,7 @@ package vista.db.dss;
 
 import junit.framework.TestCase;
 import vista.set.DataSet;
+import vista.set.Group;
 import vista.time.TimeFactory;
 
 public class TestDSSRead extends TestCase {
@@ -53,5 +54,10 @@ public class TestDSSRead extends TestCase {
 				.getData(irtsFilename, irtsPathname, startJulmin, endJulmin,
 						retrieveFlags);
 		assertNotNull(data);
+	}
+	
+	public void testMissingDSSFile(){
+		Group missingGroup = DSSUtil.createGroup("local", "d:/missing.dss");
+		missingGroup.getAllDataReferences();
 	}
 }

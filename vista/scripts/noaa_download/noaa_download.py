@@ -3,6 +3,7 @@
 # Then checkout their web service availability here
 #http://opendap.co-ops.nos.noaa.gov/axis/
 #Example retrieving data for Port Chicago: Station ID 9415144
+#San Francisco  station id is 9414290
 #http://opendap.co-ops.nos.noaa.gov/axis/webservices/waterlevelverifiedsixmin/response.jsp?stationId=9415144&beginDate=19960101&endDate=19960131&datum=NAVD&unit=1&timeZone=1&format=text&Submit=Submit
 from java.util import Calendar, Date
 from java.text import SimpleDateFormat
@@ -14,7 +15,7 @@ import java
 sdf = SimpleDateFormat("yyyyMMdd")
 def get_noaa_data_as_array_of_lines(stationId, beginDate, endDate):
     import urllib
-    url = "http://opendap.co-ops.nos.noaa.gov/axis/webservices/waterlevelverifiedsixmin/response.jsp?stationId=%s&beginDate=%s&endDate=%s&datum=NAVD&unit=1&timeZone=1&format=text&Submit=Submit"%(stationId, beginDate, endDate)
+    url = "http://opendap.co-ops.nos.noaa.gov/axis/webservices/waterlevelverifiedsixmin/response.jsp?stationId=%s&beginDate=%s&endDate=%s&datum=MSL&unit=1&timeZone=1&format=text&Submit=Submit"%(stationId, beginDate, endDate)
     response = urllib.urlopen(url)
     result = response.readlines()
     response.close()
@@ -53,6 +54,7 @@ def get_noaa_data(stationId, sdate, edate, fileh):
         endDate=month_end_date(beginDate)
         print 'Fetching starting: %s'%fetch_date
         result=get_noaa_data_as_array_of_lines(stationId, beginDate, endDate)
+        #print result
         data=parse_noaa_data(result)
         for line in data:
             if len(line) >= 3:
@@ -71,28 +73,27 @@ def test_get_1_year():
     beginDate='19960101'
     endDate='20090101'
     return get_noaa_data(stationId, beginDate, endDate)
-def to_hectime(datestr, pattern="MM/dd/yyyy HH:mm"):
-    informat = SimpleDateFormat(pattern)
-    hecformat = SimpleDateFormat("ddMMMyyyy HHmm")
-    date = informat.parse(datestr)
-    hecdatestr = hecformat.format(date)
-    return HecTime(hecdatestr)
+def to_hectime(datestr, timestr):
+    return HecTime(datestr,timestr)
 def load_ts(file, fullName):
     fh=open(file)
     lines=fh.readlines()
     tsc=TimeSeriesContainer()
     tsc.fullName=fullName
-    tsc.interval=6
+    tsc.interval=-1
     values=[]
     times=[]
-    start=None
     for line in lines:
-        fields=line.split(",")
-        if not start:
-            start=to_hectime(fields[0]+" "+fields[1])
-        times.append(start.value())
-        values.append(float(fields[2]))
-        start.add(tsc.interval)
+        try:
+            fields=line.split(",")
+            curtime=to_hectime(fields[0],fields[1])
+            if curtime.value() == -777777:
+                continue
+            times.append(curtime.value())
+            values.append(float(fields[2]))
+        except:
+            print 'Could not parse line: %s'%line
+            continue
     fh.close()
     tsc.times=times
     tsc.values=values
@@ -100,20 +101,29 @@ def load_ts(file, fullName):
     tsc.units="FT"
     tsc.type="INST-VAL"
     return tsc
-def download_to_file(stationId,filename):
-    stationId='9415144'
-    beginDate='19960101'
-    endDate='20090101'
-    fileh=open('z:/temp/port_chicago_noaa_stage.csv','w')
+def download_to_file(stationId, beginDate, endDate, filename):
+    fileh=open(filename,'w')
     try:
         get_noaa_data(stationId, beginDate, endDate, fileh)
     finally:
         fileh.close();
 if __name__=='__main__':
-    filename='z:/temp/port_chicago_noaa_stage.csv'
-    fullName="/NOAA/PORT CHICAGO/STAGE//6MIN/NAVD/"
-    tsc=load_ts(filename,fullName)
-    dss=HecDss.open('z:/temp/noaa.dss')
-    dss.put(tsc)
+    station_info={
+                  #'PORT CHICAGO':['9415144'],
+                  'SF':['9414290']
+                  #'MTZ':['9415102'] #
+                  #'RICHMOND':['9414863']
+                  }
+    beginDate='20080101'
+    endDate='20140701'
+    for name in station_info.keys():
+        print 'Downloading data for %s'%name
+        stationId=station_info[name][0]
+        filename='z:/temp/%s_noaa_stage.csv'%(name.lower().replace(' ','_'))
+        fullName="/NOAA/%s/STAGE//IR-DAY/MSL/"%(name.upper())
+        download_to_file(stationId, beginDate, endDate, filename)
+        tsc=load_ts(filename,fullName)
+        dss=HecDss.open('z:/temp/noaa.dss')
+        dss.put(tsc)
     dss.done()
 #
