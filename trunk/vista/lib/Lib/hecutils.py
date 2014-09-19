@@ -44,6 +44,14 @@ def get_matching(dss,pattern):
     else:
         print 'No match for: %s, %s'%(pattern,matches)
         return None
+def plot(data, title):
+    """
+    Takes an array of data and a title and displays a plot (HECDssVue style)
+    """
+    plotd = newPlot(title)
+    for d in data:
+        plotd.addData(d)
+    plotd.showPlot()
 def newPlot(title):
     """
     Creates a blank plot window with title
@@ -140,6 +148,14 @@ def save_plots_to_images(mainPanel, imageFileName, imageDir='z:/temp'):
     Saves the panel used to draw plots to images
     """
     save_as_png(mainPanel,imageDir+imageFileName+".png")
+def ts_add(data):
+    if data==None:
+        return None
+    if len(data) == 1:
+        return data[0]
+    else:
+        result=TimeSeriesMath()
+    TimeSeriesMath()
 def ts_period_operation(data, interval="1DAY", operation_type="AVE"):
     """
     transforms the time series using a period operation with
@@ -245,10 +261,12 @@ def ts_plot(data1, data2=None, data3=None, title="", legend1="", legend2="", leg
     plotd.setPlotTitleVisible(True)
     legend_label = plotd.getLegendLabel(data1)
     legend_label.setText(legend1)
-    legend_label = plotd.getLegendLabel(data2)
-    legend_label.setText(legend2)
-    legend_label = plotd.getLegendLabel(data3)
-    legend_label.setText(legend3)
+    if data2 != None:
+        legend_label = plotd.getLegendLabel(data2)
+        legend_label.setText(legend2)
+    if data3 != None:
+        legend_label = plotd.getLegendLabel(data3)
+        legend_label.setText(legend3)
     plotd.setVisible(False)
     xaxis=plotd.getViewport(0).getAxis("x1")
     #vmin =xaxis.getViewMin()+261500. # hardwired to around july 1, 2008 ???

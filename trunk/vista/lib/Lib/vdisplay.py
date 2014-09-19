@@ -77,6 +77,26 @@ def scatterplot(refx, refy) :
     graphs = gb.createGraphs();
     DataGraphFrame(graphs[0],'Scatter Plot')
 #
+def addXYCurveToPlot(plot,x,y,color = "red", legend="", symbol = None):
+    """
+    xycurve(x,y,color = "red", symbol = None):
+    uses vista's graphing capabilities to draw a simple line
+    plot between x and y
+    """
+    ds = DefaultDataSet('',x,y)
+    crv1 = CurveFactory.createCurve(ds,AxisAttr.BOTTOM, AxisAttr.LEFT, legend)
+    crv1.attributes._drawLines = 1
+    cc = cmap[color]
+    if not cc:
+        crv1.foregroundColor = Color.red
+    else:
+        crv1.foregroundColor = cc
+    if symbol:
+        crv1.drawSymbol = 1
+        crv1.symbol = symMap[symbol]
+    leg = Legend()
+    li1 = LegendItem(crv1)
+    plot.add(crv1)
 def xyplot(x,y,
            xlabel="x axis", ylabel="y axis", title = "title",
            legend = "legend",
@@ -117,6 +137,15 @@ def xyplot(x,y,
         pl.addGrid(AxisAttr.BOTTOM)
     return pl
 #
+def show_plot(plot):
+    graph = Graph()
+    graph.add(plot)
+    graph.setTitle("")
+    dg = DataGraphFrame(graph,'',0)
+    dg.setLocation(100,100)
+    dg.setVisible(1)
+    dg.setSize(600,400)
+    return dg
 def simple_plot(x,y,
                 xlabel="x axis", ylabel="y axis", title = "title",
                 legend = "legend",

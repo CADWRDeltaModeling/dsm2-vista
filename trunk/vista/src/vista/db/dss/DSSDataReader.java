@@ -84,10 +84,10 @@ public class DSSDataReader {
 
 	public void open(String dssFile) {
 		ifltab = DSSUtil.openDSSFile(dssFile, false);
-		;
 	}
 
 	public void close() {
+		if (ifltab==null) return;
 		DSSUtil.closeDSSFile(ifltab);
 		ifltab = null;
 	}

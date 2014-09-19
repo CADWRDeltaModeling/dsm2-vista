@@ -75,7 +75,7 @@ import vista.time.TimeInterval;
  * @version $Id: DSSDataWriter.java,v 1.1 2003/10/02 20:48:45 redwood Exp $
  */
 public class DSSDataWriter {
-	public static final boolean DOUBLE_PRECISION = false;
+	public static final boolean DOUBLE_PRECISION = true;
 	private String filename;
 	private int[] ifltab;
 	private int[] nvals;

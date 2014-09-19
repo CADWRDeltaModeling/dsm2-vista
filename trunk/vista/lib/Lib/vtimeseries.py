@@ -43,6 +43,9 @@ def timeinterval(tmistr):
     """
     return TimeFactory.getInstance().createTimeInterval(tmistr);
 #
+def create_regular_timeseries(name,start_time,interval,yvalues):
+    return RegularTimeSeries(name,start_time,interval,yvalues)
+#
 def interpolate(ref,tm_intvl='1day',flat=True):
     """
     interpolate(ref,tm_intvl='1day',flat=True):
@@ -221,6 +224,23 @@ def apply(ts, function, filter=Constants.DEFAULT_FLAG_FILTER):
             el.setY(function(el.getY()))
             tsi.putElement(el)
         tsi.advance()
+#
+def bound(ts, lower, upper):
+    """
+    bound(ts,lower,upper)
+        creates a new time series with bounds of lower and upper (if defined, pass None if undefined) and returns it
+    """
+    tsnew=ts*1
+    def bounding_function(y):
+        if upper is not None and y > upper:
+            return upper
+        elif lower is not None and y < lower:
+            return lower
+        else:
+            return y
+    #
+    apply(tsnew,bounding_function)
+    return tsnew
 #
 def where(ts, conditional, filter=Constants.DEFAULT_FLAG_FILTER):
     """
