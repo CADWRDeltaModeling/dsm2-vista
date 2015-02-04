@@ -32,7 +32,7 @@ rem ###############
 rem starting vista
 rem ###############
 ::start %vista_home%/jre/bin/
-"%vista_home%/jre6/bin/javaw" -mx512m  -Djava.library.path="%vista_home%/lib" -Dvista.home="%vista_home%" -classpath "%vista_home%/lib/vista.jar;%vista_home%/lib/vista-help.jar;%vista_home%/jython/jython.jar;%vista_home%/lib/pd.jar;%vista_home%/lib/misc.jar;%vista_home%/lib/jhall.jar;%vista_home%/lib/jnios.jar;%vista_home%/lib/jhdf5.jar;%vista_home%/lib/jhdfobj.jar;%vista_home%/lib/jhdf5obj.jar;%vista_home%/lib/heclib.jar;%vista_home%/lib/ojdbc6.jar"  vista.app.MainGUI %1%
+"c:\Program Files (x86)\Java\jdk1.7.0_71\bin\javaw" -mx512m  -Djava.library.path="%vista_home%/lib" -Dvista.home="%vista_home%" -classpath "%vista_home%/lib/vista.jar;%vista_home%/lib/vista-help.jar;%vista_home%/jython/jython.jar;%vista_home%/lib/pd.jar;%vista_home%/lib/misc.jar;%vista_home%/lib/jhall.jar;%vista_home%/lib/jnios.jar;%vista_home%/lib/jhdf5.jar;%vista_home%/lib/jhdfobj.jar;%vista_home%/lib/jhdf5obj.jar;%vista_home%/lib/heclib.jar;%vista_home%/lib/ojdbc6.jar;%vista_home%/lib/slf4j-api-1.7.2.jar;%vista_home%/lib/logback-core-1.0.9.jar;%vista_home%/lib/logback-classic-1.0.9.jar"  vista.app.MainGUI %1%
 
 :end
 endlocal 

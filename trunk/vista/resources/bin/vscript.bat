@@ -34,7 +34,7 @@ set PYPATH="%vista_home%/jython/Lib;%vista_home%/lib/Lib;%vista_home%/../scripts
 
 set CPATH="%vista_home%/lib/vista.jar;%vista_home%/lib/vista-help.jar;%vista_home%/jython/jython.jar;%vista_home%/lib/pd.jar;%vista_home%/lib/misc.jar;%vista_home%/lib/jhall.jar;%vista_home%/lib/jnios.jar;%vista_home%/lib/widgets.jar;%vista_home%/lib/jhdf5.jar;%vista_home%/lib/jhdf5obj.jar;%vista_home%/lib/jhdfobj.jar;%vista_home%/lib/heclib.jar;%vista_home%/lib/dsm2-input-model.jar;%vista_home%/lib/ojdbc6.jar"
 
-set CPATH="%vista_home%/lib/vista.jar;%vista_home%/lib/vista-help.jar;%vista_home%/jython/jython.jar;%vista_home%/lib/pd.jar;%vista_home%/lib/misc.jar;%vista_home%/lib/jhall.jar;%vista_home%/lib/jnios.jar;%vista_home%/lib/widgets.jar;%vista_home%/lib/jhdf5.jar;%vista_home%/lib/jhdf5obj.jar;%vista_home%/lib/jhdfobj.jar;%vista_home%/lib/dsm2-input-model.jar;%vista_home%/lib/ojdbc6.jar"
+set CPATH="%vista_home%/lib/vista.jar;%vista_home%/lib/vista-help.jar;%vista_home%/jython/jython.jar;%vista_home%/lib/pd.jar;%vista_home%/lib/misc.jar;%vista_home%/lib/jhall.jar;%vista_home%/lib/jnios.jar;%vista_home%/lib/widgets.jar;%vista_home%/lib/jhdf5.jar;%vista_home%/lib/jhdf5obj.jar;%vista_home%/lib/jhdfobj.jar;%vista_home%/lib/dsm2-input-model.jar;%vista_home%/lib/ojdbc6.jar;%vista_home%/lib/slf4j-api-1.7.2.jar;%vista_home%/lib/logback-core-1.0.9.jar;%vista_home%/lib/logback-classic-1.0.9.jar"
 
 set HECPATH=%vista_home%/lib/heclib.jar;%vista_home%/lib/hec.jar;%vista_home%/lib/hecData.jar;%vista_home%/lib/rma.jar;%vista_home%/lib/dssvueHelp.jar;%vista_home%/lib/images.jar;
 
@@ -60,11 +60,11 @@ rem ###############
 if defined ARGS goto run2
 
 :run1
-"%vista_home%/jre6/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -classpath %CPATH% org.python.util.jython -i "%vista_home%/lib/__init__.py"
+"%vista_home%/jre6/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -Dpython.console=org.python.util.InteractiveConsole -classpath %CPATH% org.python.util.jython -i "%vista_home%/lib/__init__.py"
 goto end
 
 :run2
-"%vista_home%/jre6/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -classpath %CPATH% org.python.util.jython -i  %ARGS%
+"%vista_home%/jre6/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -Dpython.console=org.python.util.InteractiveConsole -classpath %CPATH% org.python.util.jython -i  %ARGS%
 
 endlocal
 :end 

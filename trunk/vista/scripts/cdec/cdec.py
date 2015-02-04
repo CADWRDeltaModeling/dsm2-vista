@@ -8,6 +8,7 @@ import string
 from httplib import *
 import re
 from datetime import date, datetime
+from vdss import  writedss
 CDEC_BASE_URL="cdec.water.ca.gov"
 DURATION_MAP={'daily':'D','hourly':'H','monthly':'M','event':'E'}
 DSS_INTERVAL={'monthly': '1MON','daily':'1DAY', 'hourly':'1HOUR', 'event':'IR-DAY'}
@@ -254,9 +255,9 @@ def retrieve_ts(station,sensor,\
 				val=Constants.MISSING_VALUE
 			else: # else just save the value
 				val=float(val_str)
-				if irreg:
-					tvals.append(ctime)
 			yvals.append(val)
+			if irreg:
+				tvals.append(ctime)
 		except:
 			tvals.append(ctime)
 			yvals.append(Constants.MISSING_VALUE)
@@ -300,3 +301,17 @@ def retrieve(station_name,sensor_number,start_date,end_date='now',verbose=1):
 			print 'SensorId: %s, Sensor Number: %s, Type: %s, Sub Type: %s, Data Available: %s'%(sensor.id, sensor.sensor_number, sensor.type, sensor.subType, sensor.dataAvailable)
 			return None
 	return retrieve_ts(station,sensor,start_date, end_date,1)
+#
+def download_data_in_yearly_chunks(station_name, sensor_number, start_year, end_year, file):
+	"""
+	Downloads data in year long chunks. CDEC cannot handle really large data requests so this is the best way to 
+	work around that.
+	It writes the data to file of your choice as opposed to returning a time series.
+	"""
+	for year in range(start_year, end_year):
+		start_date = "01/01/%s"%str(year)
+		end_date="12/31/%s"%(str(year))
+		rts=retrieve(station_name,sensor_number,start_date,end_date,verbose=1)
+		#if rts: vdisplay.plot(rts)
+		writedss(file,rts.name,rts)
+#
