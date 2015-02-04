@@ -121,7 +121,7 @@ public class SessionFrame extends JFrame implements DropTargetListener {
 	/**
 	 * for debuggin'
 	 */
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	/**
    *
    */

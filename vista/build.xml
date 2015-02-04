@@ -14,7 +14,7 @@
 	<property name="dist.dir" location="build/dist/vista"/>
 	<property name="vista.lib" location="lib" />
 	<property name="jython.installdir" location="d:/Programs/jython2.5.1"/>
-	<property name="jre6.installdir" location="C:\Program Files (x86)\Java\jre6"/>
+	<property name="jre6.installdir" location="C:\Program Files (x86)\Java\jdk1.6.0_45\jre"/>
 
 	<!-- ================================= 
           target: default              
@@ -77,7 +77,7 @@
 	</target>
 	
 	<target name="clean">
-		<delete dir="build"/>
+		<delete failonerror="false" dir="build"/>
 	</target>
 	
     <target name="javadoc">
