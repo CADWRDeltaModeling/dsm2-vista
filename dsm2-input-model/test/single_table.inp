@@ -1,0 +1,13 @@
+# ====================== Files used in simulation ========================
+
+#===================      Simulation input data    =====================
+
+ENVVAR
+NAME  VALUE  
+BNDRYINPUT                          ../../../timeseries/hist_19902009.dss    
+FINE_OUT                            15MIN    
+STUDYDIR                            .
+REF1								abcde
+REF2								fghij
+REF3								'"REF1"+"REF2"' 
+END
