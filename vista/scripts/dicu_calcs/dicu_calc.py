@@ -29,8 +29,8 @@ def do_scale(cpart,scale,outfile, twstr=None):
         writedss(outfile,ds.name,ds)
 #
 if __name__=='__main__':
-    dicufile=r'Z:/studies/drought_studies/boundary_flows_stage_ec_for_rma_compare/dicu_201412_CU4.dss'
-    outfile=r'Z:/studies/drought_studies/boundary_flows_stage_ec_for_rma_compare/boundary_flow_stage_ec.dss'
+    dicufile=r'd:/dsm2_pest_cu_est/slave_template/dsm2/timeseries/dicu_201203.dss'
+    outfile=r'd:/dsm2_pest_cu_est/slave_template/dsm2/timeseries/dicu_201203_mod.dss'
     #outfile=r'D:\models\DSM2v8.1.x\Historical_MiniCalibration_811_MTZ_ts_corrected\timeseries\dicu_201004_minus20.dss'
     cparts=['DIV-FLOW','DRAIN-FLOW','SEEP-FLOW']
     twstr="01JUN2013 0000 - 30NOV2014 2400"

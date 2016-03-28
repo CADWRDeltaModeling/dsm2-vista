@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vdss</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vdss.py">d:\dev\wk-vista\vista\lib\lib\vdss.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:u:\git\dsm2-vista\vista\lib\lib\vdss.py">u:\git\dsm2-vista\vista\lib\lib\vdss.py</a></font></td></tr></table>
     <p></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -26,10 +26,13 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-find"><strong>find</strong></a>(group, filter, part<font color="#909090">=''</font>, selecting<font color="#909090">=1</font>)</dt><dd><tt><a href="#-find">find</a>(group,&nbsp;filter,&nbsp;part="",&nbsp;selecting=1):<br>
-returns&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;group&nbsp;filtered&nbsp;by&nbsp;the&nbsp;filter...<br>
-part&nbsp;can&nbsp;be&nbsp;one&nbsp;of&nbsp;A,B,C,E&nbsp;or&nbsp;F.<br>
-selecting=0&nbsp;for&nbsp;removing&nbsp;matched&nbsp;and&nbsp;1&nbsp;for&nbsp;keeping&nbsp;only&nbsp;matched</tt></dd></dl>
+<td width="100%"><dl><dt><a name="-dsAddFlags"><strong>dsAddFlags</strong></a>(dataset)</dt><dd><tt><a href="#-dsAddFlags">dsAddFlags</a>(dataset)<br>
+Add&nbsp;UNSCREENED_FLAG&nbsp;to&nbsp;dataset&nbsp;that&nbsp;does&nbsp;not&nbsp;have&nbsp;any&nbsp;flags</tt></dd></dl>
+ <dl><dt><a name="-find"><strong>find</strong></a>(group, filter, part<font color="#909090">='P'</font>, selecting<font color="#909090">=1</font>)</dt><dd><tt><a href="#-find">find</a>(group,&nbsp;filter,&nbsp;part="",&nbsp;selecting=1):<br>
+Returns&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;group&nbsp;filtered&nbsp;by&nbsp;the&nbsp;filter...<br>
+Part&nbsp;can&nbsp;be&nbsp;one&nbsp;of&nbsp;A,B,C,E,F,&nbsp;or&nbsp;P&nbsp;(for&nbsp;entire&nbsp;path).<br>
+Default&nbsp;is&nbsp;P<br>
+Selecting=0&nbsp;for&nbsp;removing&nbsp;matched&nbsp;and&nbsp;1&nbsp;for&nbsp;keeping&nbsp;only&nbsp;matched</tt></dd></dl>
  <dl><dt><a name="-findparts"><strong>findparts</strong></a>(g, a<font color="#909090">=''</font>, b<font color="#909090">=''</font>, c<font color="#909090">=''</font>, d<font color="#909090">=''</font>, e<font color="#909090">=''</font>, f<font color="#909090">=''</font>, exact<font color="#909090">=True</font>)</dt><dd><tt><a href="#-findparts">findparts</a>(g,a='',b='',c='',d='',e='',f='',exact=True):<br>
 this&nbsp;returns&nbsp;an&nbsp;array&nbsp;of&nbsp;matching&nbsp;data&nbsp;references<br>
 g&nbsp;is&nbsp;the&nbsp;group&nbsp;returned&nbsp;from&nbsp;opendss&nbsp;function<br>
@@ -44,6 +47,11 @@ path&nbsp;is&nbsp;the&nbsp;dsspathname&nbsp;e.g.&nbsp;'//C6/FLOW-CHANNEL////'<br
 exact&nbsp;means&nbsp;that&nbsp;the&nbsp;exact&nbsp;string&nbsp;is&nbsp;matched&nbsp;as&nbsp;opposed&nbsp;to&nbsp;the&nbsp;reg.&nbsp;exp.</tt></dd></dl>
  <dl><dt><a name="-gen_ref"><strong>gen_ref</strong></a>(ds, filename<font color="#909090">=''</font>, server<font color="#909090">=''</font>, pathname<font color="#909090">=''</font>)</dt><dd><tt>generates&nbsp;a&nbsp;DataReference&nbsp;given&nbsp;a&nbsp;dataset</tt></dd></dl>
  <dl><dt><a name="-get_part_id"><strong>get_part_id</strong></a>(part)</dt></dl>
+ <dl><dt><a name="-make_dss_path"><strong>make_dss_path</strong></a>(pathname, a_part<font color="#909090">=''</font>, b_part<font color="#909090">=''</font>, f_part<font color="#909090">=''</font>)</dt><dd><tt><a href="#-make_dss_path">make_dss_path</a>(pathname,&nbsp;a_part='',&nbsp;b_part='',&nbsp;f_part='')<br>
+Adds&nbsp;additional&nbsp;A,&nbsp;B&nbsp;and&nbsp;F&nbsp;part&nbsp;text&nbsp;to&nbsp;an&nbsp;input&nbsp;pathname,&nbsp;and<br>
+checks&nbsp;for&nbsp;max&nbsp;length&nbsp;of&nbsp;each&nbsp;part&nbsp;and&nbsp;the&nbsp;pathname.&nbsp;Returns<br>
+a&nbsp;either&nbsp;a&nbsp;pathname&nbsp;object&nbsp;or&nbsp;string&nbsp;which&nbsp;is&nbsp;the&nbsp;new&nbsp;pathname,<br>
+depending&nbsp;on&nbsp;the&nbsp;type&nbsp;of&nbsp;the&nbsp;input&nbsp;pathname.</tt></dd></dl>
  <dl><dt><a name="-make_flag_value"><strong>make_flag_value</strong></a>(flag_val)</dt></dl>
  <dl><dt><a name="-opendss"><strong>opendss</strong></a>(filename, server<font color="#909090">='local'</font>)</dt><dd><tt><a href="#-opendss">opendss</a>(&nbsp;filename,&nbsp;server='local')&nbsp;:<br>
 opens&nbsp;a&nbsp;dss&nbsp;file&nbsp;with&nbsp;the&nbsp;given&nbsp;filename&nbsp;and&nbsp;returns&nbsp;it&nbsp;in&nbsp;a&nbsp;group&nbsp;object<br>
@@ -93,12 +101,14 @@ Reads&nbsp;all&nbsp;matching&nbsp;oldpart's&nbsp;in&nbsp;oldfile&nbsp;and&nbsp;r
 oldparts&nbsp;with&nbsp;newparts&nbsp;and&nbsp;writes&nbsp;out&nbsp;to&nbsp;newfile.&nbsp;The<br>
 part_name&nbsp;is&nbsp;the&nbsp;partid&nbsp;to&nbsp;be&nbsp;replaced&nbsp;and&nbsp;is&nbsp;one&nbsp;of<br>
 a,b,c&nbsp;or&nbsp;f.</tt></dd></dl>
- <dl><dt><a name="-sort"><strong>sort</strong></a>(group, part_name<font color="#909090">='B'</font>, increasing<font color="#909090">=1</font>)</dt><dd><tt><a href="#-sort">sort</a>(group&nbsp;,&nbsp;part_name&nbsp;=&nbsp;'B',increasing=1):<br>
-sorts&nbsp;given&nbsp;group&nbsp;by&nbsp;pathname&nbsp;part&nbsp;which&nbsp;is&nbsp;one&nbsp;of&nbsp;A,B,C,E&nbsp;or&nbsp;F<br>
-with&nbsp;increasing=1&nbsp;for&nbsp;increasing&nbsp;and&nbsp;increasing=0&nbsp;for&nbsp;decreasing</tt></dd></dl>
+ <dl><dt><a name="-set_part"><strong>set_part</strong></a>(pathname, new_part, new_part_id<font color="#909090">=1</font>)</dt></dl>
+ <dl><dt><a name="-sort"><strong>sort</strong></a>(group, part_name<font color="#909090">='B'</font>, increasing<font color="#909090">=True</font>)</dt><dd><tt><a href="#-sort">sort</a>(group&nbsp;,&nbsp;part_name&nbsp;=&nbsp;'B',increasing=True):<br>
+Sorts&nbsp;given&nbsp;group&nbsp;by&nbsp;pathname&nbsp;part&nbsp;which&nbsp;is&nbsp;one&nbsp;of&nbsp;A,B,C,E&nbsp;or&nbsp;F<br>
+with&nbsp;increasing=True&nbsp;for&nbsp;increasing&nbsp;and&nbsp;increasing=False&nbsp;for&nbsp;decreasing.<br>
+Sort&nbsp;done&nbsp;in&nbsp;place;&nbsp;no&nbsp;value&nbsp;returned.</tt></dd></dl>
  <dl><dt><a name="-wrap_data"><strong>wrap_data</strong></a>(ds, filename<font color="#909090">=''</font>, server<font color="#909090">=''</font>, pathname<font color="#909090">=''</font>)</dt><dd><tt><a href="#-wrap_data">wrap_data</a>(dataset,&nbsp;filename='',&nbsp;server='',&nbsp;pathname=''<br>
 wraps&nbsp;data&nbsp;set&nbsp;in&nbsp;a&nbsp;filename,&nbsp;servername&nbsp;and&nbsp;pathname</tt></dd></dl>
- <dl><dt><a name="-writeascii"><strong>writeascii</strong></a>(filename, ds, outputFlags<font color="#909090">=0</font>)</dt><dd><tt><a href="#-writeascii">writeascii</a>(filename,ds,outputFlags=0)<br>
+ <dl><dt><a name="-writeascii"><strong>writeascii</strong></a>(filename, ds, outputFlags<font color="#909090">=False</font>)</dt><dd><tt><a href="#-writeascii">writeascii</a>(filename,ds,outputFlags=False)<br>
 writes&nbsp;the&nbsp;given&nbsp;data&nbsp;set&nbsp;to&nbsp;the&nbsp;given&nbsp;filename.</tt></dd></dl>
  <dl><dt><a name="-writedss"><strong>writedss</strong></a>(filename, pathname, ds)</dt><dd><tt><a href="#-writedss">writedss</a>(filename,pathname,ds):<br>
 writes&nbsp;the&nbsp;given&nbsp;data&nbsp;set&nbsp;ds&nbsp;to&nbsp;the&nbsp;filename&nbsp;and&nbsp;the&nbsp;pathname.</tt></dd></dl>

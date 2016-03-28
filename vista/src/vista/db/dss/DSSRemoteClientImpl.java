@@ -178,8 +178,9 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 				_dataReader.close();
 			}
 		}
+		LineNumberReader reader = null;
 		try {
-			LineNumberReader reader = new LineNumberReader(new BufferedReader(
+			reader = new LineNumberReader(new BufferedReader(
 					new FileReader(catalogFile)));
 			ArrayList<String> catalog = new ArrayList<String>();
 			String line = null;
@@ -205,6 +206,14 @@ class DSSRemoteClientImpl extends UnicastRemoteObject implements
 		} catch (Exception e) {
 			throw new RemoteException(e.toString()
 					+ " exception while reading catalog " + catalogFile);
+		} finally {
+			if (reader !=null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 

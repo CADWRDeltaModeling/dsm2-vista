@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>vutils</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d:\dev\wk-vista\vista\lib\lib\vutils.py">d:\dev\wk-vista\vista\lib\lib\vutils.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:u:\git\dsm2-vista\vista\lib\lib\vutils.py">u:\git\dsm2-vista\vista\lib\lib\vutils.py</a></font></td></tr></table>
     <p></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -17,10 +17,9 @@
 <font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="datetime.html">datetime</a><br>
-</td><td width="25%" valign=top><a href="re.html">re</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="re.html">re</a><br>
 </td><td width="25%" valign=top><a href="string.html">string</a><br>
-</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -42,16 +41,39 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-dsAddFlags"><strong>dsAddFlags</strong></a>(dataset)</dt><dd><tt><a href="#-dsAddFlags">dsAddFlags</a>(dataset)<br>
-Add&nbsp;UNSCREENED_FLAG&nbsp;to&nbsp;dataset&nbsp;that&nbsp;does&nbsp;not&nbsp;have&nbsp;any&nbsp;flags</tt></dd></dl>
+<td width="100%"><dl><dt><a name="-diff"><strong>diff</strong></a>(rts1, rts2, outfile<font color="#909090">=None</font>)</dt><dd><tt><a href="#-diff">diff</a>(rts1,rts2,outfile=None):<br>
+Prints&nbsp;to&nbsp;stdout&nbsp;the&nbsp;differences&nbsp;between&nbsp;rts1&nbsp;and&nbsp;rts2&nbsp;to<br>
+outfile&nbsp;or&nbsp;if&nbsp;outfile&nbsp;is&nbsp;None&nbsp;to&nbsp;standard&nbsp;out.&nbsp;When&nbsp;writing<br>
+to&nbsp;file&nbsp;it&nbsp;appends&nbsp;to&nbsp;existing&nbsp;outfile&nbsp;if&nbsp;any.</tt></dd></dl>
+ <dl><dt><a name="-display_missing"><strong>display_missing</strong></a>(ds)</dt><dd><tt><a href="#-display_missing">display_missing</a>(ds)<br>
+where<br>
+ds&nbsp;is&nbsp;a&nbsp;data&nbsp;set&nbsp;or&nbsp;time&nbsp;series<br>
+displays&nbsp;missing&nbsp;value&nbsp;ranges&nbsp;for&nbsp;given&nbsp;time&nbsp;series</tt></dd></dl>
  <dl><dt><a name="-exit"><strong>exit</strong></a>()</dt></dl>
- <dl><dt><a name="-mergeWithFlags"><strong>mergeWithFlags</strong></a>(ds1, ds2)</dt><dd><tt><a href="#-mergeWithFlags">mergeWithFlags</a>(ds1,ds2)<br>
-Merge&nbsp;dataset1&nbsp;into&nbsp;dataset2&nbsp;using&nbsp;flags.&nbsp;&nbsp;Priority:<br>
-FlagUtils.OK_FLAG,&nbsp;QUESTIONABLE_FLAG,&nbsp;MISSING_FLAG,&nbsp;REJECT_FLAG,&nbsp;UNSCREENED_FLAG<br>
-If&nbsp;ds1Flag&nbsp;priority&nbsp;&gt;=&nbsp;ds2Flag&nbsp;priority,&nbsp;use&nbsp;ds1&nbsp;value;<br>
-If&nbsp;ds1Flag&nbsp;priority&nbsp;&lt;&nbsp;ds2Flag&nbsp;priority,&nbsp;use&nbsp;ds2&nbsp;value.<br>
-Return&nbsp;the&nbsp;merged&nbsp;dataset.&nbsp;If&nbsp;a&nbsp;dataset&nbsp;does&nbsp;not&nbsp;have&nbsp;flags,<br>
-UNSCREENED_FLAG&nbsp;is&nbsp;assumed.</tt></dd></dl>
+ <dl><dt><a name="-flag_data"><strong>flag_data</strong></a>(ftype, dataset, valArray, log<font color="#909090">='flag.log'</font>, Special<font color="#909090">=False</font>, ResetExist<font color="#909090">=False</font>)</dt><dd><tt><a href="#-flag_data">flag_data</a>(ftype,&nbsp;dataset,&nbsp;valArray,&nbsp;log&nbsp;=&nbsp;'flag.log',&nbsp;Special&nbsp;=&nbsp;False):<br>
+Flags&nbsp;a&nbsp;datastream's&nbsp;values&nbsp;for&nbsp;bad&nbsp;data:<br>
+ftype='R':&nbsp;datavalue&nbsp;not&nbsp;within&nbsp;valArray[0]:valArray[1]&nbsp;marked&nbsp;as&nbsp;reject.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;='D':&nbsp;datavalue&nbsp;difference&nbsp;from&nbsp;previous&nbsp;value&nbsp;not&nbsp;within<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valArray[0]&nbsp;range&nbsp;marked&nbsp;as&nbsp;reject.&nbsp;If&nbsp;len(valArray)&nbsp;&gt;&nbsp;1,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valArray[0]&nbsp;is&nbsp;an&nbsp;exceedance&nbsp;factor&nbsp;for&nbsp;values,&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valArray[1]&nbsp;is&nbsp;an&nbsp;exceedance&nbsp;factor&nbsp;for&nbsp;1st&nbsp;diff&nbsp;of&nbsp;values,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;both&nbsp;compared&nbsp;to&nbsp;Trailing&nbsp;Moving&nbsp;Average<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;='M':&nbsp;datavalue&nbsp;equals&nbsp;or&nbsp;very&nbsp;close&nbsp;to&nbsp;val[0:],&nbsp;an&nbsp;array&nbsp;of&nbsp;Missing&nbsp;Value&nbsp;markers;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DSS&nbsp;flag&nbsp;set&nbsp;to&nbsp;missing.&nbsp;Optional&nbsp;Special&nbsp;means&nbsp;marker&nbsp;value<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;within&nbsp;normal&nbsp;data&nbsp;range,&nbsp;check&nbsp;more&nbsp;carefully.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;='+|*':&nbsp;datavalue&nbsp;within&nbsp;range&nbsp;valArray[0]:valArray[1]&nbsp;scaled&nbsp;by&nbsp;valArray[2]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;amount,&nbsp;that&nbsp;is,&nbsp;datavalue&nbsp;is&nbsp;added/multiplied&nbsp;to/by&nbsp;valArray[2].&nbsp;Used&nbsp;mainly<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;CDEC&nbsp;EC&nbsp;data&nbsp;that&nbsp;switches&nbsp;between&nbsp;milli-&nbsp;and&nbsp;micro-mhos/cm&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to&nbsp;add&nbsp;100&nbsp;to&nbsp;USGS&nbsp;stage&nbsp;data.<br>
+All&nbsp;values&nbsp;marked&nbsp;are&nbsp;written&nbsp;to&nbsp;log&nbsp;file.<br>
+Special=True:&nbsp;Special&nbsp;treatment&nbsp;for&nbsp;Missing&nbsp;values&nbsp;that&nbsp;are&nbsp;within&nbsp;the<br>
+normal&nbsp;operating&nbsp;range&nbsp;of&nbsp;the&nbsp;parameter<br>
+ResetExist=True:&nbsp;reset&nbsp;any&nbsp;existing&nbsp;flag&nbsp;values&nbsp;to&nbsp;Unscreened<br>
+Flags&nbsp;added&nbsp;to&nbsp;timeseries&nbsp;if&nbsp;needed.</tt></dd></dl>
+ <dl><dt><a name="-flags_to_missing"><strong>flags_to_missing</strong></a>(ds, filter<font color="#909090">=vista.set.CompositeFilter@f9d4f7</font>)</dt><dd><tt><a href="#-flags_to_missing">flags_to_missing</a>(ds,filter=Constants.DEFAULT_FLAG_FILTER):<br>
+&nbsp;returns&nbsp;a&nbsp;dataset&nbsp;with&nbsp;missing&nbsp;values&nbsp;instead&nbsp;of&nbsp;flags<br>
+&nbsp;where&nbsp;ds&nbsp;is&nbsp;an&nbsp;ITS&nbsp;or&nbsp;RTS&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filter&nbsp;is&nbsp;of&nbsp;type&nbsp;vista.set.ElementFilter&nbsp;e.g.&nbsp;Constants.DEFAULT_FLAG_FILTER</tt></dd></dl>
 </td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#55aa55">
@@ -59,18 +81,17 @@ UNSCREENED_FLAG&nbsp;is&nbsp;assumed.</tt></dd></dl>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>TestDefaultTime</strong> = None<br>
+<td width="100%"><strong>MAXYEAR</strong> = 9999<br>
+<strong>MINYEAR</strong> = 1<br>
+<strong>TF</strong> = vista.time.TimeFactory@f8ae79<br>
+<strong>TestDefaultTime</strong> = None<br>
 <strong>TestDefaultTimeInterval</strong> = None<br>
-<strong>TestMovingAverageProxy</strong> = None<br>
-<strong>TestPositionAtTime</strong> = None<br>
-<strong>array</strong> = &lt;java function array 0xf&gt;<br>
 <strong>cmap</strong> = {'black': java.awt.Color[r=0,g=0,b=0], 'blue': java.awt.Color[r=0,g=0,b=255], 'cyan': java.awt.Color[r=0,g=255,b=255], 'green': java.awt.Color[r=0,g=255,b=0], 'magenta': java.awt.Color[r=255,g=0,b=255], 'orange': java.awt.Color[r=255,g=200,b=0], 'red': java.awt.Color[r=255,g=0,b=0], 'yellow': java.awt.Color[r=255,g=255,b=0]}<br>
 <strong>display</strong> = 1<br>
-<strong>native</strong> = &lt;java package vista.db.dss.native 0x10&gt;<br>
 <strong>pp_map</strong> = {'a': 0, 'b': 1, 'c': 2, 'f': 5}<br>
 <strong>symMap</strong> = {'circle': CircleSymbol (CircleSymbol), 'circle-filled': CircleSymbol (CircleSymbol), 'cross': Symbol (Symbol), 'hour-glass': Symbol (Symbol), 'hour-glass-filled': Symbol (Symbol), 'square': Symbol (Symbol), 'square-filled': Symbol (Symbol), 'triangle': Symbol (Symbol), 'triangle-filled': Symbol (Symbol)}<br>
 <strong>sys</strong> = &lt;module 'sys' (built-in)&gt;<br>
-<strong>tk</strong> = sun.awt.windows.WToolkit@18a6890<br>
+<strong>tk</strong> = sun.awt.windows.WToolkit@13d4c49<br>
 <strong>vh</strong> = None<br>
-<strong>zeros</strong> = &lt;java function zeros 0x11&gt;</td></tr></table>
+<strong>zeros</strong> = &lt;java function zeros 0x31&gt;</td></tr></table>
 </body></html>

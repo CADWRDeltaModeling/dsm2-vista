@@ -11,6 +11,7 @@ import java
 import math
 from java.awt import Color
 from javax.swing import *
+import string
 
 def open_dss(dssfile):
     """
@@ -29,6 +30,18 @@ def set_working_timewindow(dss, stime,etime):
     a time window defined by strings in ddMMMyyyy HHmm format (start time and end time)  
     """
     dss.setTimeWindow(stime,etime)
+def create_path_pattern(pathstr):
+    """
+    Creates a pattern string for the get_matching function of the form [part letter A|B|C|D|E|F]=<string to match> [space]
+    from a pathstr of the format [/[part string to match| empty] repeated for A-F
+    E.g. /OBS/MTZ/STAGE/1HOUR//SENSOR-36/ would be transformed to A=OBS B=MTZ C=STAGE D=1HOUR F=SENSOR-36. Note that E part is skipped as it is empty
+    """
+    fields = string.split(pathstr,"/")
+    parts=['A','B','C','D','E','F']
+    pattern=""
+    for part in range(len(parts)):
+        pattern=pattern+"%s=%s"%(parts[part],fields[part])
+    return pattern
 def get_matching(dss,pattern):
     """
     Takes a dss handle and
