@@ -43,7 +43,7 @@ public class DSSDirectoryServlet extends HttpServlet {
 			for (File f : dir.listFiles()) {
 				if (f.isFile() && f.getName().toLowerCase().endsWith(".dss")) {
 					response.getWriter().println("<tr>");
-					response.getWriter().append("<td><a href=\"/dsm2.webtools/catalog?dssfile="
+					response.getWriter().append("<td><a href=\"catalog?dssfile="
 							+ URLEncoder.encode(f.getAbsolutePath(), "UTF-8") + "\">"+f.getName()+"</a></td>");
 					response.getWriter().println("</tr>");
 				}

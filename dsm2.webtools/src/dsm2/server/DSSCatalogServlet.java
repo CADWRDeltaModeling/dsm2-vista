@@ -52,7 +52,7 @@ public class DSSCatalogServlet extends HttpServlet {
 					continue; // skip non-matches
 				response.getWriter().println("<tr>");
 				response.getWriter()
-						.append("<td><a href=\"/dsm2.webtools/timeseries_chart.jsp?dssfile="
+						.append("<td><a href=\"timeseries_chart.jsp?dssfile="
 								+ URLEncoder.encode(dssfile, "UTF-8") + "&dsspath="
 								+ URLEncoder.encode(pathname, "UTF-8") + "\">" + pathname + "</a></td>");
 				response.getWriter().println("</tr>");

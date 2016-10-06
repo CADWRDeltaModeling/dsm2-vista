@@ -25,7 +25,7 @@ function time_series_plot(div_id, data){
 	    h1 = 300,
 	    h2 = 30,
 	    x = pv.Scale.linear(start, end).range(0, w),
-	    y = pv.Scale.linear(0, pv.max(data.values, function(d) d.y1)).range(0, h2);
+	    y = pv.Scale.linear(0, pv.max(data.values, function(d) {return d.y1})).range(0, h2);
 
 	/* Interaction state. Focus scales will have domain set on-render. */
 	var i = {x:200, dx:100},
@@ -47,8 +47,8 @@ function time_series_plot(div_id, data){
 	        var d1 = x.invert(i.x),
 	            d2 = x.invert(i.x + i.dx),
 	            dd = data.values.slice(
-	                Math.max(0, pv.search.index(data.values, d1, function(d) d.x) - 1),
-	                pv.search.index(data.values, d2, function(d) d.x) + 1);
+	                Math.max(0, pv.search.index(data.values, d1, function(d) {return d.x}) - 1),
+	                pv.search.index(data.values, d2, function(d) {return d.x}) + 1);
 	        fx.domain(d1, d2);
 	        fy.domain(y.domain());
 	        //fy.domain(scale.checked ? [0, pv.max(dd, function(d) d.y1)] : y.domain());
@@ -59,7 +59,7 @@ function time_series_plot(div_id, data){
 
 	/* X-axis ticks. */
 	focus.add(pv.Rule)
-	    .data(function() fx.ticks())
+	    .data(function() {fx.ticks()})
 	    .left(fx)
 	    .strokeStyle("#eee")
 	  .anchor("bottom").add(pv.Label)
@@ -67,9 +67,9 @@ function time_series_plot(div_id, data){
 
 	/* Y-axis ticks. */
 	focus.add(pv.Rule)
-	    .data(function() fy.ticks(7))
+	    .data(function() {fy.ticks(7)})
 	    .bottom(fy)
-	    .strokeStyle(function(d) d ? "#aaa" : "#000")
+	    .strokeStyle(function(d) {d ? "#aaa" : "#000"})
 	  .anchor("left").add(pv.Label)
 	    .text(fy.tickFormat);
 
@@ -77,10 +77,10 @@ function time_series_plot(div_id, data){
 	focus.add(pv.Panel)
 	    .overflow("hidden")
 	  .add(pv.Line)
-	    .data(function() focus.init())
-	    .left(function(d) fx(d.x))
+	    .data(function() {focus.init()})
+	    .left(function(d) {fx(d.x)})
 	    .bottom(1)
-	    .height(function(d) fy(d.y1))
+	    .height(function(d) {fy(d.y1)})
 	    .fillStyle("lightsteelblue")
 	  .anchor("top").add(pv.Line)
 	    .fillStyle(null)
@@ -107,9 +107,9 @@ function time_series_plot(div_id, data){
 	/* Context area chart. */
 	context.add(pv.Area)
 	    .data(data.values)
-	    .left(function(d) x(d.x))
+	    .left(function(d){ x(d.x)})
 	    .bottom(1)
-	    .height(function(d) y(d.y1))
+	    .height(function(d) {y(d.y1)})
 	    .fillStyle("lightsteelblue")
 	  .anchor("top").add(pv.Line)
 	    .strokeStyle("steelblue")
@@ -123,8 +123,8 @@ function time_series_plot(div_id, data){
 	    .event("mousedown", pv.Behavior.select())
 	    .event("select", focus)
 	  .add(pv.Bar)
-	    .left(function(d) d.x)
-	    .width(function(d) d.dx)
+	    .left(function(d){ d.x})
+	    .width(function(d){ d.dx})
 	    .fillStyle("rgba(255, 128, 128, .4)")
 	    .cursor("move")
 	    .event("mousedown", pv.Behavior.drag())

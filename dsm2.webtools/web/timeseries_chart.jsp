@@ -23,7 +23,7 @@ demo
 %>
 <script type="text/javascript">
         $(document).ready(function(){
-    $.getJSON('/dsm2.webtools/data?dssfile=<%=URLEncoder.encode(request.getParameter("dssfile"), "UTF-8")%>&dsspath=<%=URLEncoder.encode(request.getParameter("dsspath"), "UTF-8")%>',
+    $.getJSON('data?dssfile=<%=URLEncoder.encode(request.getParameter("dssfile"), "UTF-8")%>&dsspath=<%=URLEncoder.encode(request.getParameter("dsspath"), "UTF-8")%>',
 										function(data) {
 											chart_options = {
 												chart : {

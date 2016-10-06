@@ -13,11 +13,11 @@ from java.awt import Color
 from javax.swing import *
 import string
 
-def open_dss(dssfile):
+def open_dss(dssfile, existing=True):
     """
     opens a dss files only if it exists, else fails
     """
-    dss=HecDss.open(dssfile,True)
+    dss=HecDss.open(dssfile, existing)
     return dss
 def close_dss(dss):
     """

@@ -1,18 +1,38 @@
 <html>
-<h1>Welcome to DSS Service</h1>
-<div id="main">
-Take a look here to browse the files
-<a href="list">List of current DSS files</a>
-<div id="h5main">
-Take a look here to browse the files
-<a href="h5list">List of current HDF5 files</a>
+<head>
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/iron-flex-layout/iron-flex-layout.html">
+</head>
+<body class="fullbleed">
+	<!-- paper-header-panel must have an explicit height -->
+	<paper-header-panel class="flex" mode="waterfall">
+	<paper-toolbar>
+	<div class="paper-header">
+		<h1>DSM2 Web Tools</h1>
+	</div>
+	</paper-toolbar>
+	<div id="main">
+		Take a look here to browse the files <a href="list">List of
+			current DSS files</a>
+		<div id="h5main">
+			Take a look here to browse the files <a href="h5list">List of
+				current HDF5 files</a>
 
-<p>
-Another way to look at data via <a href="callite_svg.html">schematic</a>
-</p>
+			<p>
+				Another way to look at data via <a href="callite_svg.html">schematic</a>
+			</p>
 
-<p>
-Reading from a large Qual binary tidefile and coloring a bunch of polygons and <a href="qual_animation_gradients.html">animating them</a> 
-</p>
-</div>
+			<p>
+				Reading from a large Qual binary tidefile and coloring a bunch of
+				polygons and <a href="qual_animation_gradients.html">animating
+					them</a>
+			</p>
+		</div>
+	</div>
+	</paper-header-panel>
+</body>
 </html>

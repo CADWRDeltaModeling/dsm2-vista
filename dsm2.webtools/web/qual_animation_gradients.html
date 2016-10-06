@@ -3,6 +3,18 @@
 <title>Qual Animation of Tidefile</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import"
+	href="bower_components/paper-slider/paper-slider.html">
+<link rel="import"
+	href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import"
+	href="bower_components/paper-icon-button/paper-icon-button.html">
 <style>
 #map {
 	width: 100%;
@@ -15,283 +27,304 @@
 }
 </style>
 </head>
-<body>
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-sm-4">
-				<h3>
-					Controls:
-					</h2>
-					<div class="row">
-						<div class="col-sm-4">
-							<div class="label label-primary" id="time">Time:</div>
-						</div>
-						<div class="col-sm-8">
-							<div class="" id="slider"></div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-4">
-							<div class="label label-primary" id="animation_interval">Animation Interval:</div>
-						</div>
-						<div class="col-sm-8">
-							<div class="" id="speed-slider"></div>
-						</div>
-					</div>
-			</div>
+<body class="fullbleed layout vertical">
+	<paper-drawer-panel peeking="True"> <paper-header-panel drawer>
+	<paper-toolbar></paper-toolbar>
+	<div class="container flex-vertical">
+		<div class="container flex-horizontal">
+			<div id="time">Time:</div>
+			<div class="" id="slider"></div>
+		</div>
+		<div class="container flex-horizontal">
+			<div id="anim">Animation Speed:</div>
+			<div class="" id="speed-slider"></div>
 		</div>
 	</div>
-	<div class="row">
+	</paper-header-panel> 
+	<paper-header-panel main> 
+	<paper-toolbar>
+	 <!--  <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button> -->
+	<div>
+		<h1>Qual Animation from DSM2 Tidefile Output</h1>
+	</div>
+	</paper-toolbar>
+	<div>
 		<div id="map"></div>
 	</div>
-	</div>
-</body>
-<!--  JQuery Libraries -->
-<script src="js/jquery-1.12.4.min.js"></script>
-<script src="js/jquery-ui-1.12.1.min.js"></script>
-<link rel="stylesheet" href="css/jquery-ui-1.12.1.css">
-<!--  Bootstrap libraries for layout -->
-<link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
-<script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
-<!--  Leaflet for maps -->
-<link rel="stylesheet" href="css/leaflet.css" />
-<script type="text/javascript" src="js/leaflet-0.7.7.js"></script>
-<!-- D3 for svg rendering -->
-<script type="text/javascript" src="js/d3-4.2.2.js"></script>
-<script type="text/javascript" src="js/d3-legend.js"></script>
-<!-- Data and custom scripts -->
-<script type="text/javascript" src="json/dsm2-flowlines-width.js"></script>
-<script>
-	// taken from https://leaflet-extras.github.io/leaflet-providers/preview/
-	// https: also suppported.
-	// https: also suppported.
-	var Esri_WorldTopoMap = L
-			.tileLayer(
-					'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-					{
-						attribution : 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
-					});
-	var CartoDB_DarkMatter = L
-			.tileLayer(
-					'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-					{
-						attribution : '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-						subdomains : 'abcd',
-						maxZoom : 19
-					});
-	var Hydda_Base = L
-			.tileLayer(
-					'http://{s}.tile.openstreetmap.se/hydda/base/{z}/{x}/{y}.png',
-					{
-						attribution : 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-					});
-	//setup map layer and all
-	layer = Hydda_Base;
-	layer.setOpacity(1.0);
-	var map = new L.Map("map", {
-		center : [ 38.18, -121.61 ],
-		zoom : 10
-	}).addLayer(layer);
-	map.on("viewreset", reset);
-	// now svg elements
-	var svg = d3.select(map.getPanes().overlayPane).append("svg"), gTop = svg
-			.append("g").attr("class", "leaflet-zoom-hide");
-	var sdefs = svg.append('defs')
-	var lgs = sdefs.selectAll("linearGradient").data(dsm2_flowlines.features)
-			.enter().append("linearGradient").attr("id", function(d, i) {
-				return "gradient" + i;
+	</paper-header-panel> </paper-drawer-panel>
+	<!--  JQuery Libraries -->
+	<script src="js/jquery-1.12.4.min.js"></script>
+	<script src="js/jquery-ui-1.12.1.min.js"></script>
+	<link rel="stylesheet" href="css/jquery-ui-1.12.1.css">
+	<!--  Leaflet for maps -->
+	<link rel="stylesheet" href="css/leaflet.css" />
+	<script type="text/javascript" src="js/leaflet-0.7.7.js"></script>
+	<!-- D3 for svg rendering -->
+	<script type="text/javascript" src="js/d3-4.2.2.js"></script>
+	<script type="text/javascript" src="js/d3-legend.js"></script>
+	<!-- Data and custom scripts -->
+	<script type="text/javascript" src="json/dsm2-flowlines-width.js"></script>
+	<script>
+		// taken from https://leaflet-extras.github.io/leaflet-providers/preview/
+		// https: also suppported.
+		// https: also suppported.
+		var Esri_WorldTopoMap = L
+				.tileLayer(
+						'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+						{
+							attribution : 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+						});
+		var CartoDB_DarkMatter = L
+				.tileLayer(
+						'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+						{
+							attribution : '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+							subdomains : 'abcd',
+							maxZoom : 19
+						});
+		var Hydda_Base = L
+				.tileLayer(
+						'http://{s}.tile.openstreetmap.se/hydda/base/{z}/{x}/{y}.png',
+						{
+							attribution : 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+						});
+		//setup map layer and all
+		layer = Hydda_Base;
+		layer.setOpacity(1.0);
+		var map = new L.Map("map", {
+			center : [ 38.18, -121.61 ],
+			zoom : 10
+		}).addLayer(layer);
+		map.on("viewreset", reset);
+		// now svg elements
+		var svg = d3.select(map.getPanes().overlayPane).append("svg"), gTop = svg
+				.append("g").attr("class", "leaflet-zoom-hide");
+		var sdefs = svg.append('defs')
+		var lgs = sdefs.selectAll("linearGradient").data(
+				dsm2_flowlines.features).enter().append("linearGradient").attr(
+				"id", function(d, i) {
+					return "gradient" + i;
+				});
+		//lgs.attr("x1","0%").attr("y1","0%").attr("x2","100%").attr("y2","100%");
+		var stops1 = lgs.append("stop").attr("offset", "0%").style(
+				'stop-color', 'rgb(0,255,0)');
+		var stops2 = lgs.append("stop").attr("offset", "100%").style(
+				'stop-color', 'rgb(255,0,0)');
+		//lgs.attr("gradientTransform",function (d){});
+		var transform = d3.geoTransform({
+			point : projectPoint
+		}), path = d3.geoPath().projection(transform);
+		// add features from flow lines
+		var flow_features = gTop.selectAll("path")
+				.data(dsm2_flowlines.features).enter().append("path").attr(
+						"id", function getid(d) {
+							return d.properties.Name;
+						}).style('stroke', function(d, i) {
+					return 'url(#gradient' + i + ')'
+				}).style('fill', 'none').style('stroke-width', function(d) {
+					return d.properties.width / 100.0;
+				}).style('shape-rendering','optimizeSpeed')//.style('stroke-linecap','round').style('stroke-linejoin','round');
+
+		reset();
+		// now add timer and start animation
+		var SLICE_SIZE = 48 * 5; //48 * 5; // how large a slice of animation data to fetch (multiples of 16 is best as that is HDF5 chunking size in file)
+		var ANIMATE_INTERVAL = 150; // time in millis between calls to animate function
+		var ANIMATION_START = "01JAN2000 0000";
+		var globalStartTime = null, globalEndTime = null;
+		var timer = null;
+		var slice = 0;
+		var sliceData = null, nextSliceData = null;
+		tf = d3.timeFormat("%d%b%Y %H%M")
+		tp = d3.timeParse("%d%b%Y %H%M")
+		var stime = tp(ANIMATION_START);
+		// slider
+		var sl = $("#slider")
+				.slider(
+						{
+							stop : function(event, ui) {
+								//timer.stop();
+								ANIMATION_START = tf(new Date(ui.value));
+								d3
+										.json(
+												encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+														+ ANIMATION_START
+														+ "&slice="
+														+ SLICE_SIZE),
+												function(d) {
+													sliceData = d;
+													slice = 0;
+													stime = tp(sliceData.startTimeOffset
+															.replace(",", "")
+															.replace(":", ""));
+													timer = d3.interval(
+															animate,
+															ANIMATE_INTERVAL);
+												});
+							},
+							start : function(event, ui) {
+								timer.stop()
+							},
+							slide : function(event, ui) {
+								d3.select('div#time').html(
+										"Time: "
+												+ tf(new Date(ui.value))
+														.toUpperCase());
+							}
+						});
+		d3.select('div#time').html("Time: " + tf(stime).toUpperCase());
+
+		var sl2 = $("#speed-slider").slider(
+				{
+					min : 10,
+					max : 2000,
+					step : 10,
+					value : ANIMATE_INTERVAL,
+					stop : function(event, ui) {
+						$("#animation_interval").html(
+								"Animation Interval: " + ui.value
+										+ " millisecs")
+						timer.stop();
+						timer = d3.interval(animate,
+								ANIMATE_INTERVAL = ui.value)
+					},
+					slide : function(event, ui) {
+						d3.select('div#anim').html(
+								"Animation Interval: " + ui.value);
+					}
+				});
+		d3.select('div#anim').html("Animation Interval: " + ANIMATE_INTERVAL);
+
+		d3
+				.json(
+						encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+								+ ANIMATION_START + "&slice=" + SLICE_SIZE),
+						function(d) {
+							sliceData = d;
+							stime = tp(sliceData.startTimeOffset.replace(",",
+									"").replace(":", ""));
+							globalStartTime = tp(sliceData.startTime.replace(
+									",", "").replace(":", ""))
+							globalEndTime = tp(sliceData.endTime.replace(",",
+									"").replace(":", ""))
+							$("#slider").slider("option", "min",
+									globalStartTime.getTime());
+							$("#slider").slider("option", "max",
+									globalEndTime.getTime());
+							$("#slider").slider("option", "step",
+									sliceData.intervalInMins * 60 * 1000); // min intervals to millisecs
+							timer = d3.interval(animate, ANIMATE_INTERVAL);
+						});
+		// animate function
+		function animate(elapsed) {
+			if (slice == 0) { // slice is in use, get next slice data
+				if (sliceData == null) {
+					console.log("No data found!. Stopping animation");
+					timer.stop();
+				}
+				d3
+						.json(
+								encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+										+ sliceData.endTimeOffset
+										+ "&slice="
+										+ SLICE_SIZE), function(d) {
+									nextSliceData = d;
+
+								});
+			}
+			stime = d3.timeMinute.offset(stime, sliceData.intervalInMins)
+			stops1.data(sliceData.data[slice][1])
+			stops1.style('stop-color', interpolateColor)
+			stops2.data(sliceData.data[slice][0])
+			stops2.style('stop-color', interpolateColor)
+			// update text and slider
+			svg_text.text("Time: " + tf(stime).toUpperCase());
+			$("#slider").slider("value", stime.getTime());
+
+			slice = slice + 1; // increment slice pointer
+
+			if (slice == SLICE_SIZE) {
+				slice = 0;
+				sliceData = nextSliceData; // start using next slice
+				if (sliceData == null) {
+					timer.stop();
+				}
+				stime = tp(sliceData.startTimeOffset.replace(",", "").replace(
+						":", ""));
+			}
+		}
+		// salinity intrusion 
+		color_classes = [ '#fff7ec', '#fee8c8', '#fdd49e', '#fdbb84',
+				'#fc8d59', '#ef6548', '#d7301f', '#b30000', '#7f0000' ] //http://colorbrewer2.org/#type=sequential&scheme=OrRd&n=9
+		color_classes = [ '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
+				'#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026' ] // http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
+		value_classes = [ 200, 500, 750, 1000, 2500, 5000, 10000, 12500, 15000,
+				17500, 25000 ] // full delta value range
+		// south delta / san joaquin highlights
+		//color_classes = ['#fff7f3','#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a'] // http://colorbrewer2.org/#type=sequential&scheme=RdPu&n=9
+		//value_classes = [ 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 2000, 3000, 3800] // full delta value range
+		/* //X2 highlight
+		color_classes = ['#edf8e9','#bae4b3','#74c476','#238b45', '#74c476', '#bae4b3', '#edf8e9'] // http://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9 substituting white color with black
+		value_classes = [100, 3200, 3500, 3700, 3900, 4500, 15500] // full delta value range with x2 highlight
+		 */
+		//value_classes = [ 50, 200, 400, 600, 800, 1000, 1200, 1500, 2000, 2500, 3500]
+		color_classes.reverse();
+		//color_classes = color_classes.concat(color_classes.reverse())
+		var colorInterpolator = d3.scaleLinear().domain(value_classes).range(
+				color_classes.reverse())
+				.interpolate(d3.interpolateRgb.gamma(3));//d3.interpolateRgb.gamma(2.2));
+		//colorInterpolator = d3.scaleSequential(d3.interpolatePiYG).domain(1000,15000);
+		function interpolateColor(d) {
+			return colorInterpolator(d);
+		}
+		//  add legend
+		var verticalLegend = d3legend().labelFormat("none").cellPadding(5)
+				.orientation("vertical").units("Colors/Values").cellWidth(25)
+				.cellHeight(15).inputScale(colorInterpolator).cellStepping(10);
+		var g_controls = d3
+				.select(
+						"#map > div.leaflet-control-container > div.leaflet-top.leaflet-left")
+				.append("svg").attr("height", 300).attr("width", 100).append(
+						"g");
+		g_controls.append("rect").attr("height", 300).attr("width", 225).attr(
+				"fill", "white").attr("transform", "translate(0,-50)");
+		var svg_text_container = g_controls.attr("transform",
+				"translate(20,50)").attr("class", "legend")
+				.call(verticalLegend);
+		svg_text_container = d3
+				.select(
+						"#map > div.leaflet-control-container > div.leaflet-top.leaflet-left")
+				.append("svg").attr("width", 300).attr("height", 300).append(
+						"g").attr("transform", "translate(10, 80)");
+
+		var svg_text = svg_text_container.append("text").attr("x", "0").attr(
+				"y", "-30").attr("font-family", "sans-serif").attr("font-size",
+				"20px").attr("fill", "red");
+
+		// Reposition the SVG to cover the features.
+		function reset() {
+			var bounds = path.bounds(dsm2_flowlines), topLeft = bounds[0], bottomRight = bounds[1];
+
+			svg.attr("width", bottomRight[0] - topLeft[0]).attr("height",
+					bottomRight[1] - topLeft[1]).style("left",
+					topLeft[0] + "px").style("top", topLeft[1] + "px");
+
+			gTop.attr("transform", "translate(" + -topLeft[0] + ","
+					+ -topLeft[1] + ")");
+			var factor = (bottomRight[0] - topLeft[0])
+			flow_features.attr("d", path).style("stroke-width", function(d) {
+				var swidth = d.properties.width * factor / 150000.0;
+				return Math.max(swidth, 8);
 			});
-	//lgs.attr("x1","0%").attr("y1","0%").attr("x2","100%").attr("y2","100%");
-	var stops1 = lgs.append("stop").attr("offset", "0%").style('stop-color',
-			'rgb(0,255,0)');
-	var stops2 = lgs.append("stop").attr("offset", "100%").style('stop-color',
-			'rgb(255,0,0)');
-	//lgs.attr("gradientTransform",function (d){});
-	var transform = d3.geoTransform({
-		point : projectPoint
-	}), path = d3.geoPath().projection(transform);
-	// add features from flow lines
-	var flow_features = gTop.selectAll("path").data(dsm2_flowlines.features)
-			.enter().append("path").attr("id", function getid(d) {
-				return d.properties.Name;
-			}).style('stroke', function(d, i) {
-				return 'url(#gradient' + i + ')'
-			}).style('fill', 'none').style('stroke-width', function(d) {
-				return d.properties.width / 100.0;
-			})//.style('stroke-linecap','round').style('stroke-linejoin','round');
-
-	reset();
-	// now add timer and start animation
-	var SLICE_SIZE = 48 * 5; //48 * 5; // how large a slice of animation data to fetch (multiples of 16 is best as that is HDF5 chunking size in file)
-	var ANIMATE_INTERVAL = 10; // time in millis between calls to animate function
-	var ANIMATION_START = "01JAN2000 0000";
-	var globalStartTime = null, globalEndTime = null;
-	var timer = null;
-	var slice = 0;
-	var sliceData = null, nextSliceData = null;
-	tf = d3.timeFormat("%d%b%Y %H%M")
-	tp = d3.timeParse("%d%b%Y %H%M")
-	var stime = tp(ANIMATION_START);
-	// slider
-	var sl = $("#slider")
-			.slider(
-					{
-						stop : function(event, ui) {
-							//timer.stop();
-							ANIMATION_START = tf(new Date(ui.value));
-							d3
-									.json(
-											encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
-													+ ANIMATION_START
-													+ "&slice=" + SLICE_SIZE),
-											function(d) {
-												sliceData = d;
-												slice = 0;
-												stime = tp(sliceData.startTimeOffset
-														.replace(",", "")
-														.replace(":", ""));
-												timer = d3.interval(animate,
-														ANIMATE_INTERVAL);
-											});
-						},
-						start : function(event, ui) {
-							timer.stop()
-						},
-						slide : function(event, ui) {
-							d3.select('div#time').html(
-									"Time: "
-											+ tf(new Date(ui.value))
-													.toUpperCase());
-						}
-					});
-	var sl2 = $("#speed-slider").slider({
-		min : 0,
-		max : 2000,
-		value : ANIMATE_INTERVAL,
-		stop : function(event, ui) {
-			$("#animation_interval").html("Animation Interval: "+ui.value+" millisecs")
-			timer.stop();
-			timer = d3.interval(animate, ANIMATE_INTERVAL = ui.value)
 		}
-	})
-	d3
-			.json(
-					encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
-							+ ANIMATION_START + "&slice=" + SLICE_SIZE),
-					function(d) {
-						sliceData = d;
-						stime = tp(sliceData.startTimeOffset.replace(",", "")
-								.replace(":", ""));
-						globalStartTime = tp(sliceData.startTime.replace(",",
-								"").replace(":", ""))
-						globalEndTime = tp(sliceData.endTime.replace(",", "")
-								.replace(":", ""))
-						$("#slider").slider("option", "min",
-								globalStartTime.getTime());
-						$("#slider").slider("option", "max",
-								globalEndTime.getTime());
-						$("#slider").slider("option", "step",
-								sliceData.intervalInMins * 60 * 1000); // min intervals to millisecs
-						timer = d3.interval(animate, ANIMATE_INTERVAL);
-					});
-	// animate function
-	function animate(elapsed) {
-		if (slice == 0) { // slice is in use, get next slice data
-			if (sliceData == null) {
-				console.log("No data found!. Stopping animation");
-				timer.stop();
-			}
-			d3
-					.json(
-							encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
-									+ sliceData.endTimeOffset
-									+ "&slice="
-									+ SLICE_SIZE), function(d) {
-								nextSliceData = d;
 
-							});
+		// Use Leaflet to implement a D3 geometric transformation.
+		function projectPoint(x, y) {
+			//var point = map.latLngToLayerPoint(new L.LatLng(y, x)); // has rounding which throws of linear gradients when drawing horiz or vertical lines
+			var pt = map.project(new L.LatLng(y,x), map.getZoom());
+			var point = pt._subtract(map.getPixelOrigin())
+			this.stream.point(point.x, point.y);
 		}
-		stime = d3.timeMinute.offset(stime, sliceData.intervalInMins)
-		stops1.data(sliceData.data[slice][1])
-		stops1.style('stop-color', interpolateColor)
-		stops2.data(sliceData.data[slice][0])
-		stops2.style('stop-color', interpolateColor)
-		// update text and slider
-		svg_text.text("Time: " + tf(stime).toUpperCase());
-		$("#slider").slider("value", stime.getTime());
+	</script>
+</body>
 
-		slice = slice + 1; // increment slice pointer
-
-		if (slice == SLICE_SIZE) {
-			slice = 0;
-			sliceData = nextSliceData; // start using next slice
-			if (sliceData == null) {
-				timer.stop();
-			}
-			stime = tp(sliceData.startTimeOffset.replace(",", "").replace(":",
-					""));
-		}
-	}
-	// salinity intrusion 
-	color_classes = [ '#fff7ec', '#fee8c8', '#fdd49e', '#fdbb84', '#fc8d59',
-			'#ef6548', '#d7301f', '#b30000', '#7f0000' ] //http://colorbrewer2.org/#type=sequential&scheme=OrRd&n=9
-	color_classes = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'] // http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
-	value_classes = [ 200, 500, 750, 1000, 2500, 5000, 10000, 12500, 15000,
-			17500, 25000 ] // full delta value range
-	// south delta / san joaquin highlights
-	//color_classes = ['#fff7f3','#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a'] // http://colorbrewer2.org/#type=sequential&scheme=RdPu&n=9
-	//value_classes = [ 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 2000, 3000, 3800] // full delta value range
-	/* //X2 highlight
-	color_classes = ['#edf8e9','#bae4b3','#74c476','#238b45', '#74c476', '#bae4b3', '#edf8e9'] // http://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9 substituting white color with black
-	value_classes = [100, 3200, 3500, 3700, 3900, 4500, 15500] // full delta value range with x2 highlight
-	 */
-	//value_classes = [ 50, 200, 400, 600, 800, 1000, 1200, 1500, 2000, 2500, 3500]
-	color_classes.reverse();
-	//color_classes = color_classes.concat(color_classes.reverse())
-	var colorInterpolator = d3.scaleLinear().domain(value_classes).range(
-			color_classes.reverse()).interpolate(d3.interpolateRgb.gamma(3));//d3.interpolateRgb.gamma(2.2));
-	//colorInterpolator = d3.scaleSequential(d3.interpolatePiYG).domain(1000,15000);
-	function interpolateColor(d) {
-		return colorInterpolator(d);
-	}
-	//  add legend
-	var verticalLegend = d3legend().labelFormat("none").cellPadding(5)
-			.orientation("vertical").units("Colors/Values").cellWidth(25)
-			.cellHeight(15).inputScale(colorInterpolator).cellStepping(10);
-	var g_controls = d3
-			.select(
-					"#map > div.leaflet-control-container > div.leaflet-top.leaflet-left")
-			.append("svg").attr("height", 400).attr("width", 300).append("g");
-	g_controls.append("rect").attr("height", 400).attr("width", 225).attr(
-			"fill", "white").attr("transform","translate(0,-50)");
-	var svg_text_container = g_controls.attr("transform", "translate(20,50)")
-			.attr("class", "legend").call(verticalLegend);
-	//var svg_text_container = d3.select("#map > div.leaflet-control-container > div.leaflet-top.leaflet-left").append("svg").attr("width",300).attr("height", 200).append("g").attr("transform","translate(20, 50)");
-	var svg_text = svg_text_container.append("text").attr("x", "0").attr("y",
-			"-30").attr("font-family", "sans-serif").attr("font-size", "20px")
-			.attr("fill", "red");
-
-	// Reposition the SVG to cover the features.
-	function reset() {
-		var bounds = path.bounds(dsm2_flowlines), topLeft = bounds[0], bottomRight = bounds[1];
-
-		svg.attr("width", bottomRight[0] - topLeft[0]).attr("height",
-				bottomRight[1] - topLeft[1]).style("left", topLeft[0] + "px")
-				.style("top", topLeft[1] + "px");
-
-		gTop.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1]
-				+ ")");
-		var factor = (bottomRight[0] - topLeft[0])
-		flow_features.attr("d", path).style("stroke-width", function(d) {
-			var swidth = d.properties.width * factor / 150000.0;
-			return Math.max(swidth, 8);
-		});
-	}
-
-	// Use Leaflet to implement a D3 geometric transformation.
-	function projectPoint(x, y) {
-		var point = map.latLngToLayerPoint(new L.LatLng(y, x));
-		this.stream.point(point.x, point.y);
-	}
-</script>
 </html>

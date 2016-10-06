@@ -43,7 +43,7 @@ public class H5DirectoryServlet extends HttpServlet {
 			for (File f : dir.listFiles()) {
 				if (f.isFile() && f.getName().toLowerCase().endsWith(".h5")) {
 					response.getWriter().println("<tr>");
-					response.getWriter().append("<td><a href=\"/dsm2.webtools/h5catalog?file="
+					response.getWriter().append("<td><a href=\"h5catalog?file="
 							+ URLEncoder.encode(f.getAbsolutePath(), "UTF-8") + "\">"+f.getName()+"</a></td>");
 					response.getWriter().println("</tr>");
 				}

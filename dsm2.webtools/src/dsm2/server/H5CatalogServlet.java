@@ -55,7 +55,7 @@ public class H5CatalogServlet extends HttpServlet {
 					continue; // skip non-matches
 				response.getWriter().println("<tr>");
 				response.getWriter()
-						.append("<td><a href=\"/dsm2.webtools/h5timeseries_chart.jsp?file="
+						.append("<td><a href=\"h5timeseries_chart.jsp?file="
 								+ URLEncoder.encode(file, "UTF-8") + "&path="
 								+ URLEncoder.encode(pathname, "UTF-8") + "\">" + pathname + "</a></td>");
 				response.getWriter().println("</tr>");
