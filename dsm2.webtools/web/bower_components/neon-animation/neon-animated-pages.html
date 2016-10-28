@@ -1,5 +1,4 @@
 <!--
-@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -11,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../iron-selector/iron-selectable.html">
 <link rel="import" href="neon-animation-runner-behavior.html">
+<link rel="import" href="animations/opaque-animation.html">
 
 <!--
 Material design: [Meaningful transitions](https://www.google.com/design/spec/animation/meaningful-transitions.html)
@@ -25,30 +25,34 @@ animations to be run when switching to or switching out of the page.
 -->
 
 <dom-module id="neon-animated-pages">
+
+  <style>
+
+    :host {
+      display: block;
+      position: relative;
+    }
+
+    :host > ::content > * {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      height: 100%;
+    }
+
+    :host > ::content > :not(.iron-selected):not(.neon-animating) {
+      display: none !important;
+    }
+
+    :host > ::content > .neon-animating {
+      pointer-events: none;
+    }
+
+  </style>
+
   <template>
-    <style>
-      :host {
-        display: block;
-        position: relative;
-      }
-
-      :host > ::content > * {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-      }
-
-      :host > ::content > :not(.iron-selected):not(.neon-animating) {
-        display: none !important;
-      }
-
-      :host > ::content > .neon-animating {
-        pointer-events: none;
-      }
-    </style>
-    
     <content id="content"></content>
   </template>
 
@@ -82,21 +86,19 @@ animations to be run when switching to or switching out of the page.
 
     },
 
+    observers: [
+      '_selectedChanged(selected)'
+    ],
+
     listeners: {
-      'iron-select': '_onIronSelect',
       'neon-animation-finish': '_onNeonAnimationFinish'
     },
 
-    _onIronSelect: function(event) {
-      var selectedPage = event.detail.item;
+    _selectedChanged: function(selected) {
 
-      // Only consider child elements.
-      if (this.items.indexOf(selectedPage) < 0) {
-        return;
-      }
-
+      var selectedPage = this.selectedItem;
       var oldPage = this._valueToItem(this._prevSelected) || false;
-      this._prevSelected = this.selected;
+      this._prevSelected = selected;
 
       // on initial load and if animateInitialSelection is negated, simply display selectedPage.
       if (!oldPage && !this.animateInitialSelection) {
@@ -104,7 +106,11 @@ animations to be run when switching to or switching out of the page.
         return;
       }
 
-      this.animationConfig = [];
+      // insert safari fix.
+      this.animationConfig = [{
+        name: 'opaque-animation',
+        node: selectedPage
+      }];
 
       // configure selectedPage animations.
       if (this.entryAnimation) {
@@ -155,7 +161,7 @@ animations to be run when switching to or switching out of the page.
       selectedPage.classList.add('neon-animating');
 
       // actually run the animations.
-      if (this.animationConfig.length >= 1) {
+      if (this.animationConfig.length > 1) {
 
         // on first load, ensure we run animations only after element is attached.
         if (!this.isAttached) {
@@ -207,7 +213,7 @@ animations to be run when switching to or switching out of the page.
     },
 
     _notifyPageResize: function() {
-      var selectedPage = this.selectedItem || this._valueToItem(this.selected);
+      var selectedPage = this.selectedItem;
       this.resizerShouldNotify = function(element) {
         return element == selectedPage;
       }

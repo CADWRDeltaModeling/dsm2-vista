@@ -1,6 +1,7 @@
 package dsm2.server;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import hec.heclib.dss.CondensedReference;
+import hec.heclib.dss.DSSPathname;
 import hec.heclib.dss.HecDss;
 
 /**
@@ -43,22 +45,36 @@ public class DSSCatalogServlet extends HttpServlet {
 		try {
 			HecDss dss = HecDss.open(dssfile);
 			Vector<CondensedReference> condensedCatalog = dss.getCondensedCatalog();
-			response.getWriter().println("<html>");
-			response.getWriter().println("<table>");
+			response.setContentType("application/json");
+			PrintWriter w = response.getWriter();
+			w.print("{");
+			w.println("\"file\": \""+dssfile+"\",");
+			w.println("\"paths\": [");
 			Pattern p = Pattern.compile(dsspath, Pattern.CASE_INSENSITIVE);
+			boolean first = true;
 			for (CondensedReference r : condensedCatalog) {
 				String pathname = r.getNominalPathname();
 				if (!p.matcher(pathname).matches())
 					continue; // skip non-matches
-				response.getWriter().println("<tr>");
-				response.getWriter()
-						.append("<td><a href=\"timeseries_chart.jsp?dssfile="
-								+ URLEncoder.encode(dssfile, "UTF-8") + "&dsspath="
-								+ URLEncoder.encode(pathname, "UTF-8") + "\">" + pathname + "</a></td>");
-				response.getWriter().println("</tr>");
+				if (!first){
+					w.println(",");
+				}
+				String []  parts = new DSSPathname(pathname).getParts();
+				w.print("[");
+				for (int i=0; i < parts.length; i++){
+					w.print("\""+parts[i]+"\"");
+					if (i < parts.length -1 ){
+						w.print(", ");
+					}
+				}
+				w.print("]");
+				if (first){
+					first = false;
+				}
 			}
-			response.getWriter().println("</table>");
-			response.getWriter().println("</html>");
+			w.println("");
+			w.println("]");
+			w.println("}");
 			dss.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();

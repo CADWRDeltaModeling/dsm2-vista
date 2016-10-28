@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import hec.heclib.dss.CondensedReference;
+import hec.heclib.dss.DSSPathname;
 import hec.heclib.dss.HecDss;
 import hec.heclib.util.HecTime;
 import hec.heclib.util.Heclib;
@@ -42,29 +43,38 @@ public class DSSDataServlet extends HttpServlet {
 			return;
 		}
 		String dsspath = request.getParameter("dsspath");
+		String twStr = request.getParameter("timewindow");
 		try {
-			HecDss dss = HecDss.open(dssfile);
-			dsspath = searchRegex(replaceAndEscape(dsspath),dss);
-			if (dsspath == null){
+			HecDss dss = HecDss.open(dssfile, true);
+			dsspath = searchRegex(replaceAndEscape(dsspath), dss);
+			if (dsspath == null) {
 				return;
 			}
-			DataContainer dataContainer = dss.get(dsspath, true);
+			if (twStr == null || twStr.length()==0) {
+				twStr = parseTimeWindowFromPath(dsspath);
+				//dss.setTimeWindow(twStr);
+			}
+			String[] twFields = twStr.split(" ");
+			String startTime = twFields[0] + " " + twFields[1];
+			String endTime = twFields[2] + " " + twFields[3];
+			DataContainer dataContainer = dss.get(dsspath, startTime, endTime);
 			response.setContentType("application/json");
 			response.getWriter().println("{");
 
 			if (dataContainer instanceof TimeSeriesContainer) {
 				TimeSeriesContainer tsc = (TimeSeriesContainer) dataContainer;
-				response.getWriter().println("\"location\": \""+tsc.location +"\",");
-				response.getWriter().println("\"parameter\": \""+tsc.parameter+"\",");
-				response.getWriter().println("\"subParameter\": \""+tsc.subParameter+"\",");
-				response.getWriter().println("\"subLocation\": \""+tsc.subLocation+"\",");
-				response.getWriter().println("\"units\": \""+tsc.units+"\",");
-				response.getWriter().println("\"type\": \""+tsc.type+"\",");
+				response.getWriter().println("\"location\": \"" + tsc.location + "\",");
+				response.getWriter().println("\"parameter\": \"" + tsc.parameter + "\",");
+				response.getWriter().println("\"subParameter\": \"" + tsc.subParameter + "\",");
+				response.getWriter().println("\"subLocation\": \"" + tsc.subLocation + "\",");
+				response.getWriter().println("\"units\": \"" + tsc.units + "\",");
+				response.getWriter().println("\"type\": \"" + tsc.type + "\",");
 				response.getWriter().println("\"valueArray\":[");
 				HecTime ht = new HecTime();
 				for (int i = 0; i < tsc.numberValues; i++) {
 					ht.set(tsc.times[i]);
-					response.getWriter().print("[" + ht.getTimeInMillis() + "," + (tsc.values[i] == Heclib.UNDEFINED_DOUBLE ? null : tsc.values[i]) + "]");
+					response.getWriter().print("[" + ht.getTimeInMillis() + ","
+							+ (tsc.values[i] == Heclib.UNDEFINED_DOUBLE ? null : tsc.values[i]) + "]");
 					if (i == tsc.numberValues - 1)
 						break;
 					response.getWriter().println(",");
@@ -75,6 +85,12 @@ public class DSSDataServlet extends HttpServlet {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+
+	private String parseTimeWindowFromPath(String dsspath) {
+		DSSPathname pathname = new DSSPathname(dsspath);
+		String[] fields = pathname.getDPart().split(" - ");
+		return fields[0] + " 0000 " + fields[1] + " 0000";
 	}
 
 	public String searchRegex(String regpath, HecDss dss) {

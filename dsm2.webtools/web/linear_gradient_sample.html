@@ -15,24 +15,23 @@
 <script type="text/javascript" src="js/d3-4.2.2.js"></script>
 <script>
 	// Create the SVG element and set its dimensions.
-	var width = 800, height = 200, padding = 15;
+	var width = 800, height = 800, padding = 15;
 	var div = d3.select('#main'), svg = div.append('svg');
 	svg.attr('width', width).attr('height', height);
 	// Create the svg:defs element and the main gradient definition.
 	var svgDefs = svg.append('defs');
 	var mainGradient = svgDefs.append('linearGradient').attr('id',
 			'mainGradient');
+	mainGradient.attr("x1","0%").attr("x2","100%");
+	mainGradient.attr("y1","0%").attr("y2","100%");
 	// Create the stops of the main gradient. Each stop will be assigned
 	// a class to style the stop using CSS.
-	mainGradient.append('stop').attr('offset', '0%').style('stop-color','#3f51b5');
-	mainGradient.append('stop').attr('offset', '100%').style('stop-color','#009688');
+	
+	mainGradient.append('stop').attr('offset', '0%').style('stop-color','rgb(0,255,0)');
+	mainGradient.append('stop').attr('offset', '100%').style('stop-color','rgb(255,0,0)');
 	// Use the gradient to set the shape fill, via CSS.
 	svg.append('rect').style('fill','url(#mainGradient)').attr('x', padding).attr('y',
 			padding).attr('width', (width / 2) - 1.5 * padding).attr('height',
 			height - 2 * padding);
-	// Use the gradient to set the shape stroke, via CSS.
-	svg.append('rect').style('stroke','url(#mainGradient)').style('fill','none').style('stroke-width','4').attr('x',
-			width / 2 + padding / 2).attr('y', padding).attr('width',
-			(width / 2) - 1.5 * padding).attr('height', height - 2 * padding);
 </script>
 </html>

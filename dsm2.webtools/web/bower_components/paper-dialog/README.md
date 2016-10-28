@@ -24,11 +24,10 @@ Material design: [Dialogs](https://www.google.com/design/spec/components/dialogs
 `<paper-dialog>` is a dialog with Material Design styling and optional animations when it is
 opened or closed. It provides styles for a header, content area, and an action area for buttons.
 You can use the `<paper-dialog-scrollable>` element (in its own repository) if you need a scrolling
-content area. To autofocus a specific child element after opening the dialog, give it the `autofocus`
-attribute. See `Polymer.PaperDialogBehavior` and `Polymer.IronOverlayBehavior` for specifics.
+content area. See `Polymer.PaperDialogBehavior` for specifics.
 
 For example, the following code implements a dialog with a header, scrolling content area and
-buttons. Focus will be given to the `dialog-confirm` button when the dialog is opened.
+buttons.
 
 ```html
 <paper-dialog>
@@ -38,7 +37,7 @@ buttons. Focus will be given to the `dialog-confirm` button when the dialog is o
   </paper-dialog-scrollable>
   <div class="buttons">
     <paper-button dialog-dismiss>Cancel</paper-button>
-    <paper-button dialog-confirm autofocus>Accept</paper-button>
+    <paper-button dialog-confirm>Accept</paper-button>
   </div>
 </paper-dialog>
 ```

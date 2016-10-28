@@ -3,6 +3,9 @@
 <title>Qual Animation of Tidefile</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 1. Load webcomponents-lite.min.js for polyfill support. -->
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js">
+    </script>
 <link rel="import"
 	href="bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import"
@@ -15,6 +18,12 @@
 	href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import"
 	href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import"
+	href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import"
+	href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import"
+	href="bower_components/paper-item/paper-item.html">
 <style>
 #map {
 	width: 100%;
@@ -39,6 +48,13 @@
 			<div id="anim">Animation Speed:</div>
 			<div class="" id="speed-slider"></div>
 		</div>
+		<paper-dropdown-menu id="mapselector" label="Map Background" on-iron-select="changeMapBackground">
+		<paper-listbox class="dropdown-content">
+			<paper-item>World_Topo_Map</paper-item>
+			<paper-item>CartoDB_DarkMatter</paper-item>
+			<paper-item>Hydda_Base</paper-item>
+		</paper-listbox>
+		</paper-dropdown-menu>
 	</div>
 	</paper-header-panel> 
 	<paper-header-panel main> 
@@ -65,6 +81,7 @@
 	<!-- Data and custom scripts -->
 	<script type="text/javascript" src="json/dsm2-flowlines-width.js"></script>
 	<script>
+		var tidefile="D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5";
 		// taken from https://leaflet-extras.github.io/leaflet-providers/preview/
 		// https: also suppported.
 		// https: also suppported.
@@ -89,6 +106,20 @@
 							attribution : 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 						});
 		//setup map layer and all
+		var dropdown = document.querySelector("#mapselector");
+		dropdown.addEventListener("iron-select", function(){
+		console.log('Now selected: '+this.selectedItemLabel);
+		map.removeLayer(layer);
+		if (this.selectedItemLabel == 'World_Topo_Map'){
+			layer = Esri_WorldTopoMap;
+		} else if (this.selectedItemLabel == 'CartoDB_DarkMatter'){
+			layer = CartoDB_DarkMatter;
+		} else {
+			layer = Hydda_Base;
+		}
+			map.addLayer(layer);
+		});
+		
 		layer = Hydda_Base;
 		layer.setOpacity(1.0);
 		var map = new L.Map("map", {
@@ -127,7 +158,7 @@
 
 		reset();
 		// now add timer and start animation
-		var SLICE_SIZE = 48 * 5; //48 * 5; // how large a slice of animation data to fetch (multiples of 16 is best as that is HDF5 chunking size in file)
+		var SLICE_SIZE = 48 * 15; //48 * 5; // how large a slice of animation data to fetch (multiples of 16 is best as that is HDF5 chunking size in file)
 		var ANIMATE_INTERVAL = 150; // time in millis between calls to animate function
 		var ANIMATION_START = "01JAN2000 0000";
 		var globalStartTime = null, globalEndTime = null;
@@ -142,11 +173,11 @@
 				.slider(
 						{
 							stop : function(event, ui) {
-								//timer.stop();
+								timer.stop();
 								ANIMATION_START = tf(new Date(ui.value));
 								d3
 										.json(
-												encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+												encodeURI("h5qualconcslice?file="+tidefile+"&time="
 														+ ANIMATION_START
 														+ "&slice="
 														+ SLICE_SIZE),
@@ -175,9 +206,9 @@
 
 		var sl2 = $("#speed-slider").slider(
 				{
-					min : 10,
-					max : 2000,
-					step : 10,
+					min : 20,
+					max : 250,
+					step : 5,
 					value : ANIMATE_INTERVAL,
 					stop : function(event, ui) {
 						$("#animation_interval").html(
@@ -193,10 +224,10 @@
 					}
 				});
 		d3.select('div#anim').html("Animation Interval: " + ANIMATE_INTERVAL);
-
+		// start the animation after data load.
 		d3
 				.json(
-						encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+						encodeURI("h5qualconcslice?file="+tidefile+"&time="
 								+ ANIMATION_START + "&slice=" + SLICE_SIZE),
 						function(d) {
 							sliceData = d;
@@ -215,15 +246,17 @@
 							timer = d3.interval(animate, ANIMATE_INTERVAL);
 						});
 		// animate function
+		var prev_elapsed = 0, step_size=1;
 		function animate(elapsed) {
 			if (slice == 0) { // slice is in use, get next slice data
 				if (sliceData == null) {
 					console.log("No data found!. Stopping animation");
 					timer.stop();
 				}
+				//console.log('Getting next slice: '+sliceData.endTimeOffset+' @ slice size: '+SLICE_SIZE);
 				d3
 						.json(
-								encodeURI("h5qualconcslice?file=D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5&time="
+								encodeURI("h5qualconcslice?file="+tidefile+"&time="
 										+ sliceData.endTimeOffset
 										+ "&slice="
 										+ SLICE_SIZE), function(d) {
@@ -231,7 +264,8 @@
 
 								});
 			}
-			stime = d3.timeMinute.offset(stime, sliceData.intervalInMins)
+			
+			stime = d3.timeMinute.offset(stime, sliceData.intervalInMins*step_size)
 			stops1.data(sliceData.data[slice][1])
 			stops1.style('stop-color', interpolateColor)
 			stops2.data(sliceData.data[slice][0])
@@ -239,10 +273,15 @@
 			// update text and slider
 			svg_text.text("Time: " + tf(stime).toUpperCase());
 			$("#slider").slider("value", stime.getTime());
-
-			slice = slice + 1; // increment slice pointer
-
-			if (slice == SLICE_SIZE) {
+			if (prev_elapsed != 0){
+				step_size =Math.max(1, Math.round((elapsed-prev_elapsed)/ANIMATE_INTERVAL))
+				//console.log('Step size:'+step_size)
+			} 
+			slice = slice + step_size; // increment slice pointer
+			prev_elapsed = elapsed;
+			if (slice >= sliceData.data.length) {
+				SLICE_SIZE = 48 * 5 * step_size;
+				//console.log('Next slice @ slice '+slice);
 				slice = 0;
 				sliceData = nextSliceData; // start using next slice
 				if (sliceData == null) {
@@ -257,8 +296,8 @@
 				'#fc8d59', '#ef6548', '#d7301f', '#b30000', '#7f0000' ] //http://colorbrewer2.org/#type=sequential&scheme=OrRd&n=9
 		color_classes = [ '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
 				'#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026' ] // http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
-		value_classes = [ 200, 500, 750, 1000, 2500, 5000, 10000, 12500, 15000,
-				17500, 25000 ] // full delta value range
+		value_classes = [ 200, 500, 750, 1000, 1500, 2000, 3300, 3500, 3800,
+				10000, 20000 ] // full delta value range
 		// south delta / san joaquin highlights
 		//color_classes = ['#fff7f3','#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a'] // http://colorbrewer2.org/#type=sequential&scheme=RdPu&n=9
 		//value_classes = [ 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 2000, 3000, 3800] // full delta value range

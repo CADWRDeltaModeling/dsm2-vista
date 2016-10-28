@@ -28,7 +28,7 @@ public class AddChannelWidthToFlowlines {
 		// read in dsm2 info
 		DSM2Model model = new Parser().parseModel("resources/hydro_2009calibration_navd88.inp").toDSM2Model();
 		// read flow line information
-		FileReader reader = new FileReader(new File("web/json/dsm2-flowlines.js"));
+		FileReader reader = new FileReader(new File("web/json/dsm2-flowlines-oct252016.geojson"));
 		JsonParser parser = new JsonParser();
 		JsonElement parse = parser.parse(reader);
 		JsonArray featureArray = parse.getAsJsonObject().getAsJsonArray("features");
@@ -36,7 +36,7 @@ public class AddChannelWidthToFlowlines {
 		HashMap<String, JsonElement> idToFeatureMap = new HashMap<String, JsonElement>();
 		for (int i = 0; i < featureArray.size(); i++) {
 			JsonObject properties = featureArray.get(i).getAsJsonObject().getAsJsonObject("properties");
-			String id = properties.getAsJsonPrimitive("Name").getAsString();
+			String id = properties.getAsJsonPrimitive("channel_nu").getAsString();
 			idToFeatureMap.put(id, featureArray.get(i));
 			System.out.println(id);
 			// channel-width property mixed from channels (use average top width from all xsections)
@@ -58,7 +58,8 @@ public class AddChannelWidthToFlowlines {
 		
 		// write it out to json
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		Writer writer = new FileWriter("web/json/dsm2-flowlines-widthxx.js");
+		Writer writer = new FileWriter("web/json/dsm2-flowlines-width-oct252016.js");
+		writer.write("dsm2_flowlines=");
 		gson.toJson(parse, writer);
 		writer.close();
 	}
