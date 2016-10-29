@@ -1,0 +1,92 @@
+<!--  DSS Catalog Element
+Displays DSS Catalog as a table with path parts of each column from A-F
+ -->
+<!doctype html>
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import"
+	href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/vaadin-grid/vaadin-grid.html">
+</head>
+<body>
+<dom-module id="dss-catalog-view">
+	<template>
+	<style>
+	 google-chart {
+	  height: 600px;
+	  width: 450em;
+	}
+	paper-button.fancy {
+  	background: blue;
+  	color: yellow;
+	}
+	paper-button.fancy:hover {
+  	background: lime;
+	}
+</style>
+		<iron-ajax id="catalogRequest" auto url="catalog"
+			params$='{"dssfile":"[[dssFile]]"}'
+			handle-as="json"
+			last-response="{{catalog}}">
+		</iron-ajax>
+		<div id="file" class="paper-font-title">DSS File: {{dssFile}}</div>
+		<paper-button raised on-tap="_displaySelected">Display Selected</paper-button>
+		<vaadin-grid id="grid" file$="[[dssFile]]"
+		columns='[{"name":"A Part", "sortable": "true"},{"name":"B Part", "sortable": "true"},{"name":"C Part", "sortable": "true"},{"name":"D Part"},{"name":"E Part", "sortable": "true"},{"name":"F Part", "sortable": "true"} ]'
+		items="{{catalog.paths}}">
+		</vaadin-grid>
+	</template> 
+<script>
+Polymer({
+    is: 'dss-catalog-view',
+    properties: {
+    	dssFile: String
+    },
+
+    listeners: {
+    },
+
+    ready: function() {
+    	// Re-order the data array on sort-order-changed event
+    	this.$.grid.selection.mode='Multi'
+		this.$.grid.addEventListener('sort-order-changed', function(e) {
+		// cancel default sorting for arrays.
+		e.preventDefault();
+		
+		var idx = grid.sortOrder[0].column;
+		var lesser = grid.sortOrder[0].direction == 'asc' ? -1 : 1;
+		grid.items.sort(function(a, b) {
+		  return (a[idx] < b[idx]) ? lesser : -lesser;
+		});
+		});
+    },
+    _displaySelected: function(e){
+    	var grid = this.$.grid;
+    	var s = grid.selection.selected();
+    	var s_paths = []
+    	for(i=0; i < s.length; i++){
+    		path = grid.items[s[i]]
+    		path = "/"+path.reduce(function(p,c) { return p+"/"+c})+"/"
+	    	s_paths.push(path);
+    	}
+    	console.log(s_paths);
+    	console.log(this.__data__.dssFile);
+    	this.fire("dss-catalog-view-selected-paths", {"file": file, "paths": s_paths});
+    }
+  });
+</script>
+</dom-module>
+    /**
+     * Fired when dss catalog view selection of paths changes
+     *
+     * @event dss-catalog-view-selected-paths
+     */
+
+</body>
+</html>

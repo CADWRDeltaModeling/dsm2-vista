@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"
+	type="text/javascript"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import"
+	href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
+<link rel="import"
+	href="bower_components/paper-color-picker/paper-color-picker.html">
+<link rel="import"
+	href="bower_components/paper-color-picker/paper-color-input.html">
+<link rel="import"
+	href="bower_components/paper-swatch-picker/paper-swatch-picker.html">
+
+<link rel="import" href="qual-animation-element.html">
+<style>
+</style>
+</head>
+<body>
+	<dom-module is="qual-animation-controller">
+	<template>
+	<style>
+	:host{
+	}
+	
+	
+	</style>
+	<div class="container align-horizontal">
+	<paper-dropdown-menu label='Map Layer' value="{{layerName}}" on-iron-select="_changeMapBackground" selected="0" style="width: 25em">
+	<paper-listbox class="dropdown-content" >
+	<paper-item>OpenStreetMap.Mapnik</paper-item>
+	<paper-item>OpenStreetMap.BlackAndWhite</paper-item>
+	<paper-item>OpenStreetMap.DE</paper-item>
+	<paper-item>OpenStreetMap.France</paper-item>
+	<paper-item>OpenStreetMap.HOT</paper-item>
+	<paper-item>Thunderforest.OpenCycleMap</paper-item>
+	<paper-item>Thunderforest.Transport</paper-item>
+	<paper-item>Thunderforest.TransportDark</paper-item>
+	<paper-item>Thunderforest.SpinalMap</paper-item>
+	<paper-item>Thunderforest.Landscape</paper-item>
+	<paper-item>Thunderforest.Outdoors</paper-item>
+	<paper-item>Thunderforest.Pioneer</paper-item>
+	<paper-item>OpenMapSurfer.Roads</paper-item>
+	<paper-item>OpenMapSurfer.AdminBounds</paper-item>
+	<paper-item>OpenMapSurfer.Grayscale</paper-item>
+	<paper-item>Hydda.Full</paper-item>
+	<paper-item>Hydda.Base</paper-item>
+	<paper-item>Hydda.RoadsAndLabels</paper-item>
+	<paper-item>Stamen.Toner</paper-item>
+	<paper-item>Stamen.TonerBackground</paper-item>
+	<paper-item>Stamen.TonerHybrid</paper-item>
+	<paper-item>Stamen.TonerLines</paper-item>
+	<paper-item>Stamen.TonerLabels</paper-item>
+	<paper-item>Stamen.TonerLite</paper-item>
+	<paper-item>Stamen.Watercolor</paper-item>
+	<paper-item>Stamen.Terrain</paper-item>
+	<paper-item>Stamen.TerrainBackground</paper-item>
+	<paper-item>Stamen.TopOSMRelief</paper-item>
+	<paper-item>Stamen.TopOSMFeatures</paper-item>
+	<paper-item>Esri.WorldStreetMap</paper-item>
+	<paper-item>Esri.DeLorme</paper-item>
+	<paper-item>Esri.WorldTopoMap</paper-item>
+	<paper-item>Esri.WorldImagery</paper-item>
+	<paper-item>Esri.WorldTerrain</paper-item>
+	<paper-item>Esri.WorldShadedRelief</paper-item>
+	<paper-item>Esri.WorldPhysical</paper-item>
+	<paper-item>Esri.OceanBasemap</paper-item>
+	<paper-item>Esri.NatGeoWorldMap</paper-item>
+	<paper-item>Esri.WorldGrayCanvas</paper-item>
+	<paper-item>OpenWeatherMap.Clouds</paper-item>
+	<paper-item>OpenWeatherMap.CloudsClassic</paper-item>
+	<paper-item>OpenWeatherMap.Precipitation</paper-item>
+	<paper-item>OpenWeatherMap.PrecipitationClassic</paper-item>
+	<paper-item>OpenWeatherMap.Rain</paper-item>
+	<paper-item>OpenWeatherMap.RainClassic</paper-item>
+	<paper-item>OpenWeatherMap.Pressure</paper-item>
+	<paper-item>OpenWeatherMap.PressureContour</paper-item>
+	<paper-item>OpenWeatherMap.Wind</paper-item>
+	<paper-item>OpenWeatherMap.Temperature</paper-item>
+	<paper-item>OpenWeatherMap.Snow</paper-item>
+	<paper-item>HERE.normalDay</paper-item>
+	<paper-item>HERE.normalDayCustom</paper-item>
+	<paper-item>HERE.normalDayGrey</paper-item>
+	<paper-item>HERE.normalDayMobile</paper-item>
+	<paper-item>HERE.normalDayGreyMobile</paper-item>
+	<paper-item>HERE.normalDayTransit</paper-item>
+	<paper-item>HERE.normalDayTransitMobile</paper-item>
+	<paper-item>HERE.normalNight</paper-item>
+	<paper-item>HERE.normalNightMobile</paper-item>
+	<paper-item>HERE.normalNightGrey</paper-item>
+	<paper-item>HERE.normalNightGreyMobile</paper-item>
+	<paper-item>HERE.basicMap</paper-item>
+	<paper-item>HERE.mapLabels</paper-item>
+	<paper-item>HERE.trafficFlow</paper-item>
+	<paper-item>HERE.carnavDayGrey</paper-item>
+	<paper-item>HERE.hybridDay</paper-item>
+	<paper-item>HERE.hybridDayMobile</paper-item>
+	<paper-item>HERE.pedestrianDay</paper-item>
+	<paper-item>HERE.pedestrianNight</paper-item>
+	<paper-item>HERE.satelliteDay</paper-item>
+	<paper-item>HERE.terrainDay</paper-item>
+	<paper-item>HERE.terrainDayMobile</paper-item>
+	<paper-item>CartoDB.Positron</paper-item>
+	<paper-item>CartoDB.PositronNoLabels</paper-item>
+	<paper-item>CartoDB.PositronOnlyLabels</paper-item>
+	<paper-item>CartoDB.DarkMatter</paper-item>
+	<paper-item>CartoDB.DarkMatterNoLabels</paper-item>
+	<paper-item>CartoDB.DarkMatterOnlyLabels</paper-item>
+	<paper-item>HikeBike.HikeBike</paper-item>
+	<paper-item>HikeBike.HillShading</paper-item>
+	<paper-item>BasemapAT.basemap</paper-item>
+	<paper-item>BasemapAT.grau</paper-item>
+	<paper-item>BasemapAT.overlay</paper-item>
+	<paper-item>BasemapAT.highdpi</paper-item>
+	<paper-item>BasemapAT.orthofoto</paper-item>
+	<paper-item>NASAGIBS.ModisTerraTrueColorCR</paper-item>
+	<paper-item>NASAGIBS.ModisTerraBands367CR</paper-item>
+	<paper-item>NASAGIBS.ViirsEarthAtNight2012</paper-item>
+	<paper-item>NASAGIBS.ModisTerraLSTDay</paper-item>
+	<paper-item>NASAGIBS.ModisTerraSnowCover</paper-item>
+	<paper-item>NASAGIBS.ModisTerraAOD</paper-item>
+	<paper-item>NASAGIBS.ModisTerraChlorophyll</paper-item>
+	</paper-listbox>
+	</paper-dropdown-menu>
+	</div>
+	<div>
+	<qual-animation-element id="qe"
+		tidefile="D:/delta/dsm2_v812_2309_fresh/studies/historical/output/historical_v81_ec.h5"
+		center="[38, -121.6]"
+		zoom="11"
+		animate-interval="80"
+		animate-start-time="01JAN2001 0000"
+		color-classes = '["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99","#b15928"]'
+		value-classes = "[ 200, 500, 700, 1000, 2500, 3700, 4500, 8000, 10000, 15000, 18000, 25000]"
+		layer-name="{{layerName}}">
+	</qual-animation-element>
+	</div>
+		<!--
+		// User leaflet provider to name layers https://leaflet-extras.github.io/leaflet-providers/preview/
+		// Use color brewer to get these colors http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+		color-classes = '[ "#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#bd0026", "#800026" ]'
+		value-classes = "[ 200, 500, 1000, 2000, 3300, 3500, 3800, 10000, 20000]"
+
+		color-classes = '["#40004b","#762a83","#9970ab","#c2a5cf","#e7d4e8","#f7f7f7","#d9f0d3","#a6dba0","#5aae61","#1b7837","#00441b"]'
+		value-classes = "[ 200, 500, 700, 1000, 1500, 2000, 3300, 3500, 3800, 10000, 20000]"
+		// Qualitative X2 highlight
+		color-classes = '["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#ffff33","#a65628","#f781bf","#999999"]'
+		value-classes = "[ 200, 500, 700, 1000, 2000, 3700, 4500, 8500, 13800, 18000, 25000]"
+		 -->
+		</template>
+</body>
+<script type="text/javascript">
+Polymer({
+	is: "qual-animation-controller",
+	properties: {
+		
+	},
+	ready: function(e) {
+		console.log('ready qual animation controller')
+	},	
+	_changeMapBackground: function(e) {
+		console.log('_changeMapBackground', e)
+		console.log(this.layerName)
+		this.$.qe._changeMapTileLayer(this.layerName);
+	}
+});
+//leaflet provider
+//p=Object.keys(L.TileLayer.Provider.providers)
+//for (x in p){ if (Object.keys(L.TileLayer.Provider.providers[p[x]]).length <=2) continue; v = Object.keys(L.TileLayer.Provider.providers[p[x]].variants); for (y in v) {if (v[y]){console.log(p[x] + '.' + v[y]); }}}
+</script>
+</html>

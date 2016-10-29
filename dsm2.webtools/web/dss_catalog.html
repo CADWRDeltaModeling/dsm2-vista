@@ -1,0 +1,44 @@
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/paper-input/paper-input.html">
+<link rel="import"
+	href="bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import"
+	href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/iron-location/iron-location.html">
+<link rel="import" href="bower_components/iron-location/iron-query-params.html">
+<link rel="import" href="dss-catalog-view.html">
+</head>
+<body class="fullbleed">
+	<!-- paper-header-panel must have an explicit height -->
+	<paper-header-panel class="flex" mode="waterfall">
+	<paper-toolbar>
+	<div class="paper-header">
+		<h1>DSS Catalog</h1>
+	</div>
+	</paper-toolbar>
+	<template id="bindingTemplate" is="dom-bind">
+    <iron-location
+        path="{{__path}}"
+        query="{{__query}}"
+        hash="{{__hash}}"
+        url-space-regex={{urlSpaceRegex}}
+        on-location-changed="handleLocationChange">
+    </iron-location>
+    <iron-query-params
+        params-string="{{__query}}"
+        params-object="{{queryParams}}">
+    </iron-query-params>
+	<dss-catalog-view id="catalogView" dss-file="{{queryParams.file}}" on-dss-catalog-view-selected-paths="handleSelectedPaths"></dss-catalog-view>
+	</template>
+	</paper-header-panel>
+</body>
+<script>
+</script>
+</html>

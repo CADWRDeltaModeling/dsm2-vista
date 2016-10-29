@@ -1,0 +1,30 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<!--
+`my-element-replace-with`
+<%= description %>
+@demo demo/index.html 
+-->
+
+<dom-module id="my-element-replace-with">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]</h2>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-element-replace-with',
+      properties: {
+        prop1: {
+          type: String,
+          value: 'my-element-replace-with',
+        },
+      },
+    });
+  </script>
+</dom-module>

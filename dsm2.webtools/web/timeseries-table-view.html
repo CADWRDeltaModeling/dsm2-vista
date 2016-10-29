@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/vaadin-grid/vaadin-grid.html">
+</head>
+<body>
+	<dom-module id="timeseries-table-view"> 
+	<template>
+		<vaadin-grid id="grid" 
+		columns='[{"name":"Time", "sortable": "false"},{"name":"value", "sortable": "true"}]'
+		items="[[data.valueArray]]">
+		</vaadin-grid>
+	</template> 
+	</dom-module>
+	<script>
+		Polymer({
+			is : "timeseries-table-view",
+
+			properties : {
+				data : {type: Object, notify: true, observer: '_drawTable'}
+			},
+
+			ready : function() {
+				console.log('Ready timeseries-table-view')
+				var d = new Date();
+				this.$.grid.columns[0].renderer = function(cell){
+					d.setTime(cell.data);
+					cell.element.innerHTML = d.toUTCString().substr(4,18);
+					//cell.element.innerHTML = d.getDate()+''+d.getMonth()+''+d.getYear()+' '+d.getHour()+':'+d.getMinute()
+				}
+			},
+			
+			_dateRenderer : function(cell){
+				console.log(cell.data);
+			},
+			
+			_drawTable : function(data){
+				console.log(data);
+			}
+		});
+	</script>
+</body>
+</html>

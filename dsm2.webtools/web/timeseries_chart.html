@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/paper-input/paper-input.html">
+<link rel="import"
+	href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/iron-location/iron-location.html">
+<link rel="import" href="bower_components/iron-location/iron-query-params.html">
+
+<link rel="import" href="timeseries-chart-view.html">
+<link rel="import" href="timeseries-table-view.html">
+</head>
+<body>
+	<template is="dom-bind">
+	<!-- 
+	<paper-input label="DSS File" value="{{queryParams.dssfile}}"></paper-input>
+	<paper-input label="DSS Path" value="{{queryParams.dsspath}}"></paper-input>
+	<paper-input label="TimeWindow" value="{{queryParams.timewindow}}"></paper-input>
+	 -->
+    <iron-location
+        path="{{__path}}"
+        query="{{__query}}"
+        hash="{{__hash}}"
+        url-space-regex={{urlSpaceRegex}}
+        on-location-changed="handleLocationChange"
+        debounceDuration="250">
+    </iron-location>
+    <iron-query-params
+        params-string="{{__query}}"
+        params-object="{{queryParams}}">
+    </iron-query-params>
+    <iron-ajax auto url="data"
+		params$='{"dssfile": "{{queryParams.dssfile}}", "dsspath": "{{queryParams.dsspath}}", "timewindow": "{{queryParams.timewindow}}"}'
+		handle-as="json" last-response="{{data}}"></iron-ajax>
+	<timeseries-chart-view data="[[data]]"></timeseries-chart-view>
+	<timeseries-table-view data="[[data]]"></timeseries-table-view>
+	</template>
+</body>
+<script>
+</script>
+
+</html>

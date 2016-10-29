@@ -1,0 +1,45 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import"
+	href="bower_components/paper-input/paper-input.html">
+
+<dom-module id="array-input-editor">
+  <template>
+    <style>
+      :host {
+      }
+    </style>
+    <paper-input id="arrayInput" label="Value Classes"></paper-input>
+  </template>
+  <script>
+    Polymer({
+      is: 'array-input-editor',
+      properties: {
+    	  currentValueAsArray: {
+    		  type: Array,
+    		  value: function(){return []},
+    		  notify: true,
+    		  readOnly: false,
+    		  observer: '_changeCurrentValue'
+    	  }
+      },
+      
+      listeners: {
+      	'arrayInput.change' : '_updateCurrentValue'
+      },
+      
+      _changeCurrentValue: function(newValue, oldValue){
+    	  console.log('_changeCurrentValue', newValue);
+    	  this.$.arrayInput.value=newValue;
+      },
+      
+      _updateCurrentValue : function(){
+    	  console.log('_updateCurrentValue');
+    	  this.currentValueAsArray = JSON.parse("["+this.$.arrayInput.value+"]");
+      },
+      
+      ready: function(){
+    	  
+      }
+     });
+  </script>
+</dom-module>

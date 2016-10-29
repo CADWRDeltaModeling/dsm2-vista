@@ -1,0 +1,197 @@
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+</head>
+<dom-module id="date-range-slider">
+	<template>
+	<style>
+			#time-range p {
+		    font-family:"Arial", sans-serif;
+		    font-size:14px;
+		    color:#333;
+		}
+		.ui-slider-horizontal {
+		    height: 8px;
+		    background: #D7D7D7;
+		    border: 1px solid #BABABA;
+		    box-shadow: 0 1px 0 #FFF, 0 1px 0 #CFCFCF inset;
+		    clear: both;
+		    margin: 8px 0;
+		    -webkit-border-radius: 6px;
+		    -moz-border-radius: 6px;
+		    -ms-border-radius: 6px;
+		    -o-border-radius: 6px;
+		    border-radius: 6px;
+		}
+		.ui-slider {
+		    position: relative;
+		    text-align: left;
+		}
+		.ui-slider-horizontal .ui-slider-range {
+		    top: -1px;
+		    height: 100%;
+		}
+		.ui-slider .ui-slider-range {
+		    position: absolute;
+		    z-index: 1;
+		    height: 8px;
+		    font-size: .7em;
+		    display: block;
+		    border: 1px solid #5BA8E1;
+		    box-shadow: 0 1px 0 #AAD6F6 inset;
+		    -moz-border-radius: 6px;
+		    -webkit-border-radius: 6px;
+		    -khtml-border-radius: 6px;
+		    border-radius: 6px;
+		    background: #81B8F3;
+		    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+		    background-size: 100%;
+		    background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #A0D4F5), color-stop(100%, #81B8F3));
+		    background-image: -webkit-linear-gradient(top, #A0D4F5, #81B8F3);
+		    background-image: -moz-linear-gradient(top, #A0D4F5, #81B8F3);
+		    background-image: -o-linear-gradient(top, #A0D4F5, #81B8F3);
+		    background-image: linear-gradient(top, #A0D4F5, #81B8F3);
+		}
+		.ui-slider .ui-slider-handle {
+		    border-radius: 50%;
+		    background: #F9FBFA;
+		    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+		    background-size: 100%;
+		    background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #C7CED6), color-stop(100%, #F9FBFA));
+		    background-image: -webkit-linear-gradient(top, #C7CED6, #F9FBFA);
+		    background-image: -moz-linear-gradient(top, #C7CED6, #F9FBFA);
+		    background-image: -o-linear-gradient(top, #C7CED6, #F9FBFA);
+		    background-image: linear-gradient(top, #C7CED6, #F9FBFA);
+		    width: 22px;
+		    height: 22px;
+		    -webkit-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+		    -moz-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+		    box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+		    -webkit-transition: box-shadow .3s;
+		    -moz-transition: box-shadow .3s;
+		    -o-transition: box-shadow .3s;
+		    transition: box-shadow .3s;
+		}
+		.ui-slider .ui-slider-handle {
+		    position: absolute;
+		    z-index: 2;
+		    width: 22px;
+		    height: 22px;
+		    cursor: default;
+		    border: none;
+		    cursor: pointer;
+		}
+		.ui-slider .ui-slider-handle:after {
+		    content:"";
+		    position: absolute;
+		    width: 8px;
+		    height: 8px;
+		    border-radius: 50%;
+		    top: 50%;
+		    margin-top: -4px;
+		    left: 50%;
+		    margin-left: -4px;
+		    background: #30A2D2;
+		    -webkit-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+		    -moz-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 white;
+		    box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+		}
+		.ui-slider-horizontal .ui-slider-handle {
+		    top: -.5em;
+		    margin-left: -.6em;
+		}
+		.ui-slider a:focus {
+		    outline:none;
+		}
+	</style>
+	<div id="time-range">
+    	<p>StartTime: <span class="slider-time"></span></p>
+	    <div class="sliders_step1">
+	        <div id="slider-range"></div>
+	    </div>
+	</div>    
+</template>
+</dom-module>
+<!--  JQuery Libraries -->
+<script src="js/jquery-1.12.4.min.js"></script>
+<script src="js/jquery-ui-1.12.1.min.js"></script>
+<link rel="stylesheet" href="css/jquery-ui-1.12.1.css">
+
+<script>
+Polymer({
+	is: "date-range-slider",
+	
+	properties:{
+		startTime: {
+			type: String, //format 2000/01/01
+			notify: true,
+			value: "2000/01/01",
+			observer: "_setStartTime"
+		},
+		endTime: {
+			type: String,
+			notify: true,
+			value: "2001/01/01",
+			observer: "_setEndTime"
+		},
+		selectedTime: {
+			type: String,
+			value: "2000/01/01",
+			notify: true
+		}
+	},
+	
+	_setStartTime: function(){
+		if ($('#slider-range').slider("instance")){
+			$( "#slider-range" ).slider( "option", "min", Date.parse(this.startTime)/1000 );
+		}
+	},
+	
+	_setEndTime: function(){
+		if ($('#slider-range').slider("instance")){
+			$( "#slider-range" ).slider( "option", "max", Date.parse(this.endTime)/1000 );
+		}
+	},
+	
+	created: function(){
+	},
+	
+	zeroPad: function(num, places) {
+		  var zero = places - num.toString().length + 1;
+		  return Array(+(zero > 0 && zero)).join("0") + num;
+	},
+		
+	formatDT: function(__dt) {
+		    var year = __dt.getFullYear();
+		    var month = this.zeroPad(__dt.getMonth()+1, 2);
+		    var date = this.zeroPad(__dt.getDate(), 2);
+		    return year + '-' + month + '-' + date;
+	},
+		
+	ready: function(){
+		console.log('getting ready')
+
+		$('.slider-time').html(this.startTime);
+		$('.slider-time2').html(this.endTime);
+		var min_val = Date.parse(this.startTime)/1000;
+		var max_val = Date.parse(this.endTime)/1000;
+		var that = this;
+
+		$("#slider-range").slider({
+		    range: false,
+		    min: min_val,
+		    max: max_val,
+		    step: 86400,// day time step
+		    values: [min_val, max_val],
+		    slide: function (e, ui) {
+		    	that.currentDate = new Date(ui.value*1000);
+		    	$('.slider-time').html(that.formatDT(that.currentDate));
+		    }
+		});
+	}
+	
+});
+</script>
+</html>

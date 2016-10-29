@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"
+	type="text/javascript"></script>
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import"
+	href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import"
+	href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import"
+	href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import"
+	href="bower_components/paper-color-picker/paper-color-picker.html">
+<link rel="import"
+	href="bower_components/paper-color-picker/paper-color-input.html">
+<style type="text/css">
+</style>
+</head>
+<body>
+	<dom-module is="color-classes-chooser"> 
+	<template>
+		<style>
+			:host{
+			}
+			#colorPreview{
+				height: 16px;
+				width: 16px;
+				border: 1px solid rgba(0,0,0,.1);
+				border-radius: 1px;
+				margin: 2px;
+				position: relative;
+				background-image: linear-gradient(to right, #ffffff 1%,#ffffff 50%,#eee 50%,#eee 100%), linear-gradient(to right, #eee 1%,#eee 50%,#ffffff 50%,#ffffff 100%);
+				background-size: 16px 8px,  16px 8px;
+				background-repeat: repeat-x, repeat;
+			}
+			
+		</style>
+		<div id="colorPreview" suffix>
+			<div id="color" style$="{{_computeBackgroundColor(value.*)}}"></div>
+			<div id="noColor" hidden="{{_isValueDefined(value.*)}}"></div>
+		</div>
+	</template> 
+	<script type="text/javascript">
+	Polymer({
+		is: "color-classes-chooser",
+		
+		properties: {
+			colorClasses: { type: Array, value= '[ "#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#bd0026", "#800026" ]', notify: true},
+			valueClasses: { type: Array, value = "[ 200, 500, 1000, 2000, 3300, 3500, 3800, 10000, 20000]", notify: true}
+		},
+		
+		attached: function(){
+			
+		}
+	});
+</script> 
+</dom-module>
+</body>
+
+</html>

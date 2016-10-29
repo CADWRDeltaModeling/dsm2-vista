@@ -1,0 +1,35 @@
+<html>
+<head>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import"
+	href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import"
+	href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+	href="bower_components/paper-input/paper-input.html">
+<link rel="import"
+	href="bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import"
+	href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/iron-location/iron-location.html">
+<link rel="import" href="bower_components/app-route/app-route.html">
+<link rel="import" href="dss-browse-element.html">
+<link rel="import" href="dss-catalog-view.html">
+</head>
+<body class="fullbleed">
+	<!-- paper-header-panel must have an explicit height -->
+	<paper-header-panel class="flex" mode="waterfall">
+	<paper-toolbar>
+	<div class="paper-header">
+		<h1>DSS Catalog</h1>
+	</div>
+	</paper-toolbar>
+	<dss-browse-element></dss-browse-element>
+	<!--  <dss-catalog-view id="catalogView" dss-file="c:/dss-data/historical_v81_qual.dss" on-dss-catalog-view-selected-paths="handleSelectedPaths"></dss-catalog-view>
+	-->
+	</template>
+	</paper-header-panel>
+</body>
+<script>
+</script>
+</html>
