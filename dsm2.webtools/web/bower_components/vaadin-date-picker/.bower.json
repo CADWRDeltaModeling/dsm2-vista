@@ -54,6 +54,5 @@
   },
   "_source": "https://github.com/vaadin/vaadin-date-picker.git",
   "_target": "^1.1.4",
-  "_originalSource": "vaadin-date-picker",
-  "_direct": true
+  "_originalSource": "vaadin-date-picker"
 }

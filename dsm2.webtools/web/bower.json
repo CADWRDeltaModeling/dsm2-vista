@@ -34,7 +34,8 @@
     "paper-datatable": "^0.9.8",
     "highcharts-chart": "^1.1.5",
     "vaadin-date-picker": "^1.1.4",
-    "iron-icons": "PolymerElements/iron-icons#^1.1.3"
+    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
+    "webcomponentsjs": "webcomponents.js#^0.7.22"
   },
   "resolutions": {
     "webcomponentsjs": "0.7.22",

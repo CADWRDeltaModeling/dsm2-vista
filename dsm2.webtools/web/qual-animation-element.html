@@ -1,10 +1,5 @@
 <!DOCTYPE html>
 <head>
-<!-- 1. Load webcomponents-lite.min.js for polyfill support. -->
-<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"
-	type="text/javascript">
-	
-</script>
 <!--  JQuery Libraries -->
 <script src="js/jquery-1.12.4.min.js" type="text/javascript"></script>
 <script src="js/jquery-ui-1.12.1.min.js" type="text/javascript"></script>
@@ -17,7 +12,7 @@
 <script type="text/javascript" src="js/d3-4.2.2.js"></script>
 <script type="text/javascript" src="js/d3-legend.js"></script>
 <!-- Data and custom scripts -->
-<script type="text/javascript" src="json/dsm2-flowlines-width-oct252016.js"></script>
+<script type="text/javascript" src="json/dsm2-flowlines-width-oct312016.js"></script>
 <style type="text/css">
 #map {
 	width: 100%;
@@ -38,7 +33,13 @@
 			is : "qual-animation-element",
 
 			properties : {
-				tidefile : String,
+				tidefile : {
+					type: String,
+					value: "",
+					observer: "_changeTidefile",
+					notify: true,
+					reflectToAttribute: true,
+				},
 				layerName : {
 					type : String,
 					value : "Hydda.Base",
@@ -143,6 +144,11 @@
 				this.startTimer();
 			},
 			
+			_changeTidefile: function(value){
+				this.stopTimer();
+				this.startTimer();
+			},
+			
 			created : function(){
 				this.verticalLegend = d3legend().labelFormat("none")
 				.cellPadding(5).orientation("vertical").units(
@@ -168,9 +174,9 @@
 					var angle = Math.atan((y2-y1)/(x2-x1))*180/Math.PI;
 					return "rotate("+(-angle)+",0.5,0.5)"});
 				this.stops1 = lgs.append("stop").attr("offset", "0%").style(
-						'stop-color', 'rgb(0,255,0)');
+						'stop-color', 'rgb(0,255,0)');//.transition().duration(this.animateInterval);
 				this.stops2 = lgs.append("stop").attr("offset", "100%").style(
-						'stop-color', 'rgb(255,0,0)');
+						'stop-color', 'rgb(255,0,0)');//.transition().duration(this.animateInterval);
 				// Use Leaflet to implement a D3 geometric transformation.
 				var lmap = this.map;
 				var projectPoint = function(x, y) {
@@ -219,9 +225,9 @@
 			_updateColorsForSlice: function(data,stime){
 				//--------- UPDATE COLORS ON VIEW-----------
 				this.stops1.data(data[1])
-				this.stops1.style('stop-color', this._interpolateColor)
+				this.stops1.transition("smoother").duration(this.animateInterval).style('stop-color', this._interpolateColor)
 				this.stops2.data(data[0])
-				this.stops2.style('stop-color', this._interpolateColor)
+				this.stops2.transition("smoother").duration(this.animateInterval).style('stop-color', this._interpolateColor)
 				//--------- UPDATE TEXT -------------
 				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
 			},
@@ -238,6 +244,7 @@
 				this.stime = this.tp(this.animateStartTime);
 				// start the animation after data load.
 				if (this.tidefile && this.animateStartTime){
+				//console.log('Starting from startTimer!');
 				d3.json(encodeURI("h5qualconcslice?file=" + this.tidefile
 						+ "&time=" + this.animateStartTime + "&slice="
 						+ this.data_fetch_size), this.initDataLoad.bind(this));
@@ -248,6 +255,7 @@
 			
 			stopTimer: function(){
 				if (this.timer){
+					//console.log('Stopping timer', this.timer);
 					this.timer.stop();
 				}
 			},
@@ -261,16 +269,21 @@
 			
 			//-- called on initial load of data from tidefile
 			initDataLoad: function(d) {
+				globalStartTime = this.tp(d.startTime.replace(",", "")
+						.replace(":", ""))
+				globalEndTime = this.tp(d.endTime.replace(",", "")
+						.replace(":", ""))
+				// now do setters after computations to avoid data binding update effects
 				this.sliceData = d;
 				this.stime = this.tp(this.sliceData.startTimeOffset.replace(",", "")
 						.replace(":", ""));
-				globalStartTime = this.tp(this.sliceData.startTime.replace(",", "")
-						.replace(":", ""))
 				this.fileStartTime = this.tf(globalStartTime).substring(0,9).toUpperCase();
-				globalEndTime = this.tp(this.sliceData.endTime.replace(",", "")
-						.replace(":", ""))
 				this.fileEndTime = this.tf(globalEndTime).substring(0,9).toUpperCase();
+				if (this.timer){
+					this.timer.stop();
+				}
 				this.timer = d3.interval(this.animate.bind(this), this.animateInterval);
+				//console.log('initDataLoad: ', this.timer);
 			},
 			
 			animate: function(elapsed){
@@ -278,6 +291,7 @@
 					if (this.sliceData == null) {
 						//console.log("No data found!. Stopping animation");
 						this.timer.stop();
+						return;
 					}
 					//console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
 					d3.json(encodeURI("h5qualconcslice?file="
@@ -297,7 +311,8 @@
 				if (this.prev_elapsed != 0) {
 					this.step_size = Math.max(1, Math
 							.round((elapsed - this.prev_elapsed)
-									/ this.animateInterval))
+									/ this.animateInterval));
+					//console.log('step_size: ', this.step_size, this);
 				}
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;

@@ -65,11 +65,11 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 			return;
 		}
 		String startTimeReq = request.getParameter("time"); // starting time
-
 		int sliceSize = Integer.parseInt(request.getParameter("slice"));// number
 																		// of
 																		// time
 																		// steps
+		System.out.println("Serving slice from "+file+" @ "+startTimeReq + " of size: "+ sliceSize);
 		// to get at a
 		// single shot
 		try {
@@ -129,6 +129,9 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 			String timeWindow = startTime.dateAndTime(104) + " - " + endTime.dateAndTime(104);
 			//
 			HecTime startTimeOffset = new HecTime(startTimeReq);
+			if (startTimeOffset.lessThan(startTime)){ // if requesting time is less than time in tidefile, set it to start of time and serve that slice.
+				startTimeOffset = new HecTime(startTime);
+			}
 			int timeOffset = startTime.computeNumberIntervals(startTimeOffset, timeIntervalInMins);
 
 			HecTime endTimeOffset = new HecTime(startTimeOffset);
