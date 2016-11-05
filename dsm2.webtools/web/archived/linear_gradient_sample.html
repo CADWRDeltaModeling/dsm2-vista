@@ -1,18 +1,11 @@
 <html>
 <head>
 <title>Linear Gradient Sample</title>
-<link rel="stylesheet" href="css/leaflet.css" />
-<style>
-#map {
-	width: 1560px;
-	height: 800px;
-}
-</style>
 </head>
 <body>
 	<div id="main"></div>
 </body>
-<script type="text/javascript" src="js/d3-4.2.2.js"></script>
+<script type="text/javascript" src="../js/d3-4.2.2.js"></script>
 <script>
 	// Create the SVG element and set its dimensions.
 	var width = 800, height = 800, padding = 15;
@@ -23,12 +16,16 @@
 	var mainGradient = svgDefs.append('linearGradient').attr('id',
 			'mainGradient');
 	mainGradient.attr("x1","0%").attr("x2","100%");
-	mainGradient.attr("y1","0%").attr("y2","100%");
+	//mainGradient.attr("y1","0%").attr("y2","100%");
+	
 	// Create the stops of the main gradient. Each stop will be assigned
 	// a class to style the stop using CSS.
 	
 	mainGradient.append('stop').attr('offset', '0%').style('stop-color','rgb(0,255,0)');
 	mainGradient.append('stop').attr('offset', '100%').style('stop-color','rgb(255,0,0)');
+	
+	// turn the gradient by a certain angle
+	mainGradient.attr("gradientTransform","rotate(-30,0.5,0.5)");
 	// Use the gradient to set the shape fill, via CSS.
 	svg.append('rect').style('fill','url(#mainGradient)').attr('x', padding).attr('y',
 			padding).attr('width', (width / 2) - 1.5 * padding).attr('height',

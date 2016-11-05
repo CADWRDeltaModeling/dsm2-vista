@@ -68,6 +68,10 @@
     <url-pattern>/h5qualconcslice/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>h5qualconcslice</servlet-name>
+    <url-pattern>/build/bundled/h5qualconcslice/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>list</servlet-name>
     <url-pattern>/list/*</url-pattern>
   </servlet-mapping>

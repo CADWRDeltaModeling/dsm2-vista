@@ -12,7 +12,7 @@
 <script type="text/javascript" src="js/d3-4.2.2.js"></script>
 <script type="text/javascript" src="js/d3-legend.js"></script>
 <!-- Data and custom scripts -->
-<script type="text/javascript" src="json/dsm2-flowlines-width-oct312016.js"></script>
+<script type="text/javascript" src="json/dsm2-flowlines-width-nov032016.js"></script>
 <style type="text/css">
 #map {
 	width: 100%;
@@ -156,27 +156,6 @@
 			},
 			
 			_createGridOnMap : function(){
-				// now svg elements and gradient elements are added to dom
-				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
-				this.gTop = this.svg.append("g").attr("class", "leaflet-zoom-hide");
-				var sdefs = this.svg.append('defs')
-				var lgs = sdefs.selectAll("linearGradient").data(
-						dsm2_flowlines.features).enter().append(
-						"linearGradient").attr("id", function(d, i) {
-					return "gradient" + i;
-				}).attr("gradientTransform", function(d){
-					var c = d.geometry.coordinates;
-					if (Array.isArray(c[0][0])){
-						c=c[0];
-					}
-					var x1=c[0][0], x2=c[c.length-1][0];
-					var y1=c[0][1], y2=c[c.length-1][1];
-					var angle = Math.atan((y2-y1)/(x2-x1))*180/Math.PI;
-					return "rotate("+(-angle)+",0.5,0.5)"});
-				this.stops1 = lgs.append("stop").attr("offset", "0%").style(
-						'stop-color', 'rgb(0,255,0)');//.transition().duration(this.animateInterval);
-				this.stops2 = lgs.append("stop").attr("offset", "100%").style(
-						'stop-color', 'rgb(255,0,0)');//.transition().duration(this.animateInterval);
 				// Use Leaflet to implement a D3 geometric transformation.
 				var lmap = this.map;
 				var projectPoint = function(x, y) {
@@ -189,6 +168,33 @@
 					point : projectPoint
 				})
 				this.path = d3.geoPath().projection(transform);
+				// now svg elements and gradient elements are added to dom
+				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
+				this.gTop = this.svg.append("g").attr("class", "leaflet-zoom-hide");
+				var sdefs = this.svg.append('defs')
+				var lgs = sdefs.selectAll("linearGradient").data(
+						dsm2_flowlines.features).enter().append(
+						"linearGradient").attr("id", function(d, i) {
+					return "gradient" + i;
+				}).attr("gradientTransform", function(d,i){
+					var c = d.geometry.coordinates;
+					if (Array.isArray(c[0][0])){
+						c=c[0];
+					}
+					var x1=c[0][0], x2=c[c.length-1][0];
+					var y1=c[0][1], y2=c[c.length-1][1];
+					var angle = Math.atan((y2-y1)/(x2-x1))*180/Math.PI;
+					if (x2-x1 > 0){
+						angle = -angle;
+					} else {
+						angle = 180 - angle;
+					}
+					//console.log("angle["+i+"] = "+angle);
+					return "rotate("+angle+",0.5,0.5)"});
+				this.stops1 = lgs.append("stop").attr("offset", "0%").style(
+						'stop-color', 'rgb(0,255,0)');//.transition().duration(this.animateInterval);
+				this.stops2 = lgs.append("stop").attr("offset", "100%").style(
+						'stop-color', 'rgb(255,0,0)');//.transition().duration(this.animateInterval);
 				// add features from flow lines
 				this.flow_features = this.gTop.selectAll("path").data(
 						dsm2_flowlines.features).enter().append("path").attr(
@@ -224,10 +230,10 @@
 
 			_updateColorsForSlice: function(data,stime){
 				//--------- UPDATE COLORS ON VIEW-----------
-				this.stops1.data(data[1])
-				this.stops1.transition("smoother").duration(this.animateInterval).style('stop-color', this._interpolateColor)
-				this.stops2.data(data[0])
-				this.stops2.transition("smoother").duration(this.animateInterval).style('stop-color', this._interpolateColor)
+				this.stops1.data(data[0])
+				this.stops1.transition("smoother").duration(this.animateInterval/2).style('stop-color', this._interpolateColor)
+				this.stops2.data(data[1])
+				this.stops2.transition("smoother").duration(this.animateInterval/2).style('stop-color', this._interpolateColor)
 				//--------- UPDATE TEXT -------------
 				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
 			},
