@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<title>Simple Element</title>
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<link rel="import"
+	href="./bower_components/paper-slider/paper-slider.html">
+</head>
+<body>
+<dom-module id="simple-element">
+  <template>
+    <div class="container flex-horizontal">
+    	Hi There! I am Simple Element.
+	</div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'simple-element',
+      properties: {
+        currentTime: {
+          type: String,
+          value: '02JAN1990',
+          notify: true
+        },
+      },
+
+      created: function(){
+    	  console.log('Simple is created');
+      },
+      
+      ready: function(){
+    	  console.log('Simple is ready');
+      }
+    });
+  </script>
+</dom-module>
+</body>
+</html>

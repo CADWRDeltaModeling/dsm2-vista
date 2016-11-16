@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+<link rel="import" href="./bower_components/polymer/polymer.html">
 <!--  JQuery Libraries -->
 <script src="js/jquery-1.12.4.min.js" type="text/javascript"></script>
 <script src="js/jquery-ui-1.12.1.min.js" type="text/javascript"></script>
@@ -37,6 +38,13 @@
 					type: String,
 					value: "",
 					observer: "_changeTidefile",
+					notify: true,
+					reflectToAttribute: true,
+				},
+				baseTidefile : {
+					type: String,
+					value: "",
+					observer: "_changeBaseTidefile",
 					notify: true,
 					reflectToAttribute: true,
 				},
@@ -90,7 +98,7 @@
 			},
 			
 			_changeColorClasses : function(colorClasses){
-				//console.log('Change color classes to : ', colorClasses)
+				console.log('Change color classes to : ', colorClasses)
 				this.colorClasses = colorClasses;
 				if (this.colorClasses && this.valueClasses){
 					this._interpolateColor = d3.scaleLinear().domain(this.valueClasses)
@@ -145,6 +153,11 @@
 			},
 			
 			_changeTidefile: function(value){
+				this.stopTimer();
+				this.startTimer();
+			},
+
+			_changeBaseTidefile: function(value){
 				this.stopTimer();
 				this.startTimer();
 			},
@@ -231,11 +244,18 @@
 			_updateColorsForSlice: function(data,stime){
 				//--------- UPDATE COLORS ON VIEW-----------
 				this.stops1.data(data[0])
-				this.stops1.transition("smoother").duration(this.animateInterval/2).style('stop-color', this._interpolateColor)
+				this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
 				this.stops2.data(data[1])
-				this.stops2.transition("smoother").duration(this.animateInterval/2).style('stop-color', this._interpolateColor)
+				this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
 				//--------- UPDATE TEXT -------------
 				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
+			},
+			
+			_generateURLForSliceRequest: function(sliceRequestTime){
+				return encodeURI("h5qualconcslice?file=" + this.tidefile
+						+ (this.baseTidefile == "" ? "" : "&basefile="+this.baseTidefile)
+						+ "&time=" + sliceRequestTime + "&slice="
+						+ this.data_fetch_size);
 			},
 			
 			startTimer: function(){
@@ -251,9 +271,7 @@
 				// start the animation after data load.
 				if (this.tidefile && this.animateStartTime){
 				//console.log('Starting from startTimer!');
-				d3.json(encodeURI("h5qualconcslice?file=" + this.tidefile
-						+ "&time=" + this.animateStartTime + "&slice="
-						+ this.data_fetch_size), this.initDataLoad.bind(this));
+				d3.json(this._generateURLForSliceRequest(this.animateStartTime), this.initDataLoad.bind(this));
 				}
 				// animate function
 				this.prev_elapsed = 0, this.step_size = 1;
@@ -300,10 +318,7 @@
 						return;
 					}
 					//console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
-					d3.json(encodeURI("h5qualconcslice?file="
-							+ this.tidefile + "&time="
-							+ this.sliceData.endTimeOffset + "&slice="
-							+ this.data_fetch_size), function(d) {
+					d3.json(this._generateURLForSliceRequest(this.sliceData.endTimeOffset), function(d) {
 						this.nextSliceData = d;
 
 					}.bind(this));
@@ -323,7 +338,7 @@
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
-					this.data_fetch_size = 48 * 5 * this.step_size;
+					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
 					//console.log('Next slice @ slice '+slice);
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice

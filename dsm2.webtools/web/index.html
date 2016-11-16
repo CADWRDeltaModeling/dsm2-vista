@@ -10,6 +10,8 @@
 <link rel="import"
 	href="bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import"
+	href="bower_components/paper-card/paper-card.html">
+<link rel="import"
 	href="bower_components/iron-flex-layout/iron-flex-layout.html">
 </head>
 <body class="fullbleed">
@@ -21,22 +23,9 @@
 	</div>
 	</paper-toolbar>
 	<div id="main">
-		Take a look here to browse the files <a href="list">List of
-			current DSS files</a>
-		<div id="h5main">
-			Take a look here to browse the files <a href="h5list">List of
-				current HDF5 files</a>
-
-			<p>
-				Another way to look at data via <a href="callite_svg.html">schematic</a>
-			</p>
-
-			<p>
-				Reading from a large Qual binary tidefile and coloring a bunch of
-				polygons and <a href="qual_animation_gradients.html">animating
-					them</a>
-			</p>
-		</div>
+		<paper-card heading="DSM2 Qual Animation">
+			<div><a href="qual_animator.html">Click here for Animator</a></div>
+		</paper-card>
 	</div>
 	</paper-header-panel>
 </body>

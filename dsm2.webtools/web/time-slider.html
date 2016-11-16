@@ -3,34 +3,33 @@
 <head>
 <title>Time Slider</title>
 <link rel="import" href="./bower_components/polymer/polymer.html">
-<link rel="import"
-	href="./bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="./bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="./bower_components/paper-input/paper-input.html">
 </head>
 <body>
 <dom-module id="time-slider">
   <template>
-  
     <style>
       :host {
         display: block;
       }
     </style>
-    <div class="container flex-horizontal">
-		<div id="time">Time: {{currentImmediateTime}}</div>
-		<paper-slider id="slider" snaps="true" maxMarkers="100000" name = "Time" step="86400" ></paper-slider>
-	</div>
+	<paper-input label="Date" value="[[currentImmediateTime]]"  on-change="_updateCurrentTime"></paper-input>
+	<paper-slider id="slider" snaps="true" maxMarkers="100000" name = "Time" step="86400" ></paper-slider>
   </template>
   <script src="js/d3-time.v1.min.js"></script>
   <script src="js/d3-time-format.v2.min.js"></script>
 
   <script>
+  //allowed-pattern="\d+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d+"
     Polymer({
       is: 'time-slider',
       properties: {
         currentTime: {
           type: String,
           value: '02JAN1990',
-          notify: true
+          notify: true,
+          observer: '_updateCurrentTimeValue'
         },
         beginTime: {
         	type: String,
@@ -43,7 +42,10 @@
         currentImmediateTime: {
         	type: String,
         	notify: false
-        }
+        },
+        day: String,
+        month: String,
+        year: String
       },
       
       observers: [
@@ -59,8 +61,27 @@
     	this.currentImmediateTime = this.timeFormat(this.$.slider.immediateValue).toUpperCase();
       },
       
+      _updateCurrentImmediateTime: function(value){
+    	  this.currentImmediateTime = value;
+      },
+      
+      _updateCurrentTime: function(e){
+    	this._updateCurrentTimeValue(e.srcElement.value);
+        },
+
+       _updateCurrentTimeValue: function(value){
+        	this.currentTime = value;
+        	this.$.slider.value = this.timeParse(this.currentTime).getTime();
+        },
+      
       _onValueChange: function(){
     	  this.currentTime = this.timeFormat(this.$.slider.value).toUpperCase();
+    	  this.currentImmediateTime = this.currentTime;
+		  //
+    	  var d = this.timeParse(this.currentTime);
+		  day = d.getDate()+"";
+		  month = d.getMonth();
+		  year = d.getFullYear()+"";
       },
       
       _formatTime: function(timeValue){
@@ -81,13 +102,29 @@
     	  console.log('_setCurrentTime: ',value)
       },
       
+      _range: function(start, end) {
+    	  var count = end - start +1;
+          return Array.apply(0, Array(count))
+            .map(function (element, index) { 
+              return index + start;  
+          });
+        },
+       
+      _daysInMonth: function(){ // return days in the month of the current time.
+    	if (!this.currentTime){
+    		return this._range(1,31);
+    	}
+    	var d = this.timeParse(this.currentTime);
+      	var days = new Date(d.getUTCFullYear(), d.getUTCMonth(), 0).getDate();
+      	return this._range(1,days);
+      },
+      
       created: function(){
 			this.timeFormat = d3.timeFormat("%d%b%Y")
 			this.timeParse = d3.timeParse("%d%b%Y")
       },
       
-      onready: function(){
-    	  
+      ready: function(){
       }
     });
   </script>

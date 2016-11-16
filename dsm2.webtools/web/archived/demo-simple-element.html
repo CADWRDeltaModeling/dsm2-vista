@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="description" content="Demo of simple element">
+ <meta name="viewport" content="width=device-width, initial-scale=1"><script>
+</script>
+<script src="./bower_components/webcomponentsjs/webcomponents-lite.js">
+</script>
+<link rel="import" href="./simple-element.html"></link>
+</head>
+<body>
+	<div>Hello! I am going to demo simple-element. See below me.</div>
+	<simple-element></simple-element>
+ </body>
+ <script>
+ 	document.addEventListener('WebComponentsReady', function(e){console.log('WebComponentsReady',e); debugger;});
+ </script>
+</html>
