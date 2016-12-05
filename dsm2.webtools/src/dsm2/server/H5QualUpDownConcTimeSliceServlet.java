@@ -70,9 +70,9 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 		String baseFile = request.getParameter("basefile"); // file to difference from => values = file-basefile
 		// System.out.println("Serving slice from "+file+" @ "+startTimeReq + " of size: "+ sliceSize);
 		try {
-			H5QualSlice slice = extractSliceFromFile(file, startTimeReq, sliceSize);
+			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize);
 			if (baseFile != null){
-				H5QualSlice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize);
+				H5Slice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize);
 				slice = diff(slice,baseSlice);
 			}
 			if (slice==null){
@@ -84,7 +84,7 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 		}
 	}
 	
-	public H5QualSlice diff(H5QualSlice slice, H5QualSlice baseSlice){
+	public H5Slice diff(H5Slice slice, H5Slice baseSlice){
 		if (slice.timeIntervalInMins != baseSlice.timeIntervalInMins){
 			System.err.println("The time interval in file and base file don't match!");
 			return null;
@@ -101,7 +101,7 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 		return slice;
 	}
 
-	public H5QualSlice extractSliceFromFile(String file, String startTimeReq, int sliceSize)
+	public H5Slice extractSliceFromFile(String file, String startTimeReq, int sliceSize)
 			throws Exception, HDF5Exception, OutOfMemoryError {
 		H5File h5file = new H5File(file);
 		h5file.open();
@@ -198,7 +198,7 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 			Object data = channelds.getData();
 			channelArray = (int[]) data;
 		}
-		H5QualSlice slice = new H5QualSlice();
+		H5Slice slice = new H5Slice();
 		slice.sliceSize = sliceSize;
 		slice.startTime=startTime;
 		slice.timeIntervalInMins = timeIntervalInMins;
@@ -211,7 +211,7 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 		return slice;
 	}
 
-	public void writeSliceAsJson(HttpServletResponse response,H5QualSlice slice) throws IOException {
+	public void writeSliceAsJson(HttpServletResponse response,H5Slice slice) throws IOException {
 		response.setContentType("application/json");
 		response.getWriter().println("{");
 		response.getWriter().println("\"startTimeOffset\": \"" + slice.startTimeOffset.dateAndTime(104) + "\",");
@@ -308,7 +308,7 @@ public class H5QualUpDownConcTimeSliceServlet extends HttpServlet {
 		doGet(request, response);
 	}
 	
-	public class H5QualSlice{
+	public class H5Slice{
 		public int sliceSize;
 		public HecTime startTime;
 		public int timeIntervalInMins;

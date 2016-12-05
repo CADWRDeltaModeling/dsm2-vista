@@ -11,6 +11,15 @@
     </init-param>
   </servlet>
   <servlet>
+    <servlet-name>dsm2echo</servlet-name>
+    <servlet-class>dsm2.server.DSM2EchoFileServlet</servlet-class>
+    <init-param>
+      <description>Name of directory</description>
+      <param-name>default_dir</param-name>
+      <param-value>c:/dss-data</param-value>
+    </init-param>
+  </servlet>
+  <servlet>
     <servlet-name>h5list</servlet-name>
     <servlet-class>dsm2.server.H5DirectoryServlet</servlet-class>
     <init-param>
@@ -30,6 +39,10 @@
   <servlet>
     <servlet-name>h5slice</servlet-name>
     <servlet-class>dsm2.server.H5TimeSliceServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>h5avgslice</servlet-name>
+    <servlet-class>dsm2.server.H5TimeAvgSliceServlet</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>h5qualconcslice</servlet-name>
@@ -64,12 +77,20 @@
     <url-pattern>/h5slice/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>h5avgslice</servlet-name>
+    <url-pattern>/h5avgslice/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>h5qualconcslice</servlet-name>
     <url-pattern>/h5qualconcslice/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>h5qualconcslice</servlet-name>
     <url-pattern>/build/bundled/h5qualconcslice/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dsm2echo</servlet-name>
+    <url-pattern>/dsm2echo/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>list</servlet-name>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<head>
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<!--  JQuery Libraries -->
+<script src="js/jquery-1.12.4.min.js" type="text/javascript"></script>
+<script src="js/jquery-ui-1.12.1.min.js" type="text/javascript"></script>
+<link rel="stylesheet" href="css/jquery-ui-1.12.1.css">
+<!--  Leaflet for maps -->
+<link rel="stylesheet" href="css/leaflet.css" />
+<script type="text/javascript" src="js/leaflet-0.7.7.js"></script>
+<script type="text/javascript" src="js/leaflet-providers.js"></script>
+<!-- D3 for svg rendering -->
+<script type="text/javascript" src="js/d3-4.2.2.js"></script>
+<!-- Data and custom scripts -->
+<style type="text/css">
+#map-div {
+	width: 100%;
+	height: 1200px;
+}
+
+circle {
+	fill: dodgerblue;
+	stroke: black;
+	stroke-width: 2;
+}
+text {
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 1.0em;
+    stroke: yellow;
+    fill: yellow;
+}
+</style>
+<style type="text/css">
+#slider {
+	margin: 10px;
+}
+</style>
+</head>
+	<dom-module id="dsm2-map-element"> 
+	<template>
+		<div id="map-div"></div>
+	</template>
+	<script type="text/javascript">
+		Polymer({
+			is : "dsm2-map-element",
+			properties : {
+				layerName : {
+					type : String,
+					value : "Hydda.Base",
+					observer : "changeMapLayerName",
+					notify: true,
+					reflectToAttribute: true
+				},
+				center : {
+					type : Array,
+					value : [ 38.18, -121.61 ],
+					observer: "changeMapCenter",
+					readOnly: false,
+				},
+				zoom : {
+					type : Number,
+					value : 10,
+					observer: "changeMapZoom",
+					readOnly: false,
+				},
+				nodesFile : {
+				    type: String,
+				    value: "json/dsm2_nodes-nov092016.geojson",
+				    readOnly: false,
+				},
+				flowLinesFile : {
+				    type: String,
+				    value: "json/dsm2-flowlines-width-nov32016.geojson",
+				    readOnly: false,
+				},
+				hydroEchoFile : {
+				    type: String,
+				    value: "D:\\delta\\dsm2_v812_2016_QAQC_Lan\\studies\\DSM2_201602_QAQC\\output\\hydro_echo_historical_v81.inp",
+				    readOnly: false,
+				},
+				centerOnNode : {
+				  type: Number,
+				  readOnly: false,
+				  notify: false,
+				  observer: "debouncedChangeMapCenterToNode",
+				},
+			},
+			
+			changeMapLayerName : function(layerName) {
+				//console.log('Now selected: ' + layerName);
+				if (!this.map){
+					return;
+				}
+				var newLayer = L.tileLayer.provider(layerName);
+				if (newLayer) {
+					if (this._layer) {
+						this.map.removeLayer(this._layer);
+					}
+					this._layer = newLayer;
+					this.map.addLayer(this._layer);
+				}
+			},
+			
+			changeMapZoom: function(zoom){
+				if (this.map) {
+					this.map.setZoom(zoom);
+				}
+			},
+			
+			changeMapCenter: function(center){
+				if (this.map) {
+					this.map.panTo(center);
+				}
+			},
+			
+			debouncedChangeMapCenterToNode: function(nodeNumber){
+			    this.debounce("changeMapCenterToNode", function(){ 
+					this.changeMapCenterToNode(nodeNumber);
+			    }, 500);
+			},
+			
+			changeMapCenterToNode: function(nodeNumber){ //centers map on nodeNumber @ zoom 13
+			    if (!this.dsm2_nodes) return;
+			    for(var i=0; i < this.dsm2_nodes.features.length; i++){
+					var f = this.dsm2_nodes.features[i];
+					if (f.properties["nodenum"] == nodeNumber){
+					    this.map.panTo(f.geometry.coordinates.slice().reverse());
+					    this.flashNode(nodeNumber);
+					    break;
+					}
+			    }
+				//showMessage("Node number: "+nodeNumber+" not found!");
+			},
+			
+			flashNode: function(nodeNumber){ //highlights node number
+			    var radius = this.calculateRadius();
+			    this.nodes.filter(function(d){return d.properties.nodenum == nodeNumber}).transition().attr("r",35).transition().attr("r",10).transition().attr("r",20).transition().attr("r",15).transition().attr("r",radius);
+			},
+						
+			created : function(){
+			},
+			
+			attached : function() {
+			 	this.map = new L.Map("map-div", {
+					center : this.center,
+					zoom : this.zoom
+				});
+				this.changeMapLayerName(this.layerName);
+				this.map.on("viewreset", this.reset.bind(this));
+				d3.json(this.nodesFile, this.drawDSM2Nodes.bind(this)); 
+				d3.json(this.flowLinesFile, this.drawDSM2Channels.bind(this));
+				d3.json("dsm2echo?file="+this.hydroEchoFile, this.updateHydroEchoInfo.bind(this));
+			},
+			
+			updateHydroEchoInfo: function (value){
+				//console.log(value);    
+			},
+			
+			projectPoint : function(c){
+			    x=c[0], y=c[1];
+				var pt = this.map.project(new L.LatLng(y, x), this.map.getZoom());
+				var point = pt._subtract(this.map.getPixelOrigin())
+				return point;
+			},
+			
+			drawDSM2Channels: function(value){
+			    this.dsm2_flowlines = value;
+				// Use Leaflet to implement a D3 geometric transformation.
+				var lmap = this.map;
+				var projectPoint = function(x, y) {
+					//var point = map.latLngToLayerPoint(new L.LatLng(y, x)); // has rounding which throws of linear gradients when drawing horiz or vertical lines
+					var pt = lmap.project(new L.LatLng(y, x), lmap.getZoom());
+					var point = pt._subtract(lmap.getPixelOrigin())
+					this.stream.point(point.x, point.y);
+				};
+				var transform = d3.geoTransform({
+					point : projectPoint
+				})
+				this.path = d3.geoPath().projection(transform);				//
+				// add features from flow lines
+				this.flow_features = this.gTop.selectAll("path")
+				.data(this.dsm2_flowlines.features)
+				.enter().insert("path","circle")
+				.attr("id", function getid(d) {return d.properties.channel_nu;})
+				.style('stroke', 'blue')
+				.style('fill', 'none').style('stroke-width', function(d) {return d.properties.width / 100.0;})
+				.style('shape-rendering', 'optimizeSpeed').style('stroke-linecap','round').style('stroke-linejoin','round')
+				.on("mouseover", function(d){d3.select(this).style("cursor","pointer")})
+				.on("mouseout", function(d){d3.select(this).style("cursor","default")})
+				.on("click",function(e){console.log('Clicked: ',e);});
+				var gtext = this.gTop.append("g");
+				this.flow_text = gtext.selectAll("text").data(this.dsm2_flowlines.features).enter()
+				.insert("text","circle").attr("text-anchor","middle")
+				.append("textPath").attr("xlink:href",function(d){return "#"+d.properties.channel_nu}).attr("startOffset","50%")
+				.text(function(d){return d.properties.channel_nu});
+				
+				this.reset();
+			},
+
+			drawDSM2Nodes: function(value){
+				this.dsm2_nodes = value;
+				// now svg elements and gradient elements are added to dom
+				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
+				this.gTop = this.svg.append("g").attr("class", "leaflet-zoom-hide");
+				this.nodes = this.gTop.selectAll("circle").data(this.dsm2_nodes.features).enter()
+					.append("circle")
+					.attr("cx", function(d){
+					    d.projectedCoordinates = this.projectPoint(d.geometry.coordinates);
+						return d.projectedCoordinates.x;
+						}.bind(this))
+					.attr("cy",function(d){ 
+						return d.projectedCoordinates.y;
+						}.bind(this))
+					.attr("r","14px");
+				var gtext = this.gTop.append("g");
+				this.text = gtext.selectAll("text").data(this.dsm2_nodes.features).enter().append("text")
+				.attr("x", function(d){return d.projectedCoordinates.x - 3*((d.properties.nodenum+"").length)})
+				.attr("y", function(d){return d.projectedCoordinates.y + 3;})
+				.attr("text-anchor","middle")
+				.attr("alignment-baseline", "central")
+				.text(function(d){return d.properties.nodenum+"";});
+				// finally call reset
+				this.dsm2_nodes.bounds = d3.geoBounds(this.dsm2_nodes); // gets bounds of all the node features
+				this.reset();
+			},
+			
+			calculateRadius: function(){
+				var lmap = this.map;
+				var radius = 591657550.500000 / Math.pow(2, lmap.getZoom()-1);
+				radius = Math.min(20,2000000/radius);
+				//console.log("Map Zoom",lmap.getZoom());
+				//console.log("radius",radius);
+				return radius;
+			},
+
+			// Reposition the SVG to cover the features.
+			reset: function() {
+				var bottomLeft = this.projectPoint(this.dsm2_nodes.bounds[0]), topRight = this.projectPoint(this.dsm2_nodes.bounds[1]);
+				this.svg.attr("width", topRight.x - bottomLeft.x).attr(
+						"height", bottomLeft.y - topRight.y).style(
+						"left", bottomLeft.x + "px").style("top",
+						topRight.y + "px").attr("overflow", "visible");
+
+				this.gTop.attr("transform", "translate(" + -bottomLeft.x + ","
+						+ -topRight.y + ")");
+				var factor = (topRight.x - bottomLeft.x)
+				// draw channels first
+				if (this.flow_features){
+					this.flow_features.attr("d", this.path).style(
+						"stroke-width",
+						function(d) {
+							//var swidth = d.properties.width * factor/ 150000.0;
+							//return Math.max(swidth, 8);
+							return 8;
+						});
+				}
+
+				//console.log("Factor.100=",factor/100., "Map Zoom is ", this.map.getZoom());
+				var radius = this.calculateRadius();
+				this.nodes
+				.attr("cx", function(d){
+				    d.projectedCoordinates = this.projectPoint(d.geometry.coordinates);
+					return d.projectedCoordinates.x;
+					}.bind(this))
+				.attr("cy",function(d){ 
+					return d.projectedCoordinates.y;
+					}.bind(this))
+				.attr("r",function(){return radius});
+				//if (this.map.getZoom() > 11){ // display text only if zoomed in 
+				this.text
+					.attr("x", function(d){return d.projectedCoordinates.x;})
+					.attr("y", function(d){return d.projectedCoordinates.y;})
+					.attr("text-anchor","middle")
+					.attr("alignment-baseline", "central")
+					.attr("visibility","inherit")
+					.style("font-size", function(d){return Math.max(0.9*radius, 0.9*radius-8/this.getComputedTextLength()*24);})
+				/*
+				} else {
+				    this.text.attr("visibility","hidden");
+				}*/
+
+			},
+
+		});
+	</script>
+</dom-module>

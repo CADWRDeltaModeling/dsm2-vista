@@ -1,0 +1,34 @@
+{
+  "name": "file-input",
+  "version": "2.0.0",
+  "authors": [
+    "Ray Nicholus"
+  ],
+  "description": "web component for styling, normalizing, and generally fixing <input type=\"file\">",
+  "main": "element/*",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "web-components",
+    "input",
+    "file",
+    "upload"
+  ],
+  "homepage": "https://github.com/rnicholus/file-input",
+  "_release": "2.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "2.0.0",
+    "commit": "453c5978a23f7e52040a8df36573f3475e93f453"
+  },
+  "_source": "https://github.com/rnicholus/file-input.git",
+  "_target": "^2.0.0",
+  "_originalSource": "file-input",
+  "_direct": true
+}
