@@ -28,12 +28,12 @@
       },
       
       _changeCurrentValue: function(newValue, oldValue){
-    	  console.log('_changeCurrentValue', newValue);
+    	  //console.log('_changeCurrentValue', newValue);
     	  this.$.arrayInput.value=newValue;
       },
       
       _updateCurrentValue : function(){
-    	  console.log('_updateCurrentValue');
+    	  //console.log('_updateCurrentValue');
     	  this.currentValueAsArray = JSON.parse("["+this.$.arrayInput.value+"]");
       },
       

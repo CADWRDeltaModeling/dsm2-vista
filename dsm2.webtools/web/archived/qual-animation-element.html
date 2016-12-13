@@ -98,7 +98,7 @@
 			},
 			
 			_changeColorClasses : function(colorClasses){
-				console.log('Change color classes to : ', colorClasses)
+				//console.log('Change color classes to : ', colorClasses)
 				this.colorClasses = colorClasses;
 				if (this.colorClasses && this.valueClasses){
 					this._interpolateColor = d3.scaleLinear().domain(this.valueClasses)
@@ -112,7 +112,7 @@
 			},
 			
 			_changeValueClasses : function(valueClasses){
-				console.log('Change value classes to : ', valueClasses)
+				//console.log('Change value classes to : ', valueClasses)
 				this.valueClasses = valueClasses;
 				if (this.colorClasses && this.valueClasses){
 					this._interpolateColor = d3.scaleLinear().domain(this.valueClasses)
@@ -126,7 +126,7 @@
 			},
 			
 			_changeMapTileLayer : function(layerName) {
-				//console.log('Now selected: ' + layerName);
+				////console.log('Now selected: ' + layerName);
 				if (!this.map){
 					return;
 				}
@@ -141,13 +141,13 @@
 			},
 			
 			_changeAnimateInterval : function(value){
-				console.log('Change animate interval to '+value);
+				//console.log('Change animate interval to '+value);
 				//
 				this.restartTimer();
 			}, 
 			
 			_changeAnimateStartTime: function(value){
-				console.log('Changed animate start time to ',value);
+				//console.log('Changed animate start time to ',value);
 				this.stopTimer();
 				this.startTimer();
 			},
@@ -202,7 +202,7 @@
 					} else {
 						angle = 180 - angle;
 					}
-					//console.log("angle["+i+"] = "+angle);
+					////console.log("angle["+i+"] = "+angle);
 					return "rotate("+angle+",0.5,0.5)"});
 				this.stops1 = lgs.append("stop").attr("offset", "0%").style(
 						'stop-color', 'rgb(0,255,0)');//.transition().duration(this.animateInterval);
@@ -270,7 +270,7 @@
 				this.stime = this.tp(this.animateStartTime);
 				// start the animation after data load.
 				if (this.tidefile && this.animateStartTime){
-				//console.log('Starting from startTimer!');
+				////console.log('Starting from startTimer!');
 				d3.json(this._generateURLForSliceRequest(this.animateStartTime), this.initDataLoad.bind(this));
 				}
 				// animate function
@@ -279,7 +279,7 @@
 			
 			stopTimer: function(){
 				if (this.timer){
-					//console.log('Stopping timer', this.timer);
+					////console.log('Stopping timer', this.timer);
 					this.timer.stop();
 				}
 			},
@@ -307,17 +307,17 @@
 					this.timer.stop();
 				}
 				this.timer = d3.interval(this.animate.bind(this), this.animateInterval);
-				//console.log('initDataLoad: ', this.timer);
+				////console.log('initDataLoad: ', this.timer);
 			},
 			
 			animate: function(elapsed){
 				if (this.slice == 0) { // slice is in use, get next slice data
 					if (this.sliceData == null) {
-						//console.log("No data found!. Stopping animation");
+						////console.log("No data found!. Stopping animation");
 						this.timer.stop();
 						return;
 					}
-					//console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
+					////console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
 					d3.json(this._generateURLForSliceRequest(this.sliceData.endTimeOffset), function(d) {
 						this.nextSliceData = d;
 
@@ -333,13 +333,13 @@
 					this.step_size = Math.max(1, Math
 							.round((elapsed - this.prev_elapsed)
 									/ this.animateInterval));
-					//console.log('step_size: ', this.step_size, this);
+					////console.log('step_size: ', this.step_size, this);
 				}
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
 					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
-					//console.log('Next slice @ slice '+slice);
+					////console.log('Next slice @ slice '+slice);
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {

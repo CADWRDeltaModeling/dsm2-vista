@@ -41,12 +41,12 @@
     <servlet-class>dsm2.server.H5TimeSliceServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>h5avgslice</servlet-name>
-    <servlet-class>dsm2.server.H5TimeAvgSliceServlet</servlet-class>
+    <servlet-name>h5info</servlet-name>
+    <servlet-class>dsm2.server.H5FileInfoServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>h5qualconcslice</servlet-name>
-    <servlet-class>dsm2.server.H5QualUpDownConcTimeSliceServlet</servlet-class>
+    <servlet-name>h5avgslice</servlet-name>
+    <servlet-class>dsm2.server.H5TimeAvgSliceServlet</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>h5catalog</servlet-name>
@@ -77,20 +77,12 @@
     <url-pattern>/h5slice/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>h5info</servlet-name>
+    <url-pattern>/h5info/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>h5avgslice</servlet-name>
     <url-pattern>/h5avgslice/*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>h5qualconcslice</servlet-name>
-    <url-pattern>/h5qualconcslice/*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>h5qualconcslice</servlet-name>
-    <url-pattern>/build/bundled/h5qualconcslice/*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>dsm2echo</servlet-name>
-    <url-pattern>/dsm2echo/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>list</servlet-name>
@@ -99,5 +91,9 @@
   <servlet-mapping>
     <servlet-name>h5list</servlet-name>
     <url-pattern>/h5list/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dsm2echo</servlet-name>
+    <url-pattern>/dsm2echo/*</url-pattern>
   </servlet-mapping>
 </web-app>

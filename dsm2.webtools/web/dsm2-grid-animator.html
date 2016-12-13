@@ -8,6 +8,7 @@
 </script>
 <script src="bower_components/file-saver/FileSaver.min.js">
 </script>
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
 <link rel="import"
 	href="bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import"
@@ -35,7 +36,8 @@
 <link rel="import" href="color-brewer-selector.html">
 <link rel="import" href="array-input-editor.html">
 <link rel="import" href="bower_components/iron-icons/av-icons.html">
-<link href="bower_components/iron-icons/iron-icons.html" rel="import">	
+<link rel="import" href="bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">	
 <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="./bower_components/paper-material/paper-material.html">
 <link rel="import" href="./bower_components/app-storage/app-localstorage/app-localstorage-document.html">
@@ -60,11 +62,14 @@
 		<div class="container flex-vertical">
 			<paper-material elevation="3">
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
+					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{tidefile}}"
+							handle-as="json"
+							last-response="{{h5info}}">
+					</iron-ajax>
 					<paper-listbox class="dropdown-content" selected="{{dataType}}" attr-for-selected="value">
-						<paper-item value="ec">EC</paper-item>
-						<paper-item value="stage">Stage</paper-item>
-						<paper-item value="flow">Flow</paper-item>
-						<paper-item value="area">Area</paper-item>
+						<template is="dom-repeat" items="[[h5info.dataTypeNames]]">
+							<paper-item value="[[index]]">[[item]]</paper-item>
+						</template>
 					</paper-listbox>
 					</paper-dropdown-menu>
 				<paper-input id="fileinput" value="{{tidefile}}" label="Tidefile"></paper-input>
@@ -83,7 +88,9 @@
 			<paper-material elevation="3">
 			<div class="container flex-horizontal">
 				<div id="anim">Animation Interval: {{animationInterval}} milliseconds</div>
-				<paper-slider id="slider" name = "Animation Interval: " min="10" max="1000" step="50" value="{{animationInterval}}"></paper-slider>
+				<div class="container flex-horizontal">
+					<paper-slider id="slider" name = "Animation Interval: " min="5" max="500" step="5" value="{{animationInterval}}"></paper-slider>
+				</div>
 			</div>
 			</paper-material>
 			<paper-material elevation="3">
@@ -121,6 +128,7 @@
 			</paper-dropdown-menu>
 			</paper-material>
 			<paper-material elevation="3">
+			<paper-icon-button icon="editor:linear-scale" id="autoscale"></paper-icon-button>
 			<array-input-editor label="Value Classes" current-value-as-array="{{valueClasses}}"></array-input-editor>
 			</paper-material>
 			<paper-material elevation="3">
@@ -142,7 +150,7 @@
 				<paper-icon-button alt="Save" icon="icons:save" id="save" on-tap="saveConfig"></paper-icon-button>
 				<paper-icon-button alt="Delte" icon="icons:delete" id="load" on-tap="deleteConfig"></paper-icon-button>
 				<paper-icon-button alt="Download" icon="icons:file-download" id="download" on-tap="downloadConfig"></paper-icon-button>
-				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="console.log(this);document.getElementById('mainContext').uploadConfig(this.files)">
+				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="//console.log(this);document.getElementById('mainContext').uploadConfig(this.files)">
 				<paper-icon-button alt="Upload" icon="icons:file-upload" id="upload" on-tap="openUploadDialog"></paper-icon-button>
 				</div>
 				<app-localstorage-document key="configs" data="{{configs}}"></app-localstorage-document>
@@ -180,7 +188,7 @@
 
       document.addEventListener('WebComponentsReady', function(e) {
     	  if (handlersInitialized) return;
-	   	  //console.log('WebComponentsReady',e, handlersInitialized );
+	   	  ////console.log('WebComponentsReady',e, handlersInitialized );
     	  //setConfiguration(x2config);
     	  
     	  handlersInitialized = true;
@@ -200,7 +208,7 @@
     	   
     		mc.setConfiguration = function(config) {
     			var mc = document.getElementById('mainContext');
-    			console.log('Setting configuration: ',config);
+    			//console.log('Setting configuration: ',config);
     			if(typeof config.dataType === "undefined"){
     			    config.dataType = "ec"; // upgrade code, not needed over time
     			    mc.dataType = "ec"; 
@@ -243,12 +251,12 @@
 					var xconfig = mc.configs[i];
 					if (xconfig.name == config.name){
 						Object.assign(xconfig,config);
-						console.log('Updated config', config.name);
+						//console.log('Updated config', config.name);
 						return;
 					}
 				}
 				mc.push('configs',config);
-				console.log('Added config',config.name);
+				//console.log('Added config',config.name);
     		}
     		
     		mc.deleteConfig = function() {
@@ -261,7 +269,7 @@
     				}
     			}
     			mc.splice('configs',i,1);
-    			console.log('Deleted config',config.name);
+    			//console.log('Deleted config',config.name);
     		}
     		
     		mc.downloadConfig = function(){
@@ -296,8 +304,8 @@
     		}
 
     		detaw_config = {name: 'detaw',
-    				dataType : "ec",
-    				tidefile : ".\\sample-data\\DSM2_201602_DETAW\\output\\historical_v81_ec.h5", 
+    				dataType : "0",
+    				tidefile : ".\\sample-data\\DSM2_201602_DETAW\\output\\historical_v81_qual.h5", 
     			    baseTidefile: "",
     			    layerName: "Hydda.Full",
     				animateStartTime : "01FEB1990",
@@ -306,8 +314,8 @@
     			    valueClasses: [ 200, 500, 700, 1000, 1500, 3700, 4500, 8000, 10000, 15000, 18000, 25000],
     	    };
     		dicu_config = {name: 'dicu',
-					dataType : "ec",
-    				tidefile : ".\\sample-data\\DSM2_201602_QAQC\\output\\historical_v81_ec.h5", 
+					dataType : "0",
+    				tidefile : ".\\sample-data\\DSM2_201602_QAQC\\output\\historical_v81_qual.h5", 
     			    baseTidefile: "",
     			    layerName: "Hydda.Full",
     				animateStartTime : "01FEB1990",
@@ -317,19 +325,30 @@
     	    };
     		diffconfig = {
     				name: 'detaw - dicu(historical)',
-    				dataType : "ec",
-					tidefile: ".\\sample-data\\DSM2_201602_DETAW\\output\\historical_v81_ec.h5",
-    				baseTidefile: ".\\sample-data\\DSM2_201602_QAQC\\output\\historical_v81_ec.h5",
+    				dataType : "0",
+					tidefile: ".\\sample-data\\DSM2_201602_DETAW\\output\\historical_v81_qual.h5",
+    				baseTidefile: ".\\sample-data\\DSM2_201602_QAQC\\output\\historical_v81_qual.h5",
     				layerName: "Hydda.Full",
     				animationInterval: 150,
     				animateStartTime: "01FEB1990",
     				colorClasses: ["#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850"],
     				valueClasses: [-800,-500,-300,-200,-100,0,100,200,300,500,800],
     		};
+    		fingerprintconfig = {
+				name: 'fingerprint-ag',
+				dataType : "0",
+				tidefile: ".\\sample-data\\fingerprinting_with_source_tracking\\hist__2016_SFEI_Vol_qual.h5",
+				baseTidefile: "",
+				layerName: "Hydda.Full",
+				animationInterval: 150,
+				animateStartTime: "01FEB1990",
+				colorClasses: ["#ffffe5", "#fff7bc", "#fee391", "#fec44f", "#fe9929", "#ec7014", "#cc4c02", "#993404", "#662506"],
+				valueClasses: [0,10,20,30,40,50,60,70,80,90,100],
+		};
     		
     		if (window.localStorage.getItem('configs') == "undefined"){
-    			console.log('No local storage found for configs');
-    			mc.configs=([dicu_config, detaw_config, diffconfig]);
+    			//console.log('No local storage found for configs');
+    			mc.configs=([dicu_config, detaw_config, diffconfig, fingerprintconfig]);
     			mc.setConfiguration(dicu_config)
     		} else {
     			mc.setConfiguration(mc.configs[0]);
@@ -338,28 +357,34 @@
 			var play = document.getElementById("play");
 			var pause = document.querySelector("paper-icon-button#pause");
 			var restart = document.getElementById("restart");
+			var autoscale = document.getElementById("autoscale");
+			
 			play.addEventListener('tap', function(){
-			 console.log('Restarting Timer');
+			 //console.log('Restarting Timer');
 			 document.getElementById('animationElement').restartTimer();
 			});
 			pause.addEventListener('tap', function(){
-			 console.log('Pausing Timer');
+			 //console.log('Pausing Timer');
 			 document.getElementById('animationElement').stopTimer();
 			});
 			restart.addEventListener('tap', function(){
-			 console.log('Restarting Timer');
+			 //console.log('Restarting Timer');
 			 document.getElementById('animationElement').startTimer();
+			});
+			autoscale.addEventListener('tap', function(){
+			   document.getElementById('animationElement').autoScale();
+			   mc.valueClasses = document.getElementById('animationElement').valueClasses;
 			});
 			
 			var fileInput = document.getElementById("fileinput");
 			fileInput.addEventListener('change', function(e){
-			 console.log('File Input changed',e);
+			 //console.log('File Input changed',e);
 			 document.getElementById('mainContext').tidefile = e.target.value;
 			});
 			
 			var baseFileInput = document.getElementById("basefileinput");
 			baseFileInput.addEventListener('change', function(e){
-			 console.log('Base File Input changed',e);
+			 //console.log('Base File Input changed',e);
 			 document.getElementById('mainContext').baseTidefile = e.target.value;
 			})
           

@@ -75,7 +75,7 @@
 	function animate(elapsed) {
 		if (slice == 0) { // slice is in use, get next slice data
 			if (sliceData==null){
-				console.log("No data found!. Stopping animation");
+				//console.log("No data found!. Stopping animation");
 				timer.stop();
 			}
 			d3
@@ -95,9 +95,9 @@
 		flow_features.transition().duration(ANIMATE_INTERVAL).attr("stroke",
 				interpolateColor);
 		flow_features.data(feature_data)
-		//console.log(slice, sliceData.data[slice][420])
+		////console.log(slice, sliceData.data[slice][420])
 		slice = slice + 1; // increment slice pointer
-		//console.log(slice);
+		////console.log(slice);
 		if (slice == SLICE_SIZE) {
 			slice = 0;
 			sliceData = nextSliceData; // start using next slice

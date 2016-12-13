@@ -75,8 +75,8 @@ Polymer({
     		path = "/"+path.reduce(function(p,c) { return p+"/"+c})+"/"
 	    	s_paths.push(path);
     	}
-    	console.log(s_paths);
-    	console.log(this.__data__.dssFile);
+    	//console.log(s_paths);
+    	//console.log(this.__data__.dssFile);
     	this.fire("dss-catalog-view-selected-paths", {"file": file, "paths": s_paths});
     }
   });

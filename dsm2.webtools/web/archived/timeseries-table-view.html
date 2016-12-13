@@ -23,7 +23,7 @@
 			},
 
 			ready : function() {
-				console.log('Ready timeseries-table-view')
+				//console.log('Ready timeseries-table-view')
 				var d = new Date();
 				this.$.grid.columns[0].renderer = function(cell){
 					d.setTime(cell.data);
@@ -33,11 +33,11 @@
 			},
 			
 			_dateRenderer : function(cell){
-				console.log(cell.data);
+				//console.log(cell.data);
 			},
 			
 			_drawTable : function(data){
-				console.log(data);
+				//console.log(data);
 			}
 		});
 	</script>

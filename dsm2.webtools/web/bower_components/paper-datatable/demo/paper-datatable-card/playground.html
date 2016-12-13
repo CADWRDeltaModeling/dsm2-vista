@@ -76,7 +76,7 @@
 
 			app.data = {
 				get: function(sort, page, pageSize){
-					console.log('just once? :/');
+					//console.log('just once? :/');
 					return new Promise(function(resolve, reject){
 						myData.sort(function(a,b){
 							if(sort.direction == "desc"){
@@ -99,7 +99,7 @@
 							console.warn('this is for the time being deprecated');
 							/*
 							if(item.author.first.length > 0 && item.author.last.length > 0){
-								console.log('trigger save');
+								//console.log('trigger save');
 								var id = Math.round(Math.random() * 10000);
 
 								item.id = id;
@@ -107,7 +107,7 @@
 								app.set('data.length', myData.length);
 								resolve(id);
 							}else{
-								console.log('no luck yet');
+								//console.log('no luck yet');
 								reject();
 							}*/
 						}else{

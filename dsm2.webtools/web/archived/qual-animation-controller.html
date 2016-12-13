@@ -170,16 +170,16 @@ Polymer({
 		
 	},
 	ready: function(e) {
-		console.log('ready qual animation controller')
+		//console.log('ready qual animation controller')
 	},	
 	_changeMapBackground: function(e) {
-		console.log('_changeMapBackground', e)
-		console.log(this.layerName)
+		//console.log('_changeMapBackground', e)
+		//console.log(this.layerName)
 		this.$.qe._changeMapTileLayer(this.layerName);
 	}
 });
 //leaflet provider
 //p=Object.keys(L.TileLayer.Provider.providers)
-//for (x in p){ if (Object.keys(L.TileLayer.Provider.providers[p[x]]).length <=2) continue; v = Object.keys(L.TileLayer.Provider.providers[p[x]].variants); for (y in v) {if (v[y]){console.log(p[x] + '.' + v[y]); }}}
+//for (x in p){ if (Object.keys(L.TileLayer.Provider.providers[p[x]]).length <=2) continue; v = Object.keys(L.TileLayer.Provider.providers[p[x]].variants); for (y in v) {if (v[y]){//console.log(p[x] + '.' + v[y]); }}}
 </script>
 </html>

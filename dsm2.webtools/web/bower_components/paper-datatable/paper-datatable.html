@@ -590,7 +590,7 @@ A [material design implementation of a data table](https://www.google.com/design
 							cells.forEach((cell) => {
 
 								if(!cell.dataColumn){
-									console.log(cell);
+									//console.log(cell);
 								}
 
 								var isEmpty = cell.hasAttribute('data-empty');
@@ -650,7 +650,7 @@ A [material design implementation of a data table](https://www.google.com/design
 						}
 					}
 					var path = change.path.split('.');
-					//console.log('_notifyPathOnInstances', path, change);
+					////console.log('_notifyPathOnInstances', path, change);
 					if(path.length >= 3){
 						var object = path.shift();
 						var rowKey = path.shift();
@@ -659,7 +659,7 @@ A [material design implementation of a data table](https://www.google.com/design
 
 						if(!row){
 							console.error('critical failure');
-							console.log('key', rowKey);
+							//console.log('key', rowKey);
 							return false;
 						}
 
@@ -965,7 +965,7 @@ A [material design implementation of a data table](https://www.google.com/design
 					Polymer.dom(this.$.dialog).innerHTML = '';
 					Polymer.dom(this.$.dialog).appendChild(instance.root);
 					this.$.dialog.findFocus();
-					//console.log(cell.getBoundingClientRect());
+					////console.log(cell.getBoundingClientRect());
 				},
 
 				_getKeyByItem: function(item){

@@ -87,7 +87,7 @@ text {
 			},
 			
 			changeMapLayerName : function(layerName) {
-				//console.log('Now selected: ' + layerName);
+				////console.log('Now selected: ' + layerName);
 				if (!this.map){
 					return;
 				}
@@ -153,7 +153,7 @@ text {
 			},
 			
 			updateHydroEchoInfo: function (value){
-				//console.log(value);    
+				////console.log(value);    
 			},
 			
 			projectPoint : function(c){
@@ -187,7 +187,7 @@ text {
 				.style('shape-rendering', 'optimizeSpeed').style('stroke-linecap','round').style('stroke-linejoin','round')
 				.on("mouseover", function(d){d3.select(this).style("cursor","pointer")})
 				.on("mouseout", function(d){d3.select(this).style("cursor","default")})
-				.on("click",function(e){console.log('Clicked: ',e);});
+				.on("click",function(e){//console.log('Clicked: ',e);});
 				var gtext = this.gTop.append("g");
 				this.flow_text = gtext.selectAll("text").data(this.dsm2_flowlines.features).enter()
 				.insert("text","circle").attr("text-anchor","middle")
@@ -228,8 +228,8 @@ text {
 				var lmap = this.map;
 				var radius = 591657550.500000 / Math.pow(2, lmap.getZoom()-1);
 				radius = Math.min(20,2000000/radius);
-				//console.log("Map Zoom",lmap.getZoom());
-				//console.log("radius",radius);
+				////console.log("Map Zoom",lmap.getZoom());
+				////console.log("radius",radius);
 				return radius;
 			},
 
@@ -255,7 +255,7 @@ text {
 						});
 				}
 
-				//console.log("Factor.100=",factor/100., "Map Zoom is ", this.map.getZoom());
+				////console.log("Factor.100=",factor/100., "Map Zoom is ", this.map.getZoom());
 				var radius = this.calculateRadius();
 				this.nodes
 				.attr("cx", function(d){

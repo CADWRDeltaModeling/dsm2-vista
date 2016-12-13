@@ -48,13 +48,13 @@
 			},
 			
 			_changeAnimateInterval : function(value){
-				console.log('Change animate interval to '+value);
+				//console.log('Change animate interval to '+value);
 				//
 				this.restartTimer();
 			}, 
 			
 			_changeAnimateStartTime: function(value){
-				console.log('Changed animate start time to ',value);
+				//console.log('Changed animate start time to ',value);
 				this.stopTimer();
 				this.startTimer();
 			},
@@ -68,7 +68,7 @@
 				this.tp = d3.timeParse("%d%b%Y %H%M")
 				this.stime = this.tp(this.animateStartTime);
 				// start the animation after data load.
-				//console.log('Starting from startTimer!');
+				////console.log('Starting from startTimer!');
 				d3.json(this._generateURLForSliceRequest(this.animateStartTime), this.initDataLoad.bind(this));
 				}
 				// animate function
@@ -92,11 +92,11 @@
 			animate: function(elapsed){
 				if (this.slice == 0) { // slice is in use, get next slice data
 					if (this.sliceData == null) {
-						//console.log("No data found!. Stopping animation");
+						////console.log("No data found!. Stopping animation");
 						this.timer.stop();
 						return;
 					}
-					//console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
+					////console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
 					d3.json(this._generateURLForSliceRequest(this.sliceData.endTimeOffset), function(d) {
 						this.nextSliceData = d;
 
@@ -112,13 +112,13 @@
 					this.step_size = Math.max(1, Math
 							.round((elapsed - this.prev_elapsed)
 									/ this.animateInterval));
-					//console.log('step_size: ', this.step_size, this);
+					////console.log('step_size: ', this.step_size, this);
 				}
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
 					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
-					//console.log('Next slice @ slice '+slice);
+					////console.log('Next slice @ slice '+slice);
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {

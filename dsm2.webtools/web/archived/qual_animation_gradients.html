@@ -108,7 +108,7 @@
 		//setup map layer and all
 		var dropdown = document.querySelector("#mapselector");
 		dropdown.addEventListener("iron-select", function(){
-		console.log('Now selected: '+this.selectedItemLabel);
+		//console.log('Now selected: '+this.selectedItemLabel);
 		map.removeLayer(layer);
 		if (this.selectedItemLabel == 'World_Topo_Map'){
 			layer = Esri_WorldTopoMap;
@@ -250,10 +250,10 @@
 		function animate(elapsed) {
 			if (slice == 0) { // slice is in use, get next slice data
 				if (sliceData == null) {
-					console.log("No data found!. Stopping animation");
+					//console.log("No data found!. Stopping animation");
 					timer.stop();
 				}
-				//console.log('Getting next slice: '+sliceData.endTimeOffset+' @ slice size: '+SLICE_SIZE);
+				////console.log('Getting next slice: '+sliceData.endTimeOffset+' @ slice size: '+SLICE_SIZE);
 				d3
 						.json(
 								encodeURI("h5qualconcslice?file="+tidefile+"&time="
@@ -275,13 +275,13 @@
 			$("#slider").slider("value", stime.getTime());
 			if (prev_elapsed != 0){
 				step_size =Math.max(1, Math.round((elapsed-prev_elapsed)/ANIMATE_INTERVAL))
-				//console.log('Step size:'+step_size)
+				////console.log('Step size:'+step_size)
 			} 
 			slice = slice + step_size; // increment slice pointer
 			prev_elapsed = elapsed;
 			if (slice >= sliceData.data.length) {
 				SLICE_SIZE = 48 * 5 * step_size;
-				//console.log('Next slice @ slice '+slice);
+				////console.log('Next slice @ slice '+slice);
 				slice = 0;
 				sliceData = nextSliceData; // start using next slice
 				if (sliceData == null) {

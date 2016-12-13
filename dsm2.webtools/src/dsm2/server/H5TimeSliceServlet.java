@@ -34,8 +34,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 		// TODO Auto-generated constructor stub
 	}
 
-	static String getEnvar(String varName, H5File h5file, String dataType) throws Exception {
-		String envarPath = dataType.equals("ec") ? "/input/envvar" : "/hydro/input/envvar"; 
+	static String getEnvar(String varName, H5File h5file, boolean qualTidefile) throws Exception {
+		String envarPath = qualTidefile ? "/input/envvar" : "/hydro/input/envvar";
 		CompoundDS envarTable = (CompoundDS) h5file.get(envarPath);
 		Vector columns = (Vector) envarTable.getData();
 		String[] names = (String[]) columns.get(0);
@@ -60,17 +60,25 @@ public class H5TimeSliceServlet extends HttpServlet {
 			return;
 		}
 		String startTimeReq = request.getParameter("time"); // starting time
-		String dataType = request.getParameter("type"); // type-> one of ec, stage, flow, area.
-		int sliceSize = Integer.parseInt(request.getParameter("slice"));// number of time steps
-		String baseFile = request.getParameter("basefile"); // file to difference from => values = file-basefile
-		// System.out.println("Serving slice from "+file+" @ "+startTimeReq + " of size: "+ sliceSize);
+		String dataType = request.getParameter("type"); // type-> one of ec,
+														// stage, flow, area.
+		int sliceSize = Integer.parseInt(request.getParameter("slice"));// number
+																		// of
+																		// time
+																		// steps
+		String baseFile = request.getParameter("basefile"); // file to
+															// difference from
+															// => values =
+															// file-basefile
+		// System.out.println("Serving slice from "+file+" @ "+startTimeReq + "
+		// of size: "+ sliceSize);
 		try {
 			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize, dataType);
-			if (baseFile != null){
+			if (baseFile != null) {
 				H5Slice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize, dataType);
-				slice = diff(slice,baseSlice);
+				slice = diff(slice, baseSlice);
 			}
-			if (slice==null){
+			if (slice == null) {
 				return;
 			}
 			writeSliceAsJson(response, slice);
@@ -78,18 +86,18 @@ public class H5TimeSliceServlet extends HttpServlet {
 			ex.printStackTrace();
 		}
 	}
-	
-	public H5Slice diff(H5Slice slice, H5Slice baseSlice){
-		if (slice.timeIntervalInMins != baseSlice.timeIntervalInMins){
+
+	public H5Slice diff(H5Slice slice, H5Slice baseSlice) {
+		if (slice.timeIntervalInMins != baseSlice.timeIntervalInMins) {
 			System.err.println("The time interval in file and base file don't match!");
 			return null;
 		}
 		for (int j = 0; j < slice.sliceSize; j++) {
 			// upnodes
 			for (int i = 0; i < slice.channelArray.length; i++) {
-				int index = j*slice.channelArray.length + i;
-				slice.fData1[index]=slice.fData1[index]-baseSlice.fData1[index];
-				slice.fData2[index]=slice.fData2[index]-baseSlice.fData2[index];
+				int index = j * slice.channelArray.length + i;
+				slice.fData1[index] = slice.fData1[index] - baseSlice.fData1[index];
+				slice.fData2[index] = slice.fData2[index] - baseSlice.fData2[index];
 			}
 			// end of slice array
 		}
@@ -99,22 +107,26 @@ public class H5TimeSliceServlet extends HttpServlet {
 	public H5Slice extractSliceFromFile(String file, String startTimeReq, int sliceSize, String dataType)
 			throws Exception, HDF5Exception, OutOfMemoryError {
 
-		boolean qualTidefile = dataType.equals("ec") ? true: false; //FIXME: consolidate qual and hydro slicing servlets here.
-		
 		H5File h5file = new H5File(file);
 		h5file.open();
+		boolean qualTidefile = true;
+		if (h5file.get("/hydro") != null) {
+			qualTidefile = false;
+		}
 
 		String pathToData = "";
-		if (dataType.equals("ec")){
+		if (qualTidefile) {
 			pathToData = "/output/channel concentration";
-		} else if (dataType.equals("stage")){
-			pathToData = "/hydro/data/channel stage";
-		} else if (dataType.equals("flow")){
-			pathToData = "/hydro/data/channel flow";
-		} else if (dataType.equals("area")){
-			pathToData = "/hydro/data/channel area";
 		} else {
-			System.err.println("Request for unknown data type: "+ dataType);
+			if (dataType.equals("0")) {
+				pathToData = "/hydro/data/channel stage";
+			} else if (dataType.equals("1")) {
+				pathToData = "/hydro/data/channel flow";
+			} else if (dataType.equals("2")) {
+				pathToData = "/hydro/data/channel area";
+			} else {
+				System.err.println("Request for unknown data type: " + dataType);
+			}
 		}
 
 		HObject dataObject = h5file.get(pathToData);
@@ -138,7 +150,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 			}
 			if (attr.getName().equals("interval")) {
 				String tistr = ((String[]) attr.getValue())[0];
-				// FIXME: workaround for bug in qual tidefile, hydro ends with n as in min
+				// FIXME: workaround for bug in qual tidefile, hydro ends with n
+				// as in min
 				if (tistr.toLowerCase().endsWith("m")) {
 					tistr += "in";
 				}
@@ -148,7 +161,9 @@ public class H5TimeSliceServlet extends HttpServlet {
 																			// status);
 				timeInterval = intervalAsString.toUpperCase();
 				if (timeInterval.equals("60MIN")) {
-					timeInterval = "1HOUR"; // FIXME: Hec does not accept, get rid of this hec dependence here!!!
+					timeInterval = "1HOUR"; // FIXME: Hec does not accept, get
+											// rid of this hec dependence
+											// here!!!
 											// non standard intervals, e.g.
 											// 20 min or 21 min etc.
 				}
@@ -159,7 +174,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 			}
 		}
 		//
-		modelRun = getEnvar("DSM2MODIFIER", h5file, dataType);
+		modelRun = getEnvar("DSM2MODIFIER", h5file, qualTidefile);
 		//
 		if (startTime == null || timeInterval == null || numberOfIntervals == 0) {
 			throw new RuntimeException("start time, time interval or number of intervals is not defined!");
@@ -169,7 +184,10 @@ public class H5TimeSliceServlet extends HttpServlet {
 		String timeWindow = startTime.dateAndTime(104) + " - " + endTime.dateAndTime(104);
 		//
 		HecTime startTimeOffset = new HecTime(startTimeReq);
-		if (startTimeOffset.lessThan(startTime)){ // if requesting time is less than time in tidefile, set it to start of time and serve that slice.
+		if (startTimeOffset.lessThan(startTime)) { // if requesting time is less
+													// than time in tidefile,
+													// set it to start of time
+													// and serve that slice.
 			startTimeOffset = new HecTime(startTime);
 		}
 		int timeOffset = startTime.computeNumberIntervals(startTimeOffset, timeIntervalInMins);
@@ -181,12 +199,18 @@ public class H5TimeSliceServlet extends HttpServlet {
 		long[] stride = ds.getStride();
 		long[] selectedDims = ds.getSelectedDims();
 		long[] dims = ds.getDims();
-		startDims[0] = timeOffset; // common to both hydro and qual, first dimension is time
-		selectedDims[0] = sliceSize; 
-		if (startDims.length==4){ // qual has 4 dimensions for concentration, 2nd dimension for constituent type as defined in /output/constituent_names
-			startDims[3] = 0;
+		startDims[0] = timeOffset; // common to both hydro and qual, first
+									// dimension is time
+		selectedDims[0] = sliceSize;
+		if (startDims.length == 4) { // qual has 4 dimensions for concentration,
+										// 2nd dimension for constituent type as
+										// defined in /output/constituent_names
+			startDims[1] = Integer.parseInt(dataType);
+			startDims[3] = 0; 
 			selectedDims[3] = 1;
-		} else { // hydro stage,flow and area have 3 dimensions, constituent names can be substitued to be stage, flow and area for same structure as qual
+		} else { // hydro stage,flow and area have 3 dimensions, constituent
+					// names can be substitued to be stage, flow and area for
+					// same structure as qual
 			startDims[2] = 0;
 			selectedDims[2] = 1;
 		}
@@ -199,7 +223,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		// FIXME: data sets should be able to hold floats?
 		float[] fData1 = (float[]) rawData;
 		// read downstream slice
-		if (startDims.length == 4){
+		if (startDims.length == 4) {
 			startDims[3] = 1;
 		} else {
 			startDims[2] = 1;
@@ -209,35 +233,40 @@ public class H5TimeSliceServlet extends HttpServlet {
 			throw new IllegalArgumentException(
 					"Path: " + " in HDF5 file: " + file + " is either null or not a floating point array");
 		}
-		
+
 		float[] fData2 = (float[]) rawData;
-		
-		
-		String pathToChannelNumber = qualTidefile ? "/output/channel_number" : "/hydro/geometry/channel_number"; // for qual tidefile and hydro tidefile
-		HObject hObject = h5file.get(pathToChannelNumber); 
+
+		String pathToChannelNumber = qualTidefile ? "/output/channel_number" : "/hydro/geometry/channel_number"; // for
+																													// qual
+																													// tidefile
+																													// and
+																													// hydro
+																													// tidefile
+		HObject hObject = h5file.get(pathToChannelNumber);
 		int[] channelArray = null;
 		if (hObject instanceof H5ScalarDS) {
 			H5ScalarDS channelds = (H5ScalarDS) hObject;
 			Object data = channelds.getData();
 			channelArray = (int[]) data;
 		}
-		
+
 		// if stage then adjust for channel bottoms
-		if (dataType.equals("stage")){
+		if (dataType.equals("stage")) {
 			float[] channelBottoms = getBottomElevations(h5file);
-			for(int k=0; k < sliceSize; k++){
-				int soffset = k*channelArray.length;
-				for(int i=0; i < channelArray.length; i++){
-					fData1[soffset+i] = fData1[soffset+i]+channelBottoms[i];
-					fData2[soffset+i] = fData2[soffset+i]+channelBottoms[i+channelArray.length];
+			for (int k = 0; k < sliceSize; k++) {
+				int soffset = k * channelArray.length;
+				for (int i = 0; i < channelArray.length; i++) {
+					fData1[soffset + i] = fData1[soffset + i] + channelBottoms[i];
+					fData2[soffset + i] = fData2[soffset + i] + channelBottoms[i + channelArray.length];
 				}
 			}
 		}
 
 		H5Slice slice = new H5Slice();
-		slice.dataType = dataType; //stage or flow, or area or constituent_names[index] ?
+		slice.dataType = dataType; // stage or flow, or area or
+									// constituent_names[index] ?
 		slice.sliceSize = sliceSize;
-		slice.startTime=startTime;
+		slice.startTime = startTime;
 		slice.timeIntervalInMins = timeIntervalInMins;
 		slice.endTime = endTime;
 		slice.startTimeOffset = startTimeOffset;
@@ -247,11 +276,12 @@ public class H5TimeSliceServlet extends HttpServlet {
 		slice.channelArray = channelArray;
 		return slice;
 	}
-	
+
 	private float[] getBottomElevations(H5File h5file) throws Exception {
 		HObject hObject = h5file.get("/hydro/geometry/channel_bottom");
 		if (!(hObject instanceof H5ScalarDS)) {
-			throw new IllegalArgumentException("No channel bottom info in HDF5 file: " + h5file	+ " is not a scalar dataset");
+			throw new IllegalArgumentException(
+					"No channel bottom info in HDF5 file: " + h5file + " is not a scalar dataset");
 		}
 		//
 		H5ScalarDS ds = (H5ScalarDS) hObject;
@@ -269,16 +299,15 @@ public class H5TimeSliceServlet extends HttpServlet {
 		stride[0] = 1;
 		stride[1] = 1;
 		//
-		//selectedDims[0] = 1;
-		//selectedDims[1] = 1;
+		// selectedDims[0] = 1;
+		// selectedDims[1] = 1;
 		//
 		Object rawData = ds.read();
 		float[] fData = (float[]) rawData;
 		return fData;
 	}
 
-
-	public void writeSliceAsJson(HttpServletResponse response,H5Slice slice) throws IOException {
+	public void writeSliceAsJson(HttpServletResponse response, H5Slice slice) throws IOException {
 		response.setContentType("application/json");
 		response.getWriter().println("{");
 		response.getWriter().println("\"startTimeOffset\": \"" + slice.startTimeOffset.dateAndTime(104) + "\",");
@@ -374,8 +403,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		doGet(request, response);
 	}
-	
-	public class H5Slice{
+
+	public class H5Slice {
 		public String dataType;
 		public int sliceSize;
 		public HecTime startTime;
@@ -383,7 +412,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		public HecTime endTime;
 		public HecTime startTimeOffset;
 		public HecTime endTimeOffset;
-		public float[] fData1,  fData2;
+		public float[] fData1, fData2;
 		public int[] channelArray;
 	}
 

@@ -134,7 +134,7 @@
 				<paper-icon-button alt="Save" icon="icons:save" id="save" on-tap="saveConfig"></paper-icon-button>
 				<paper-icon-button alt="Delte" icon="icons:delete" id="load" on-tap="deleteConfig"></paper-icon-button>
 				<paper-icon-button alt="Download" icon="icons:file-download" id="download" on-tap="downloadConfig"></paper-icon-button>
-				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="console.log(this);document.getElementById('mainContext').uploadConfig(this.files)">
+				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="//console.log(this);document.getElementById('mainContext').uploadConfig(this.files)">
 				<paper-icon-button alt="Upload" icon="icons:file-upload" id="upload" on-tap="openUploadDialog"></paper-icon-button>
 				</div>
 				<app-localstorage-document key="configs" data="{{configs}}"></app-localstorage-document>
@@ -171,7 +171,7 @@
 
       document.addEventListener('WebComponentsReady', function(e) {
     	  if (handlersInitialized) return;
-	   	  //console.log('WebComponentsReady',e, handlersInitialized );
+	   	  ////console.log('WebComponentsReady',e, handlersInitialized );
     	  //setConfiguration(x2config);
     	  
     	  handlersInitialized = true;
@@ -191,7 +191,7 @@
     	   
     		mc.setConfiguration = function(config) {
     			var mc = document.getElementById('mainContext');
-    			console.log('Setting configuration: ',config);
+    			//console.log('Setting configuration: ',config);
     			mc.tidefile = config.tidefile;
     			mc.baseTidefile = config.baseTidefile;
     			mc.layerName = config.layerName;
@@ -227,12 +227,12 @@
 					var xconfig = mc.configs[i];
 					if (xconfig.name == config.name){
 						Object.assign(xconfig,config);
-						console.log('Updated config', config.name);
+						//console.log('Updated config', config.name);
 						return;
 					}
 				}
 				mc.push('configs',config);
-				console.log('Added config',config.name);
+				//console.log('Added config',config.name);
     		}
     		
     		mc.deleteConfig = function() {
@@ -245,7 +245,7 @@
     				}
     			}
     			mc.splice('configs',i,1);
-    			console.log('Deleted config',config.name);
+    			//console.log('Deleted config',config.name);
     		}
     		
     		mc.downloadConfig = function(){
@@ -309,7 +309,7 @@
     		};
     		
     		if (window.localStorage.getItem('configs') == "undefined"){
-    			console.log('No local storage found for configs');
+    			//console.log('No local storage found for configs');
     			mc.configs=([dicu_config, detaw_config, diffconfig]);
     			mc.setConfiguration(dicu_config)
     		} else {
@@ -322,27 +322,27 @@
     		var pause = document.querySelector("paper-icon-button#pause");
 			var restart = document.getElementById("restart");
           play.addEventListener('tap', function(){
-        	  console.log('Restarting Timer');
+        	  //console.log('Restarting Timer');
         	  document.getElementById('animationElement').restartTimer();
           });
           pause.addEventListener('tap', function(){
-        	  console.log('Pausing Timer');
+        	  //console.log('Pausing Timer');
         	  document.getElementById('animationElement').stopTimer();
           });
           restart.addEventListener('tap', function(){
-        	  console.log('Restarting Timer');
+        	  //console.log('Restarting Timer');
         	  document.getElementById('animationElement').startTimer();
           });
           
           var fileInput = document.getElementById("fileinput");
           fileInput.addEventListener('change', function(e){
-        	  console.log('File Input changed',e);
+        	  //console.log('File Input changed',e);
         	  document.getElementById('mainContext').tidefile = e.target.value;
           });
           
           var baseFileInput = document.getElementById("basefileinput");
           baseFileInput.addEventListener('change', function(e){
-        	  console.log('Base File Input changed',e);
+        	  //console.log('Base File Input changed',e);
         	  document.getElementById('mainContext').baseTidefile = e.target.value;
           })
 

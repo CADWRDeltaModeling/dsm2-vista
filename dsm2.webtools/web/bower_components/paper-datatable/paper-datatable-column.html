@@ -376,8 +376,8 @@ This element is used inside of `<paper-datatable>` to declare the columns to be 
 					if(item == 'value'){
 						var parentPath = ['data', templateInstance.get('_dataKey'), this.property];
 						value = this._cast(value);
-						//console.log('_forwardInstanceProp',arguments);
-						//console.log('set', parentPath, 'to', value);
+						////console.log('_forwardInstanceProp',arguments);
+						////console.log('set', parentPath, 'to', value);
 						this.parentNodeRef.set(parentPath, value);
 					}else if(item == 'item'){
 						console.warn('_forwardInstanceProp',arguments);
@@ -392,14 +392,14 @@ This element is used inside of `<paper-datatable>` to declare the columns to be 
 						if(path.length == 0){
 							value = this._cast(value);
 						}
-						//console.log(parentPath, path.join('.'), value)
-						//console.log('_forwardInstancePath',arguments);
+						////console.log(parentPath, path.join('.'), value)
+						////console.log('_forwardInstancePath',arguments);
 					}else if(item == 'item'){
 						var parentPath = ['data', templateInstance.get('_dataKey')].concat(path);
-						//console.log(parentPath, value);
-						//console.log('_forwardInstancePath',arguments);
+						////console.log(parentPath, value);
+						////console.log('_forwardInstancePath',arguments);
 					}
-					//console.log('set', parentPath, 'to', value);
+					////console.log('set', parentPath, 'to', value);
 					this.parentNodeRef.set(parentPath, value);
 				},
 				_requeryColumnList: function(){

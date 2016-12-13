@@ -202,8 +202,8 @@ layout: page
           // code
           // Log the selections / deselection to console on select event
           grid.addEventListener('selected-items-changed', function() {
-            console.log('Selected: ' + grid.selection.selected());
-            console.log('Deselected: ' + grid.selection.deselected());
+            //console.log('Selected: ' + grid.selection.selected());
+            //console.log('Deselected: ' + grid.selection.deselected());
           });
           // end-code
         });
@@ -259,11 +259,11 @@ layout: page
           // code
           // Log selected designers list on select event
           grid.addEventListener('selected-items-changed', function() {
-            console.log('Selected designers:');
+            //console.log('Selected designers:');
             grid.selection.selected(function(index) {
               var data = employees[index];
               if (data[2] === 'Design') {
-                console.log('-' + data[0] + ' ' + data[1]);
+                //console.log('-' + data[0] + ' ' + data[1]);
               }
             });
           });
@@ -321,7 +321,7 @@ layout: page
           // Log selected indexes in batches of 5
           grid.addEventListener('selected-items-changed', function() {
             for (var i = 0; i < grid.selection.size; i += 5) {
-              console.log(grid.selection.selected(undefined, i, i + 4));
+              //console.log(grid.selection.selected(undefined, i, i + 4));
             }
           });
           // end-code
