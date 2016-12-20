@@ -1,6 +1,7 @@
 package dsm2.server;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -59,19 +60,14 @@ public class H5TimeSliceServlet extends HttpServlet {
 			response.getWriter().println("No h5 file specified");
 			return;
 		}
-		String startTimeReq = request.getParameter("time"); // starting time
-		String dataType = request.getParameter("type"); // type-> one of ec,
-														// stage, flow, area.
-		int sliceSize = Integer.parseInt(request.getParameter("slice"));// number
-																		// of
-																		// time
-																		// steps
-		String baseFile = request.getParameter("basefile"); // file to
-															// difference from
-															// => values =
-															// file-basefile
-		// System.out.println("Serving slice from "+file+" @ "+startTimeReq + "
-		// of size: "+ sliceSize);
+		// starting time
+		String startTimeReq = request.getParameter("time"); 
+		// type-> one of ec, stage, flow, area.
+		String dataType = request.getParameter("type");
+		// number of time steps
+		int sliceSize = Integer.parseInt(request.getParameter("slice"));
+		//file to difference values ~ file - base file
+		String baseFile = request.getParameter("basefile"); 
 		try {
 			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize, dataType);
 			if (baseFile != null) {
@@ -86,22 +82,113 @@ public class H5TimeSliceServlet extends HttpServlet {
 			ex.printStackTrace();
 		}
 	}
+	/**
+	 * Find the common array and indices of their positions in either array.
+	 * Note: Assumes c1 and c2 are sorted in ascending order.
+	 * @return an array of 3 integer arrays (common array , index in array 1, index in array 2)
+	 */
+	public int[][] findCommonArray(int[] c1, int[] c2){
+		int i1=0,i2=0;
+		int i=0;
+		int[] c = new int[Math.min(c1.length, c2.length)]; // max size of common
+		int[] ic1 = new int[c.length]; // index of i1 for i
+		int[] ic2 = new int[c.length]; // index of i2 for i
+		while (i1 < c1.length && i2 < c2.length){
+			if (c1[i1] == c2[i2]){
+				c[i] = c1[i1];
+				ic1[i] = i1;
+				ic2[i] = i2;
+				i1++; i2++; i++;
+			} else if (c1[i1] < c2[i2]){
+				i1++;
+			} else if (c1[i1] > c2[i2]){
+				i2++;
+			}
+		}
+		c = resizeArray(c, i);
+		ic1 = resizeArray(ic1, i);
+		ic2 = resizeArray(ic2, i);
+		return new int[][]{c, ic1, ic2};
+	}
+
+	/**
+	 * Finds common array between the two arrays and returns an array of [String[] (common array), int[] (index in first of common value), int[] (index in second of common value)] 
+	 * */
+	public Object[] findCommonArray(String[] c1, String[] c2) {
+		ArrayList<String> ac = new ArrayList<String>();
+		int ml = Math.max(c1.length, c2.length);
+		int[] ic1 = new int[ml]; // index of i1 for i
+		int[] ic2 = new int[ml]; // index of i2 for i
+		// efficient enough for small arrays expected here. For larger arrays sorting will be necessary for performance
+		int i=0; 
+		for(int i1=0; i1 < c1.length; i1++){
+			for(int i2=0; i2 < c2.length; i2++){
+				if (c1[i1].equalsIgnoreCase((c2[i2]))){
+					ac.add(c1[i1]);
+					ic1[i] = i1;
+					ic2[i] = i2;
+					i++;
+					break;
+				}
+			}
+		}
+		String[] c = new String[ac.size()];
+		ac.toArray(c);
+		ic1 = resizeArray(ic1, c.length);
+		ic2 = resizeArray(ic2, c.length);
+		return new Object[]{c, ic1, ic2};
+	}
+
+	public int[] resizeArray(int[] array, int size) {
+		if (size < array.length){ // resize
+			int[] nc = new int[size];
+			System.arraycopy(array, 0, nc, 0, size);
+			array=nc;
+		}
+		return array;
+	}
 
 	public H5Slice diff(H5Slice slice, H5Slice baseSlice) {
 		if (slice.timeIntervalInMins != baseSlice.timeIntervalInMins) {
 			System.err.println("The time interval in file and base file don't match!");
 			return null;
 		}
-		for (int j = 0; j < slice.sliceSize; j++) {
-			// upnodes
-			for (int i = 0; i < slice.channelArray.length; i++) {
-				int index = j * slice.channelArray.length + i;
-				slice.fData1[index] = slice.fData1[index] - baseSlice.fData1[index];
-				slice.fData2[index] = slice.fData2[index] - baseSlice.fData2[index];
+		// choose the smaller sized slice (channels missing in other)
+		H5Slice diffSlice = new H5Slice();
+		diffSlice.dataType = slice.dataType + "-" + baseSlice.dataType; 
+		diffSlice.sliceSize = slice.sliceSize;
+		diffSlice.startTime = slice.startTime;
+		diffSlice.timeIntervalInMins = slice.timeIntervalInMins;
+		diffSlice.endTime = slice.endTime; //FIXME: may not be same for both tidefiles. Check!
+		diffSlice.startTimeOffset = slice.startTimeOffset; //FIXME: may not be same for both tidefiles. Check!
+		diffSlice.endTimeOffset = slice.endTimeOffset;
+		int[][] common = findCommonArray(slice.channelArray, baseSlice.channelArray);
+		Object[] rcommon = findCommonArray(slice.reservoirNames, baseSlice.reservoirNames);
+		int[] indexReservoirSlice = (int[]) rcommon[1];
+		int[] indexReservoirBaseSlice = (int[]) rcommon[2];
+		diffSlice.reservoirNames = (String[]) rcommon[0];
+		diffSlice.reservoirValues = new float[diffSlice.reservoirNames.length*diffSlice.sliceSize];
+		diffSlice.channelArray = common[0];
+		diffSlice.fData1 = new float[diffSlice.channelArray.length*diffSlice.sliceSize];
+		diffSlice.fData2 = new float[diffSlice.channelArray.length*diffSlice.sliceSize];
+		int[] indexSlice = common[1];
+		int[] indexBase = common[2];
+		for (int k = 0; k < slice.sliceSize; k++) {
+			for (int i = 0; i < diffSlice.channelArray.length; i++) {
+				int index = k * diffSlice.channelArray.length + i;
+				int si = k*slice.channelArray.length+indexSlice[i];
+				int bsi = k* baseSlice.channelArray.length+indexBase[i];
+				diffSlice.fData1[index] = slice.fData1[si] - baseSlice.fData1[bsi];
+				diffSlice.fData2[index] = slice.fData2[si] - baseSlice.fData2[bsi];
 			}
-			// end of slice array
+			for(int i=0; i < diffSlice.reservoirNames.length; i++){
+				int index = k * diffSlice.reservoirNames.length + i;
+				int si = k*slice.reservoirNames.length+indexReservoirSlice[i];
+				int bsi = k*baseSlice.reservoirNames.length+indexReservoirBaseSlice[i];
+				diffSlice.reservoirValues[index] = slice.reservoirValues[si] - baseSlice.reservoirValues[bsi];
+			}
 		}
-		return slice;
+		return diffSlice;
 	}
 
 	public H5Slice extractSliceFromFile(String file, String startTimeReq, int sliceSize, String dataType)
@@ -236,20 +323,12 @@ public class H5TimeSliceServlet extends HttpServlet {
 
 		float[] fData2 = (float[]) rawData;
 
-		String pathToChannelNumber = qualTidefile ? "/output/channel_number" : "/hydro/geometry/channel_number"; // for
-																													// qual
-																													// tidefile
-																													// and
-																													// hydro
-																													// tidefile
-		HObject hObject = h5file.get(pathToChannelNumber);
-		int[] channelArray = null;
-		if (hObject instanceof H5ScalarDS) {
-			H5ScalarDS channelds = (H5ScalarDS) hObject;
-			Object data = channelds.getData();
-			channelArray = (int[]) data;
-		}
-
+		int[] channelArray = readChannelIds(h5file, qualTidefile);
+		
+		String[] reservoirNames = readReservoirNames(h5file, qualTidefile);
+		
+		float[] reservoirValues = readReservoirValues(h5file, qualTidefile, dataType, timeOffset, sliceSize);
+		
 		// if stage then adjust for channel bottoms
 		if (dataType.equals("stage")) {
 			float[] channelBottoms = getBottomElevations(h5file);
@@ -274,7 +353,80 @@ public class H5TimeSliceServlet extends HttpServlet {
 		slice.fData1 = fData1;
 		slice.fData2 = fData2;
 		slice.channelArray = channelArray;
+		slice.reservoirNames = reservoirNames;
+		slice.reservoirValues = reservoirValues;
 		return slice;
+	}
+	
+	public float[] readReservoirValues(H5File h5file, boolean qualTidefile, String dataType, long timeOffset, int sliceSize) throws Exception, OutOfMemoryError{
+		String pathToData = "/output/reservoir concentration";
+		if (!qualTidefile) {
+			if (dataType.equals("0")) {
+				pathToData = "/hydro/data/reservoir height";
+			} else if (dataType.equals("1")) {
+				pathToData = "/hydro/data/reservoir flow";
+			} else if (dataType.equals("2")) {
+				pathToData = "";
+				//FIXME: no equivalent to area (perhaps volume)
+				return null; 
+			} else {
+				System.err.println("Request for unknown data type: " + dataType);
+			}
+		}
+
+		HObject dataObject = h5file.get(pathToData);
+		if (dataObject == null) {
+			return null;
+		}
+		H5ScalarDS ds = (H5ScalarDS) dataObject;
+		List metadata = dataObject.getMetadata(); // DO NOT REMOVE! Needed to initialize the data structures
+		int numberOfIntervals = (int) ds.getDims()[0];
+		//
+		long[] startDims = ds.getStartDims();
+		long[] stride = ds.getStride();
+		long[] selectedDims = ds.getSelectedDims();
+		long[] dims = ds.getDims();
+		//first dimension is time
+		startDims[0] = timeOffset; 
+		selectedDims[0] = sliceSize;
+		if (qualTidefile){
+			// second dimension is constituent index
+			startDims[1] = Integer.parseInt(dataType);
+			selectedDims[1] = 1;
+		} else { 
+			return null; //FIXME: not implemented yet
+		}
+		// read upstream slice
+		Object rawData = ds.read();
+		if (!(rawData != null && rawData instanceof float[])) {
+			throw new IllegalArgumentException(
+					"Path: " + pathToData + " in HDF5 file: is either null or not a floating point array");
+		}
+		return (float[]) rawData;
+	}
+
+	public String[] readReservoirNames(H5File h5file, boolean qualTidefile) throws Exception, OutOfMemoryError {
+		String pathToReservoirNames = qualTidefile ? "/output/reservoir_names": "/hydro/geometry/reservoir_names";
+		HObject hObject = h5file.get(pathToReservoirNames);
+		String[] reservoirNames = null;
+		if (hObject instanceof H5ScalarDS){
+			H5ScalarDS reservoirds = (H5ScalarDS) hObject;
+			Object data = reservoirds.getData();
+			reservoirNames = (String[]) data;
+		}
+		return reservoirNames;
+	}
+
+	public int[] readChannelIds(H5File h5file, boolean qualTidefile) throws Exception, OutOfMemoryError {
+		String pathToChannelNumber = qualTidefile ? "/output/channel_number" : "/hydro/geometry/channel_number"; 
+		HObject hObject = h5file.get(pathToChannelNumber);
+		int[] channelArray = null;
+		if (hObject instanceof H5ScalarDS) {
+			H5ScalarDS channelds = (H5ScalarDS) hObject;
+			Object data = channelds.getData();
+			channelArray = (int[]) data;
+		}
+		return channelArray;
 	}
 
 	private float[] getBottomElevations(H5File h5file) throws Exception {
@@ -323,6 +475,36 @@ public class H5TimeSliceServlet extends HttpServlet {
 			response.getWriter().print(",");
 		}
 		response.getWriter().println("],");
+		if (slice.reservoirNames != null){
+			response.getWriter().println("\"reservoirNames\":[");
+			for (int i = 0; i < slice.reservoirNames.length; i++) {
+				response.getWriter().print("\""+slice.reservoirNames[i]+"\"");
+				if (i == slice.reservoirNames.length - 1)
+					break;
+				response.getWriter().print(",");
+			}
+			response.getWriter().println("],");
+		}
+		if (slice.reservoirValues != null){
+			response.getWriter().println("\"reservoirValues\":[");
+			for (int j = 0; j < slice.sliceSize; j++) {
+				// start of slice array
+				response.getWriter().println("[");
+				for (int i = 0; i < slice.reservoirNames.length; i++) {
+					response.getWriter().print(slice.reservoirValues[j*slice.reservoirNames.length+i]);
+					if (i == slice.reservoirNames.length - 1)
+						break;
+					response.getWriter().print(",");
+				}
+				response.getWriter().println("]");
+				if (j==slice.sliceSize-1){
+					break;
+				}
+				response.getWriter().println(",");
+			}
+			// end data array
+			response.getWriter().println("], ");
+		}
 		response.getWriter().println("\"data\": [");
 		for (int j = 0; j < slice.sliceSize; j++) {
 			// start of slice array
@@ -414,6 +596,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 		public HecTime endTimeOffset;
 		public float[] fData1, fData2;
 		public int[] channelArray;
+		public float[] reservoirValues;
+		public String[] reservoirNames;
 	}
 
 }

@@ -38,8 +38,16 @@
 	  width: 25px;
 	  height: 27px;
 	}
+	
+	#color-scheme-menu{
+		width: 100%;
+	}
+	
+	#dropdown-content{
+		width: 100%;
+	}
     </style>
-	<paper-dropdown-menu label="Color Scheme">
+	<paper-dropdown-menu id="color-scheme-menu" label="Color Scheme">
 	  <paper-listbox class="dropdown-content" id="list" selected="{{selectedColors}}" attr-for-selected="colors">
 	    <template is="dom-repeat" items="{{colorData}}">
 	   	  	<paper-item colors="{{item.colors}}">

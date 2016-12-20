@@ -47,16 +47,22 @@
 	width: 100%;
 	height: 100%;
 }
+#configSelector{
+	width: 100%;
+}
 </style>
 <style>
 #slider {
 	margin: 10px;
 }
+#mapselector{
+	width: 100%;
+}
 </style>
 </head>
 <body class="fullbleed layout vertical">
 	<template is="dom-bind" id="mainContext">
-	<paper-drawer-panel right-drawer>
+	<paper-drawer-panel right-drawer drawer-width="400px">
 	<paper-header-panel drawer>
 	<paper-toolbar></paper-toolbar>
 		<div class="container flex-vertical">
@@ -64,7 +70,8 @@
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
 					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{tidefile}}"
 							handle-as="json"
-							last-response="{{h5info}}">
+							last-response="{{h5info}}"
+							debounce-duration="1000">
 					</iron-ajax>
 					<paper-listbox class="dropdown-content" selected="{{dataType}}" attr-for-selected="value">
 						<template is="dom-repeat" items="[[h5info.dataTypeNames]]">
@@ -150,7 +157,7 @@
 				<paper-icon-button alt="Save" icon="icons:save" id="save" on-tap="saveConfig"></paper-icon-button>
 				<paper-icon-button alt="Delte" icon="icons:delete" id="load" on-tap="deleteConfig"></paper-icon-button>
 				<paper-icon-button alt="Download" icon="icons:file-download" id="download" on-tap="downloadConfig"></paper-icon-button>
-				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="//console.log(this);document.getElementById('mainContext').uploadConfig(this.files)">
+				<input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display:none" onchange="document.getElementById('mainContext').uploadConfig(this.files)">
 				<paper-icon-button alt="Upload" icon="icons:file-upload" id="upload" on-tap="openUploadDialog"></paper-icon-button>
 				</div>
 				<app-localstorage-document key="configs" data="{{configs}}"></app-localstorage-document>

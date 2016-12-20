@@ -7,14 +7,19 @@
 <script src="js/jquery-ui-1.12.1.min.js" type="text/javascript"></script>
 <link rel="stylesheet" href="css/jquery-ui-1.12.1.css">
 <!--  Leaflet for maps -->
+<link rel="stylesheet" href="js/leaflet1.0.2/leaflet.css" />
+<script src="js/leaflet1.0.2/leaflet.js"></script>
+<!-- 
 <link rel="stylesheet" href="css/leaflet.css" />
 <script type="text/javascript" src="js/leaflet-0.7.7.js"></script>
+-->
 <script type="text/javascript" src="js/leaflet-providers.js"></script>
+<link rel="stylesheet" href="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.css" />
+<script src="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.min.js"></script>
 <!-- D3 for svg rendering -->
 <script type="text/javascript" src="js/d3-4.2.2.js"></script>
 <script type="text/javascript" src="js/d3-legend.js"></script>
 <!-- Data and custom scripts -->
-<script type="text/javascript" src="json/dsm2-flowlines-width-nov032016.js"></script>
 <style type="text/css">
 #map {
 	width: 100%;
@@ -155,30 +160,30 @@
 			},
 			
 			_changeAnimateInterval : function(value){
-				//console.log('Change animate interval to '+value);
-				//
 				this.restartTimer();
 			}, 
 			
 			_changeAnimateStartTime: function(value){
-				//console.log('Changed animate start time to ',value);
-				this.stopTimer();
-				this.startTimer();
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
 			},
 			
 			_changeTidefile: function(value){
-				this.stopTimer();
-				this.startTimer();
+			    this.debounce('stopStartTimer', function(d){
+				this._stopStartTimer();
+				}, 1000);
 			},
 
 			_changeBaseTidefile: function(value){
-				this.stopTimer();
-				this.startTimer();
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
 			},
 			
 			_changeDataType: function(value){
-				this.stopTimer();
-				this.startTimer();
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			},
+			
+			_stopStartTimer: function(value){
+			    this.stopTimer();
+			    this.startTimer();
 			},
 
 			created : function(){
@@ -202,10 +207,16 @@
 				this.path = d3.geoPath().projection(transform);
 				// now svg elements and gradient elements are added to dom
 				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
-				this.gTop = this.svg.append("g").attr("class", "leaflet-zoom-hide");
+				// add reservoirs first so they appear below channels
+				this.gReservoirs = this.svg.append("g").attr("class", "leaflet-zoom-hide");
+				this.reservoir_features = this.gReservoirs.selectAll("path").data(this.dsm2_reservoirs.features)
+				.enter().append("path").attr("id",function(d){return d.properties.name;}).style("fill", function(d){return 'url(#gradient-' + d.properties.name + ')'});;
+				this.reservoirStops = null;
+				// add channels next
+				this.gChannels = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 				var sdefs = this.svg.append('defs')
 				var lgs = sdefs.selectAll("linearGradient").data(
-						dsm2_flowlines.features).enter().append(
+						this.dsm2_flowlines.features).enter().append(
 						"linearGradient").attr("id", function(d, i) {
 					return "gradient" + i;
 				}).attr("gradientTransform", function(d,i){
@@ -228,28 +239,29 @@
 				this.stops2 = lgs.append("stop").attr("offset", "100%").style(
 						'stop-color', 'rgb(255,0,0)');//.transition().duration(this.animateInterval);
 				// add features from flow lines
-				this.flow_features = this.gTop.selectAll("path").data(
-						dsm2_flowlines.features).enter().append("path").attr(
+				this.flow_features = this.gChannels.selectAll("path").data(
+						this.dsm2_flowlines.features).enter().append("path").attr(
 						"id", function getid(d) {
 							return d.properties.channel_nu;
 						}).style('stroke', function(d, i) {
 					return 'url(#gradient' + i + ')'
 				}).style('fill', 'none').style('stroke-width', function(d) {
 					return d.properties.width / 100.0;
-				}).style('shape-rendering', 'optimizeSpeed')//.style('stroke-linecap','round').style('stroke-linejoin','round');
+				}).style('shape-rendering', 'optimizeSpeed');
 			},
 
 			// Reposition the SVG to cover the features.
 			reset: function() {
-				var bounds = this.path.bounds(dsm2_flowlines), topLeft = bounds[0], bottomRight = bounds[1];
+				var bounds = this.path.bounds(this.dsm2_flowlines), topLeft = bounds[0], bottomRight = bounds[1];
 
 				this.svg.attr("width", bottomRight[0] - topLeft[0]).attr(
 						"height", bottomRight[1] - topLeft[1]).style(
 						"left", topLeft[0] + "px").style("top",
 						topLeft[1] + "px");
 
-				this.gTop.attr("transform", "translate(" + -topLeft[0] + ","
-						+ -topLeft[1] + ")");
+				this.gChannels.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+				this.gReservoirs.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+				
 				var factor = (bottomRight[0] - topLeft[0])
 				this.flow_features.attr("d", this.path).style(
 						"stroke-width",
@@ -258,18 +270,9 @@
 									/ 150000.0;
 							return Math.max(swidth, 8);
 						});
+				this.reservoir_features.attr("d", this.path);
 			},
 
-			_updateColorsForSlice: function(data,stime){
-				//--------- UPDATE COLORS ON VIEW-----------
-				this.stops1.data(data[0])
-				this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
-				this.stops2.data(data[1])
-				this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
-				//--------- UPDATE TEXT -------------
-				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
-			},
-			
 			_generateURLForSliceRequest: function(sliceRequestTime){
 				return encodeURI("h5slice?type="+this.type+"&file=" + this.tidefile
 						+ (this.baseTidefile == "" ? "" : "&basefile="+this.baseTidefile)
@@ -322,11 +325,43 @@
 						.replace(":", ""));
 				this.fileStartTime = this.tf(globalStartTime).substring(0,9).toUpperCase();
 				this.fileEndTime = this.tf(globalEndTime).substring(0,9).toUpperCase();
+				if (this.reservoirStops){ // when structure changes clear it out
+				    var stopNodes = this.reservoirStops.nodes()
+				    for(var i=0; i < this.sliceData.reservoirNames.length; i++){
+						var stopName = stopNodes[i].parentNode.id.substring(9)
+						if (this.sliceData.reservoirNames[i] != stopName){
+							this.gReservoirs.select('defs').remove();
+							this.reservoirStops = null;
+							break;
+						}
+				    }
+				}
+				if (!this.reservoirStops){ // add reservoir color stops
+					this.reservoirStops = this.gReservoirs.append('defs').selectAll("linearGradient")
+					.data(this.sliceData.reservoirNames).enter()
+					.append("linearGradient").attr("id", function(d){
+						return "gradient-"+d;
+					}).append("stop").attr("offset","0%").style("stop-color","rgb(255,255,0)");
+				}
 				if (this.timer){
 					this.timer.stop();
 				}
+				//
 				this.timer = d3.interval(this.animate.bind(this), this.animateInterval);
 				////console.log('initDataLoad: ', this.timer);
+			},
+			
+			_updateColorsForSlice: function(data, rdata, stime){
+				//--------- UPDATE COLORS ON VIEW-----------
+				this.stops1.data(data[0])
+				this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+				this.stops2.data(data[1])
+				this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+				//--- update reservoir colors
+				this.reservoirStops.data(rdata)
+				this.reservoirStops.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+				//--------- UPDATE TEXT -------------
+				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
 			},
 			
 			animate: function(elapsed){
@@ -346,7 +381,7 @@
 				this.stime = d3.timeMinute.offset(this.stime,
 						this.sliceData.intervalInMins * this.step_size)
 				//--------- UPDATE COLORS ON VIEW-----------
-				this._updateColorsForSlice(this.sliceData.data[this.slice], this.stime);
+				this._updateColorsForSlice(this.sliceData.data[this.slice], this.sliceData.reservoirValues[this.slice], this.stime);
 				//--------- UPDATE DONE --------------
 				if (this.prev_elapsed != 0) {
 					this.step_size = Math.max(1, Math
@@ -377,13 +412,30 @@
 			attached : function() {
 			 	this.map = new L.Map("map", {
 					center : this.center,
-					zoom : this.zoom
+					zoom : this.zoom,
+					zoomSnap: 0.1,
+					zoomDelta: 0.1,
 				});
+			 	var zoomControl = L.control.zoomBox({
+			 	   modal: false,
+			 	   
+			 	});
+			 	this.map.addControl(zoomControl);
+			 	
 				this._changeMapTileLayer(this.layerName);
 				this.map.on("viewreset", this.reset.bind(this));
+				this.map.on("zoom", this.reset.bind(this));
 				
-				this._createGridOnMap();
-				this.reset();
+				var elementThis = this;
+				// a little slow as second request has to wait for first one to complete.
+				d3.json("json/dsm2-flowlines-width.geojson", function(value){
+				   	elementThis.dsm2_flowlines = value;
+				    d3.json("json/dsm2-reservoirs.geojson", function(value){
+						elementThis.dsm2_reservoirs = value;
+						elementThis._createGridOnMap();
+						elementThis.reset();
+				    });
+				});
 				//  add legend
 				this.g_controls = d3
 						.select(
@@ -399,14 +451,6 @@
 				this.svg_legend_container = this.g_controls.attr("transform",
 						"translate(20,50)").attr("class", "legend");
 				this.svg_legend_container.call(this.verticalLegend);
-				/*
-				var svg_text_container = d3
-						.select(
-								"#map > div.leaflet-control-container > div.leaflet-top.leaflet-left")
-						.append("svg").attr("width", 300).attr("height", 300)
-						.append("g").attr("transform", "translate(10, 80)");
-				*/
-
 				this.svg_text = this.g_controls.append("text").attr("x", "0")
 						.attr("y", "-30").attr("font-family", "sans-serif")
 						.attr("font-size", "20px").attr("fill", "red");
