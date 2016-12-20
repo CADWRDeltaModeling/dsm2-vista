@@ -101,6 +101,12 @@
 			</div>
 			</paper-material>
 			<paper-material elevation="3">
+			<div class="container flex-horizontal">
+				<div id="layer-opacity">Layer Opacity: [[layerOpacity]] </div>
+				<div class="container flex-horizontal">
+					<paper-slider id="opacity-slider" name="Layer Opacity: " min="0" max="100" step="1" value="{{layerOpacity}}"></paper-slider>
+				</div>
+			</div>
 			<paper-dropdown-menu id="mapselector" label="Map Background" >
 			<paper-listbox class="dropdown-content" selected="{{layerName}}" attr-for-selected="value">
 			<paper-item value="Hydda.Full">Hydda.Full</paper-item>
@@ -180,6 +186,7 @@
 	animate-start-time="[[animateStartTime]] 0000"
 	color-classes = "{{colorClasses}}"
 	value-classes = "{{valueClasses}}"
+	layer-opacity="{{layerOpacity}}"
 	layer-name="{{layerName}}"
 	file-start-time="{{globalStartTime}}"
 	file-end-time="{{globalEndTime}}">
@@ -201,6 +208,7 @@
     	  handlersInitialized = true;
     	  
 		var mc = document.getElementById('mainContext');
+		mc.layerOpacity = 100;
 		mc.globalStartTime = '01JAN1970'
 		mc.globalEndTime = '01JAN2001'
     	   mc.loadConfiguration= function(name){

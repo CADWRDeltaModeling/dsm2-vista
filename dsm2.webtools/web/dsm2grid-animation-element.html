@@ -68,6 +68,12 @@
 					notify: true,
 					reflectToAttribute: true
 				},
+				layerOpacity: {
+				  type: Number,
+				  value: 100,
+				  notify: true,
+				  observer: "_changeMapTileLayerOpacity"
+				},
 				center : {
 					type : Array,
 					value : [ 38.18, -121.61 ]
@@ -155,8 +161,20 @@
 						this.map.removeLayer(this._layer);
 					}
 					this._layer = newLayer;
+					this._changeMapTileLayerOpacity(this.opacity);
 					this.map.addLayer(this._layer);
 				}
+			},
+			
+			/**
+			 * Expecting opacity between 0 and 100.
+			 */
+			_changeMapTileLayerOpacity : function(opacity){
+			    opacity = Math.min(100,Math.max(0,opacity));
+			    this.opacity = opacity;
+			    if (this._layer) {
+				    this._layer.setOpacity(opacity/100.0);
+			    }
 			},
 			
 			_changeAnimateInterval : function(value){
