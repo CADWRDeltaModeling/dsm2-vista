@@ -20,6 +20,10 @@
     </init-param>
   </servlet>
   <servlet>
+    <servlet-name>dsm2animconfig</servlet-name>
+    <servlet-class>dsm2.server.DSM2AnimConfigServlet</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>h5list</servlet-name>
     <servlet-class>dsm2.server.H5DirectoryServlet</servlet-class>
     <init-param>
@@ -96,4 +100,7 @@
     <servlet-name>dsm2echo</servlet-name>
     <url-pattern>/dsm2echo/*</url-pattern>
   </servlet-mapping>
-</web-app>
+  <servlet-mapping>
+    <servlet-name>dsm2animconfig</servlet-name>
+    <url-pattern>/dsm2animconfig/*</url-pattern>
+  </servlet-mapping></web-app>
