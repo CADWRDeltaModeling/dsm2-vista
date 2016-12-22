@@ -372,12 +372,18 @@
 			_updateColorsForSlice: function(data, rdata, stime){
 				//--------- UPDATE COLORS ON VIEW-----------
 				this.stops1.data(data[0])
-				this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
 				this.stops2.data(data[1])
-				this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
 				//--- update reservoir colors
 				this.reservoirStops.data(rdata)
-				this.reservoirStops.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+				if (this.animateInterval > 200){				
+					this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+					this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+					this.reservoirStops.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+				} else {
+					this.stops1.style('stop-color', this._interpolateColor)
+					this.stops2.style('stop-color', this._interpolateColor)
+					this.reservoirStops.style('stop-color', this._interpolateColor)
+				}
 				//--------- UPDATE TEXT -------------
 				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
 			},
