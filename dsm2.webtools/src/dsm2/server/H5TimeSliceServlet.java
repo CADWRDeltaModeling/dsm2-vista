@@ -209,7 +209,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 				pathToData = "/hydro/data/channel stage";
 			} else if (dataType.equals("1")) {
 				pathToData = "/hydro/data/channel flow";
-			} else if (dataType.equals("2")) {
+			} else if (dataType.equals("2")) { 
 				pathToData = "/hydro/data/channel area";
 			} else {
 				System.err.println("Request for unknown data type: " + dataType);
@@ -329,6 +329,9 @@ public class H5TimeSliceServlet extends HttpServlet {
 		
 		float[] reservoirValues = readReservoirValues(h5file, qualTidefile, dataType, timeOffset, sliceSize);
 		
+		if (reservoirValues == null){
+			reservoirValues = new float[reservoirNames.length*sliceSize];
+		}
 		// if stage then adjust for channel bottoms
 		if (dataType.equals("stage")) {
 			float[] channelBottoms = getBottomElevations(h5file);
@@ -340,7 +343,6 @@ public class H5TimeSliceServlet extends HttpServlet {
 				}
 			}
 		}
-
 		H5Slice slice = new H5Slice();
 		slice.dataType = dataType; // stage or flow, or area or
 									// constituent_names[index] ?
@@ -355,6 +357,16 @@ public class H5TimeSliceServlet extends HttpServlet {
 		slice.channelArray = channelArray;
 		slice.reservoirNames = reservoirNames;
 		slice.reservoirValues = reservoirValues;
+		// area is not meaningful so return velocity instead.
+		if (dataType.equals("2") && !qualTidefile){
+			H5Slice flowSlice = extractSliceFromFile(file, startTimeReq, sliceSize, "1");
+			for(int i=0; i < slice.fData1.length; i++){
+				slice.fData1[i] = flowSlice.fData1[i]/slice.fData1[i]; 
+			}
+			for(int i=0; i < slice.fData2.length; i++){
+				slice.fData2[i] = flowSlice.fData2[i]/slice.fData2[i]; 
+			}
+		}
 		return slice;
 	}
 	
@@ -365,10 +377,9 @@ public class H5TimeSliceServlet extends HttpServlet {
 				pathToData = "/hydro/data/reservoir height";
 			} else if (dataType.equals("1")) {
 				pathToData = "/hydro/data/reservoir flow";
-			} else if (dataType.equals("2")) {
+			} else if (dataType.equals("2")) { //FIXME: no equivalent of velocity, just send back null
 				pathToData = "";
-				//FIXME: no equivalent to area (perhaps volume)
-				return null; 
+				return null;
 			} else {
 				System.err.println("Request for unknown data type: " + dataType);
 			}

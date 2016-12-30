@@ -67,7 +67,7 @@ public class H5FileInfoServlet extends HttpServlet {
 		if (hydroObject != null){
 			model="hydro";
 			path="/hydro/input";
-			fileInfo.dataTypeNames = new String[]{"stage","flow","area"};
+			fileInfo.dataTypeNames = new String[]{"stage","flow","velocity"};
 		}
 		fileInfo.model = model;
 		if (model.equals("qual")){
