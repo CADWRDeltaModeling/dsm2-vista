@@ -141,7 +141,7 @@
 			<paper-material elevation="3">
 				<iron-ajax id="animConfigRequest" auto url="dsm2animconfig"
 						handle-as="json"
-						last-response="{{configs}}">
+						on-response="mergConfiguration">
 				</iron-ajax>
 				<paper-dropdown-menu id="configSelector" label="Select Config" >
 					<paper-listbox id="configListBox" class="dropdown-content" selected="{{configName}}" attr-for-selected="value" on-tap="onSelectConfig">
@@ -213,6 +213,18 @@
 	   				 }
 	   			 }
 	   		 }
+		   
+		    mc.mergeConfiguration = function(configs){
+				if (!mc.configs) {
+				    mc.configs=configs;
+				}else{
+					for(var i=0; i < configs.length; i++){
+						var xconfig = configs[i];
+						mc.addOrUpdateConfig(xconfig, false);
+					}
+				}
+				mc.notifyPath('configs');
+		    }
 	   	   
 	   		mc.setConfiguration = function(config) {
 	   			var mc = document.getElementById('mainContext');
@@ -259,18 +271,19 @@
 	   			mc.addOrUpdateConfig(config);
 	   		 }
 	   		
-	   		mc.addOrUpdateConfig = function(config){
+	   		mc.addOrUpdateConfig = function(config, override){
+	   		    override = typeof override != 'undefined' ? override : true;
 				var mc = document.getElementById('mainContext');
 				for(var i=0; i < mc.configs.length; i++){
 					var xconfig = mc.configs[i];
 					if (xconfig.name == config.name){
-						Object.assign(xconfig,config);
-						//console.log('Updated config', config.name);
+					    if (override){
+							Object.assign(xconfig,config);
+					    }
 						return;
 					}
 				}
 				mc.push('configs',config);
-				//console.log('Added config',config.name);
 	   		}
 	   		
 	   		mc.deleteConfig = function() {
