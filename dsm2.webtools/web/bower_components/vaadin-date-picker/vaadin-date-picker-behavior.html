@@ -1,6 +1,7 @@
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+<link rel="import" href="vaadin-date-picker-helper.html">
 
 <script>
   window.vaadin = window.vaadin || {};
@@ -10,7 +11,10 @@
   /** @polymerBehavior vaadin.elements.datepicker.DatePickerBehavior */
   vaadin.elements.datepicker.DatePickerBehaviorImpl = {
     observers: [
-      '_selectedDateChanged(_selectedDate, i18n.formatDate)'
+      '_selectedDateChanged(_selectedDate, i18n.formatDate)',
+      '_validateInput(_selectedDate, _minDate, _maxDate)',
+      '_focusedDateChanged(_focusedDate, i18n.formatDate)',
+      '_announceFocusedDate(_focusedDate, opened, _ignoreAnnounce)'
     ],
 
     properties: {
@@ -20,6 +24,8 @@
       _selectedDate: {
         type: Date
       },
+
+      _focusedDate: Date,
 
       /**
        * The value for this element.
@@ -65,6 +71,15 @@
         notify: true
       },
 
+      /**
+       * Set true to display ISO-8601 week numbers in the calendar. Notice that
+       * displaying week numbers is only supported when `i18n.firstDayOfWeek`
+       * is 1 (Monday).
+       */
+      showWeekNumbers: {
+        type: Boolean
+      },
+
       _fullscreen: {
         value: false,
         observer: '_fullscreenChanged'
@@ -94,8 +109,15 @@
         'October', 'November', 'December'
       ],
 
-      // An array with the short names of days starting
-      // with Sunday.
+      // An array of weekday names starting with Sunday. Used
+      // in screen reader announcements.
+      weekdays: [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday'
+      ],
+
+      // An array of short weekday names starting with Sunday.
+      // Displayed in the calendar.
       weekdaysShort: [
         'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
       ],
@@ -103,6 +125,16 @@
       // An integer indicating the first day of the week
       // (0 = Sunday, 1 = Monday, etc.).
       firstDayOfWeek: 0,
+
+      // Used in screen reader announcements along with week
+      // numbers, if they are displayed.
+      week: 'Week',
+
+      // Translation of the Calendar icon button title.
+      calendar: 'Calendar',
+
+      // Translation of the Clear icon button title.
+      clear: 'Clear',
 
       // Translation of the Today shortcut button text.
       today: 'Today',
@@ -117,11 +149,22 @@
         // Date object in 'MM/DD/YYYY' -format
       },
 
+      // A function to parse the given text to a `Date`
+      // object. Must properly parse (at least) text
+      // formatted by `formatDate`.
+      // Setting the property to null will disable
+      // keyboard input feature.
+      parseDate: function(text) {
+        // Parses a string in 'MM/DD/YY', 'MM/DD' or 'DD' -format to
+        // a Date object
+      }
+
       // A function to format given `monthName` and
       // `fullYear` integer as calendar title string.
       formatTitle: function(monthName, fullYear) {
         return monthName + ' ' + fullYear;
       }
+
     }
 
        *
@@ -135,19 +178,115 @@
               'January', 'February', 'March', 'April', 'May',
               'June', 'July', 'August', 'September', 'October', 'November', 'December'
             ],
+            weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
             weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
             firstDayOfWeek: 0,
+            week: 'Week',
+            calendar: 'Calendar',
+            clear: 'Clear',
             today: 'Today',
             cancel: 'Cancel',
             formatDate: function(d) {
-              return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+              var year = d.getFullYear();
+              var yearString = year.toString();
+              if (yearString.length < 3 && year >= 0) {
+                yearString = (year < 10 ? '000' : '00') + year;
+              }
+              return (d.getMonth() + 1) + '/' + d.getDate() + '/' + yearString;
+            },
+            parseDate: function(text) {
+              var parts = text.split('/');
+              var today = new Date();
+              var date, month = today.getMonth(), year = today.getFullYear();
+
+              if (parts.length === 3) {
+                year = parseInt(parts[2]);
+                if (parts[2].length < 3 && year >= 0) {
+                  year += year < 50 ? 2000 : 1900;
+                }
+                month = parseInt(parts[0]) - 1;
+                date = parseInt(parts[1]);
+              } else if (parts.length === 2) {
+                month = parseInt(parts[0]) - 1;
+                date = parseInt(parts[1]);
+              } else if (parts.length === 1) {
+                date = parseInt(parts[0]);
+              }
+
+              if (date !== undefined) {
+                var result = new Date(0, 0); // Wrong date (1900-01-01), but with midnight in local time
+                result.setFullYear(year);
+                result.setMonth(month);
+                result.setDate(date);
+                return result;
+              }
             },
             formatTitle: function(monthName, fullYear) {
               return monthName + ' ' + fullYear;
             }
           };
         }
-      }
+      },
+
+      /**
+       * The earliest date that can be selected. All earlier dates will be disabled.
+       *
+       * Supported date formats:
+       * - ISO 8601 `"YYYY-MM-DD"` (default)
+       * - 6-digit extended ISO 8601 `"+YYYYYY-MM-DD"`, `"-YYYYYY-MM-DD"`
+       *
+       * @type {String}
+       */
+      min: {
+        type: String,
+        observer: '_minChanged'
+      },
+
+      /**
+       * The latest date that can be selected. All later dates will be disabled.
+       *
+       * Supported date formats:
+       * - ISO 8601 `"YYYY-MM-DD"` (default)
+       * - 6-digit extended ISO 8601 `"+YYYYYY-MM-DD"`, `"-YYYYYY-MM-DD"`
+       *
+       * @type {String}
+       */
+      max: {
+        type: String,
+        observer: '_maxChanged'
+      },
+
+      /**
+       * The earliest date that can be selected. All earlier dates will be disabled.
+       */
+      _minDate: {
+        type: Date,
+        value: null
+      },
+
+      /**
+       * The latest date that can be selected. All later dates will be disabled.
+       */
+      _maxDate: {
+        type: Date,
+        value: null
+      },
+
+      _noInput: {
+        type: Boolean,
+        computed: '_isNoInput(_fullscreen, i18n, i18n.*, _ios)'
+      },
+
+      _ios: {
+        type: Boolean,
+        value: navigator.userAgent.match(/iP(?:hone|ad;(?: U;)? CPU) OS (\d+)/)
+      },
+
+      _ignoreAnnounce: {
+        value: true
+      },
+
+      _focusOverlayOnOpen: Boolean
     },
 
     created: function() {
@@ -157,7 +296,10 @@
     listeners: {
       'tap': 'open',
       'touchend': '_preventDefault',
-      'keydown': '_onKeydown'
+      'keydown': '_onKeydown',
+      'close': '_close',
+      'date-tap': '_close',
+      'focus-input': '_focusAndSelect'
     },
 
     ready: function() {
@@ -171,13 +313,19 @@
     /**
      * Opens the dropdown.
      */
-    open: function(e) {
+    open: function() {
       this._updateAlignmentAndPosition();
-      // Prevent dropdown.open() being called when input is disabled or read-only, or tapped
-      // inside the overlay
-      if (!this.disabled && !this.readonly && (!e || Polymer.dom(e).path.indexOf(this.$.overlay) < 0)) {
+      if (!this.disabled && !this.readonly) {
         this.$.dropdown.open();
       }
+    },
+
+    _close: function(e) {
+      if (e) {
+        e.stopPropagation();
+      }
+      this.inputElement.focus();
+      this.close();
     },
 
     /**
@@ -209,24 +357,35 @@
       return date;
     },
 
+    _isNoInput: function() {
+      return this._fullscreen || !this.i18n.parseDate || this._ios;
+    },
+
     _formatISO: function(date) {
       return date instanceof Date ?
         (new Date(date.getTime() - date.getTimezoneOffset() * 60000)).toISOString().split('T')[0] :
         '';
     },
 
-    _selectedDateChanged: function(selectedDate) {
+    _selectedDateChanged: function(selectedDate, formatDate) {
       this.value = this._formatISO(selectedDate);
-      this._inputValue = selectedDate ? this.i18n.formatDate(selectedDate) : '';
+      this._focusedDate = selectedDate;
+      this._inputValue = selectedDate ? formatDate(selectedDate) : '';
+    },
+
+    _focusedDateChanged: function(focusedDate, formatDate) {
+      if (!this._ignoreFocusedDateChange && !this._noInput) {
+        this._inputValue = focusedDate ? formatDate(focusedDate) : '';
+      }
     },
 
     _hasValue: function(value) {
       return !!value;
     },
 
-    _valueChanged: function(value, oldValue) {
+    _handleDateChange: function(property, value, oldValue) {
       if (!value) {
-        this._selectedDate = null;
+        this[property] = null;
         return;
       }
 
@@ -235,12 +394,24 @@
         this.value = oldValue;
         return;
       }
-      if (!(this._selectedDate instanceof Date) ||
-        date.getFullYear() !== this._selectedDate.getFullYear() ||
-        date.getMonth() !== this._selectedDate.getMonth() ||
-        date.getDate() !== this._selectedDate.getDate()) {
-        this._selectedDate = date;
+      if (!(this[property] instanceof Date) ||
+        date.getFullYear() !== this[property].getFullYear() ||
+        date.getMonth() !== this[property].getMonth() ||
+        date.getDate() !== this[property].getDate()) {
+        this[property] = date;
       }
+    },
+
+    _valueChanged: function(value, oldValue) {
+      this._handleDateChange('_selectedDate', value, oldValue);
+    },
+
+    _minChanged: function(value, oldValue) {
+      this._handleDateChange('_minDate', value, oldValue);
+    },
+
+    _maxChanged: function(value, oldValue) {
+      this._handleDateChange('_maxDate', value, oldValue);
     },
 
     _updateAlignmentAndPosition: function() {
@@ -274,9 +445,24 @@
     },
 
     _onOverlayOpened: function() {
-      this.$.overlay.initialPosition = this._selectedDate ||
-        this.$.overlay.initialPosition || this._parseDate(this.initialPosition) || new Date();
+      var parsedInitialPosition = this._parseDate(this.initialPosition);
+
+      var initialPosition = this._selectedDate || this.$.overlay.initialPosition ||
+        parsedInitialPosition || new Date();
+
+      if (parsedInitialPosition ||
+        vaadin.elements.datepicker.DatePickerHelper._dateAllowed(initialPosition, this._minDate, this._maxDate)) {
+        this.$.overlay.initialPosition = initialPosition;
+      } else {
+        this.$.overlay.initialPosition =
+          vaadin.elements.datepicker.DatePickerHelper._getClosestDate(initialPosition, [this._minDate, this._maxDate]);
+      }
+
       this.$.overlay.scrollToDate(this.$.overlay.focusedDate || this.$.overlay.initialPosition);
+      // Have a default focused date
+      this._ignoreFocusedDateChange = true;
+      this.$.overlay.focusedDate = this.$.overlay.focusedDate || this.$.overlay.initialPosition;
+      this._ignoreFocusedDateChange = false;
 
       window.addEventListener('scroll', this._boundOnScroll, true);
       // We cannot use iron-resize event because 1- we fire it, 2- it's fired
@@ -288,10 +474,16 @@
         this._touchPrevented = this._preventWebkitOverflowScrollingTouch(this.parentElement);
       }
 
-      // focus to enable keyboard navigation
-      this.$.overlay.focus();
+      if (this._focusOverlayOnOpen) {
+        this.$.overlay.focus();
+        this._focusOverlayOnOpen = false;
+      } else {
+        this._focus();
+      }
 
       this.updateStyles();
+
+      this._ignoreAnnounce = false;
     },
 
     // A hack needed for iOS to prevent dropdown from being clipped in an
@@ -313,10 +505,10 @@
     },
 
     _onOverlayClosed: function() {
+      this._ignoreAnnounce = true;
+
       window.removeEventListener('scroll', this._boundOnScroll, true);
       window.removeEventListener('resize', this._boundOnScroll, true);
-
-      this._focus();
 
       if (this._touchPrevented) {
         this._touchPrevented.forEach(function(prevented) {
@@ -326,6 +518,29 @@
       }
 
       this.updateStyles();
+
+      // Select the parsed input or focused date
+      this._ignoreFocusedDateChange = true;
+      if (this.i18n.parseDate) {
+        var inputValue = this._inputValue;
+        var parsedDate = this.i18n.parseDate(inputValue);
+        if (this._isValidDate(parsedDate)) {
+          this._selectedDate = parsedDate;
+        } else {
+          this._selectedDate = null;
+          this._inputValue = inputValue;
+        }
+      } else if (this._focusedDate) {
+        this._selectedDate = this._focusedDate;
+      }
+      this._ignoreFocusedDateChange = false;
+
+      var input = window.unwrap ? window.unwrap(this.inputElement) : this.inputElement;
+      if ((this.shadowRoot && this.shadowRoot.activeElement === input) || document.activeElement === input) {
+        input.selectionStart = input.selectionEnd;
+      }
+
+      this.validate();
     },
 
     detached: function() {
@@ -349,7 +564,18 @@
     },
 
     _focus: function() {
-      this.inputElement.focus();
+      if (this._noInput) {
+        this.$.overlay.focus();
+      } else {
+        this.inputElement.focus();
+      }
+    },
+
+    _focusAndSelect: function() {
+      if (!this._noInput) {
+        this._focus();
+        this.inputElement.setSelectionRange(0, this._inputValue.length);
+      }
     },
 
     _preventDefault: function(e) {
@@ -360,7 +586,7 @@
      * Keyboard Navigation
      */
     _eventKey: function(e) {
-      var keys = ['down', 'up'];
+      var keys = ['down', 'up', 'enter', 'esc', 'tab'];
 
       for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
@@ -370,17 +596,90 @@
       }
     },
 
+    _isValidDate: function(d) {
+      return d && !isNaN(d.getTime());
+    },
+
     _onKeydown: function(e) {
+      if (this._noInput) {
+        // The input element cannot be readonly as it would conflict with
+        // the required attribute. Both are not allowed on an input element.
+        // Therefore we prevent default on most keydown events.
+        var allowedKeys = [
+          9 // tab
+        ];
+        if (allowedKeys.indexOf(e.keyCode) === -1) {
+          e.preventDefault();
+        }
+      }
+
       switch (this._eventKey(e)) {
         case 'down':
         case 'up':
           // prevent scrolling the page with arrows
           e.preventDefault();
 
-          if (!this.opened) {
+          if (this.opened) {
+            this.$.overlay.focus();
+            this.$.overlay._onKeydown(e);
+          } else {
+            this._focusOverlayOnOpen = true;
             this.open();
           }
+
           break;
+        case 'enter':
+          if (this.$.overlay.focusedDate) {
+            this._selectedDate = this.$.overlay.focusedDate;
+          }
+          this.close();
+          break;
+        case 'esc':
+          this._focusedDate = this._selectedDate;
+          this._close();
+          break;
+        case 'tab':
+          if (this.opened) {
+            e.preventDefault();
+            // Clear the selection range (remains visible on IE)
+            this.inputElement.setSelectionRange(0, 0);
+            if (e.shiftKey) {
+              this.$.overlay.focusCancel();
+            } else {
+              this.$.overlay.focus();
+              this.$.overlay.revealDate(this._focusedDate);
+            }
+
+          }
+          break;
+      }
+
+    },
+
+    _validateInput: function(date, min, max) {
+      if (date && (min || max)) {
+        this.invalid = !vaadin.elements.datepicker.DatePickerHelper._dateAllowed(date, min, max);
+      }
+    },
+
+    _userInputValueChanged: function() {
+      var parsedDate = this.i18n.parseDate && this.i18n.parseDate(this._inputValue);
+      if (this._isValidDate(parsedDate)) {
+        this._ignoreFocusedDateChange = true;
+        this._focusedDate = parsedDate;
+        this._ignoreFocusedDateChange = false;
+      }
+
+      if (!this.opened) {
+        this.open();
+        // iOS needs a refit after input blur animation has finished
+        this.$.dropdown.async(this.$.dropdown.refit, 500);
+      }
+    },
+
+    _announceFocusedDate: function(_focusedDate, opened, _ignoreAnnounce) {
+      if (opened && !_ignoreAnnounce) {
+        this.$.overlay.announceFocusedDate();
       }
     }
   };

@@ -61,6 +61,12 @@
 					notify: true,
 					reflectToAttribute: true,
 				},
+				differenceType: {
+				  type: String, 
+				  value: "absolute", // absolute or relative pct
+				  observer: "_changeBaseTidefile",
+				  notify: true,
+				},
 				layerName : {
 					type : String,
 					value : "Hydda.Base",
@@ -294,6 +300,7 @@
 			_generateURLForSliceRequest: function(sliceRequestTime){
 				return encodeURI("h5slice?type="+this.type+"&file=" + this.tidefile
 						+ (this.baseTidefile == "" ? "" : "&basefile="+this.baseTidefile)
+						+ (this.baseTidefile == "" ? "" : "&differenceType="+this.differenceType)
 						+ "&time=" + sliceRequestTime + "&slice="
 						+ this.data_fetch_size);
 			},
@@ -333,6 +340,10 @@
 			
 			//-- called on initial load of data from tidefile
 			initDataLoad: function(d) {
+				if (typeof(d) == 'undefined' || d == null ){
+					console.log('No data loaded on init');
+					return;
+				}
 				globalStartTime = this.tp(d.startTime.replace(",", "")
 						.replace(":", ""))
 				globalEndTime = this.tp(d.endTime.replace(",", "")

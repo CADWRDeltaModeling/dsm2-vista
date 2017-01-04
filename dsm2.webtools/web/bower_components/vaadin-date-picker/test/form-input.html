@@ -107,6 +107,20 @@
         expect(datepicker.invalid).to.be.false;
       });
 
+      it('should validate min/max dates', function() {
+        datepicker.min = '2000-01-01';
+        datepicker.max = '2001-01-01';
+
+        // Set invalid value.
+        datepicker.value = '2014-01-01';
+        expect(datepicker.validate()).to.equal(false);
+        expect(datepicker.invalid).to.be.equal(true);
+
+        datepicker.value = '2000-02-01';
+        expect(datepicker.validate()).to.equal(true);
+        expect(datepicker.invalid).to.be.equal(false);
+      });
+
       it('should be possible to force invalid status', function() {
         datepicker.invalid = true;
         expect(datepicker.$.inputcontainer.invalid).to.be.true;
@@ -158,6 +172,46 @@
         datepicker.disabled = true;
         expect(datepicker.$.inputcontainer.getAttribute('disabled')).to.equal('');
         expect(datepicker.$.input.disabled).to.equal(true);
+      });
+
+      it('should validate keyboard input (invalid)', function(done) {
+        var input = datepicker.$.input;
+        input.value = 'foo';
+        input.fire('input');
+
+        datepicker.addEventListener('iron-overlay-closed', function() {
+          expect(datepicker.validate()).to.equal(false);
+          expect(datepicker.invalid).to.be.equal(true);
+          done();
+        });
+        datepicker.close();
+      });
+
+      it('should validate keyboard input (valid)', function(done) {
+        var input = datepicker.$.input;
+        input.value = '01/01/2000';
+        input.fire('input');
+
+        datepicker.addEventListener('iron-overlay-closed', function() {
+          expect(datepicker.validate()).to.equal(true);
+          expect(datepicker.invalid).to.be.equal(false);
+          done();
+        });
+        datepicker.close();
+      });
+
+      it('should validate keyboard input (disallowed value)', function(done) {
+        var input = datepicker.$.input;
+        datepicker.min = '2001-01-01';
+        input.value = '01/01/2000';
+        input.fire('input');
+
+        datepicker.addEventListener('iron-overlay-closed', function() {
+          expect(datepicker.validate()).to.equal(false);
+          expect(datepicker.invalid).to.be.equal(true);
+          done();
+        });
+        datepicker.close();
       });
 
     });

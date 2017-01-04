@@ -1,5 +1,5 @@
 {
-  "name": "polymer-project",
+  "name": "dsm2.webtools",
   "dependencies": {
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.0.0",
     "paper-fab": "PolymerElements/paper-fab#^1.0.0",

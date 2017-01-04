@@ -3,131 +3,140 @@
 <head>
 <title>Time Slider</title>
 <link rel="import" href="./bower_components/polymer/polymer.html">
-<link rel="import" href="./bower_components/paper-slider/paper-slider.html">
-<link rel="import" href="./bower_components/paper-input/paper-input.html">
+<link rel="import"
+	href="./bower_components/paper-slider/paper-slider.html">
+<link rel="import"
+	href="./bower_components/paper-input/paper-input.html">
 </head>
 <body>
-<dom-module id="time-slider">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-	<paper-input label="Date" value="[[currentImmediateTime]]"  on-change="_updateCurrentTime"></paper-input>
-	<paper-slider id="slider" snaps="true" maxMarkers="100000" name = "Time" step="86400" ></paper-slider>
-  </template>
-  <script src="js/d3-time.v1.min.js"></script>
-  <script src="js/d3-time-format.v2.min.js"></script>
+	<dom-module id="time-slider"> <template>
+	<style>
+:host {
+	display: block;
+}
+</style>
+	<paper-input label="Date" value="[[currentImmediateTime]]"
+		on-change="_updateCurrentTime"></paper-input> <paper-slider
+		id="slider" snaps="true" maxMarkers="100000" name="Time" step="86400"></paper-slider>
+	</template> <script src="js/d3-time.v1.min.js"></script> <script
+		src="js/d3-time-format.v2.min.js"></script> <script>
+	    //allowed-pattern="\d+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d+"
+	    Polymer({
+		is : 'time-slider',
+		properties : {
+		    currentTime : {
+			type : String,
+			value : '02JAN1990',
+			notify : true,
+			observer : '_updateCurrentTimeValue'
+		    },
+		    beginTime : {
+			type : String,
+			value : '01JAN1990'
+		    },
+		    endTime : {
+			type : String,
+			value : '01JAN2000'
+		    },
+		    currentImmediateTime : {
+			type : String,
+			notify : false
+		    },
+		    day : String,
+		    month : String,
+		    year : String
+		},
 
-  <script>
-  //allowed-pattern="\d+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d+"
-    Polymer({
-      is: 'time-slider',
-      properties: {
-        currentTime: {
-          type: String,
-          value: '02JAN1990',
-          notify: true,
-          observer: '_updateCurrentTimeValue'
-        },
-        beginTime: {
-        	type: String,
-        	value: '01JAN1990'
-        } ,
-        endTime: {
-        	type: String,
-        	value: '01JAN2000'
-        },
-        currentImmediateTime: {
-        	type: String,
-        	notify: false
-        },
-        day: String,
-        month: String,
-        year: String
-      },
-      
-      observers: [
-    	'_updateMinMax(beginTime, endTime)'  
-      ],
-      
-      listeners: {
-    	'slider.immediate-value-change' : '_onImmediateValueChange',
-    	'slider.change' : '_onValueChange'
-      },
-      
-      _onImmediateValueChange: function(){
-    	this.currentImmediateTime = this.timeFormat(this.$.slider.immediateValue).toUpperCase();
-      },
-      
-      _updateCurrentImmediateTime: function(value){
-    	  this.currentImmediateTime = value;
-      },
-      
-      _updateCurrentTime: function(e){
-    	this._updateCurrentTimeValue(e.target.value);
-        },
+		observers : [ '_updateMinMax(beginTime, endTime)' ],
 
-       _updateCurrentTimeValue: function(value){
-        	this.currentTime = value;
-        	this.$.slider.value = this.timeParse(this.currentTime).getTime();
-        },
-      
-      _onValueChange: function(){
-    	  this.currentTime = this.timeFormat(this.$.slider.value).toUpperCase();
-    	  this.currentImmediateTime = this.currentTime;
-		  //
-    	  var d = this.timeParse(this.currentTime);
-		  day = d.getDate()+"";
-		  month = d.getMonth();
-		  year = d.getFullYear()+"";
-      },
-      
-      _formatTime: function(timeValue){
-    	  return this.timeFormat(timeValue);
-      },
-      
-      _updateMinMax: function(beginTime, endTime){
-    	  ////console.log('_updateMinMax: ', beginTime, endTime)
-    	  this.beginTimeInMins = this.timeParse(beginTime).getTime();
-    	  this.endTimeInMins = this.timeParse(endTime).getTime();
-    	  this.$.slider.max = this.endTimeInMins;
-    	  this.$.slider.min = this.beginTimeInMins;
-    	  this._onImmediateValueChange();
-    	  this._onValueChange();
-      },
-      
-      _setCurrentTime: function(value){
-    	  //console.log('_setCurrentTime: ',value)
-      },
-      
-      _range: function(start, end) {
-    	  var count = end - start +1;
-          return Array.apply(0, Array(count))
-            .map(function (element, index) { 
-              return index + start;  
-          });
-        },
-       
-      _daysInMonth: function(){ // return days in the month of the current time.
-    	if (!this.currentTime){
-    		return this._range(1,31);
-    	}
-    	var d = this.timeParse(this.currentTime);
-      	var days = new Date(d.getUTCFullYear(), d.getUTCMonth(), 0).getDate();
-      	return this._range(1,days);
-      },
-      
-      created: function(){
-			this.timeFormat = d3.timeFormat("%d%b%Y")
-			this.timeParse = d3.timeParse("%d%b%Y")
-      },
-      
-      ready: function(){
-      }
-    });
-  </script>
-</dom-module>
+		listeners : {
+		    'slider.immediate-value-change' : '_onImmediateValueChange',
+		    'slider.change' : '_onValueChange'
+		},
+
+		_onImmediateValueChange : function() {
+		    this.currentImmediateTime = this.timeFormat(
+			    this.$.slider.immediateValue).toUpperCase();
+		},
+
+		_updateCurrentImmediateTime : function(value) {
+		    this.currentImmediateTime = value;
+		},
+
+		_updateCurrentTime : function(e) {
+		    this._updateCurrentTimeValue(e.target.value);
+		},
+
+		_updateCurrentTimeValue : function(value) {
+		    this.currentTime = value;
+		    this.$.slider.value = this.timeParse(this.currentTime)
+			    .getTime();
+		},
+
+		_onValueChange : function() {
+		    this.currentTime = this.timeFormat(this.$.slider.value)
+			    .toUpperCase();
+		    this.currentImmediateTime = this.currentTime;
+		    //
+		    var d = this.timeParse(this.currentTime);
+		    day = d.getDate() + "";
+		    month = d.getMonth();
+		    year = d.getFullYear() + "";
+		},
+
+		_formatTime : function(timeValue) {
+		    return this.timeFormat(timeValue);
+		},
+
+		_updateMinMax : function(beginTime, endTime) {
+		    this.debounce('updateMinMax', function() {
+			////console.log('_updateMinMax: ', beginTime, endTime)
+			this.beginTimeInMins = this.timeParse(beginTime)
+				.getTime();
+			this.endTimeInMins = this.timeParse(endTime).getTime();
+			if (this.endTimeInMins < this.$.slider.min) {
+			    this.$.slider.min = this.beginTimeInMins;
+			    this.$.slider.max = this.endTimeInMins;
+			} else {
+			    this.$.slider.max = this.endTimeInMins;
+			    this.$.slider.min = this.beginTimeInMins;
+			}
+			this.$.slider.value = this.$.slider.min;
+			this._onImmediateValueChange();
+			this._onValueChange();
+		    }.bind(this), 100);
+		},
+
+		_setCurrentTime : function(value) {
+		    //console.log('_setCurrentTime: ',value)
+		},
+
+		_range : function(start, end) {
+		    var count = end - start + 1;
+		    return Array.apply(0, Array(count)).map(
+			    function(element, index) {
+				return index + start;
+			    });
+		},
+
+		_daysInMonth : function() { // return days in the month of the current time.
+		    if (!this.currentTime) {
+			return this._range(1, 31);
+		    }
+		    var d = this.timeParse(this.currentTime);
+		    var days = new Date(d.getUTCFullYear(), d.getUTCMonth(), 0)
+			    .getDate();
+		    return this._range(1, days);
+		},
+
+		created : function() {
+		    this.timeFormat = d3.timeFormat("%d%b%Y")
+		    this.timeParse = d3.timeParse("%d%b%Y")
+		},
+
+		ready : function() {
+		}
+	    });
+	</script> </dom-module>
 </body>
 </html>

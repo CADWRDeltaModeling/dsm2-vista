@@ -22,7 +22,7 @@
     "tag": "0.0.2",
     "commit": "d0a6efa2827627c67743eb0f248a981b69a0d68a"
   },
-  "_source": "git://github.com/David-Mulder/whenever.js.git",
+  "_source": "https://github.com/David-Mulder/whenever.js.git",
   "_target": "~0.0.1",
-  "_originalSource": "David-Mulder/whenever.js"
+  "_originalSource": "whenever.js"
 }

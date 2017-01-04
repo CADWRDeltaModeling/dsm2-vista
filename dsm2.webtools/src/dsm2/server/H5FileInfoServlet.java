@@ -83,8 +83,10 @@ public class H5FileInfoServlet extends HttpServlet {
 			tables[i] = table;
 			if (table.name.equals("scalar")) {
 				String[] times = findModelStartEndTimes(table);
-				fileInfo.startTime = times[0];
-				fileInfo.endTime = times[1];
+				fileInfo.startDate = times[0];
+				fileInfo.startTime = times[1];
+				fileInfo.endDate = times[2];
+				fileInfo.endTime = times[3];
 			}
 			if (model.equals("qual") && table.name.equals("output_channel_source_track")){
 				// constituent names either in constituent_names table or derived from looping over unique variable.source_group columns from output_channel_source_track
@@ -142,7 +144,7 @@ public class H5FileInfoServlet extends HttpServlet {
 				}
 			}
 		}
-		return new String[] { startDate + " " + startTime, endDate + " " + endTime };
+		return new String[] { startDate, startTime, endDate, endTime };
 	}
 
 	public H5InputTable parseInputTable(HObject object) throws OutOfMemoryError, Exception {
@@ -173,7 +175,9 @@ public class H5FileInfoServlet extends HttpServlet {
 
 	public class H5FileInfo {
 		public String model; // hydro or qual
+		public String startDate;
 		public String startTime; // model start time in 01JAN2004 1600 format
+		public String endDate;
 		public String endTime; // model end time
 		public H5InputTable[] inputTables; // all input path variables
 		public String[] dataTypeNames; // names of constituents or flow,stage,area available

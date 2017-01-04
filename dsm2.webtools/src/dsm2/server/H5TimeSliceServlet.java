@@ -72,7 +72,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize, dataType);
 			if (baseFile != null) {
 				H5Slice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize, dataType);
-				slice = diff(slice, baseSlice);
+				String diffType = request.getParameter("differenceType");
+				slice = diff(slice, baseSlice, diffType==null || diffType.trim().equals("") || diffType.trim().startsWith("abs") ? true : false);
 			}
 			if (slice == null) {
 				return;
@@ -148,7 +149,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		return array;
 	}
 
-	public H5Slice diff(H5Slice slice, H5Slice baseSlice) {
+	public H5Slice diff(H5Slice slice, H5Slice baseSlice, boolean absoluteDiff) {
 		if (slice.timeIntervalInMins != baseSlice.timeIntervalInMins) {
 			System.err.println("The time interval in file and base file don't match!");
 			return null;
@@ -179,13 +180,22 @@ public class H5TimeSliceServlet extends HttpServlet {
 				int si = k*slice.channelArray.length+indexSlice[i];
 				int bsi = k* baseSlice.channelArray.length+indexBase[i];
 				diffSlice.fData1[index] = slice.fData1[si] - baseSlice.fData1[bsi];
+				if (!absoluteDiff && baseSlice.fData1[bsi] != 0){
+					diffSlice.fData1[index] = diffSlice.fData1[index] / baseSlice.fData1[bsi];
+				}
 				diffSlice.fData2[index] = slice.fData2[si] - baseSlice.fData2[bsi];
+				if (!absoluteDiff && baseSlice.fData2[bsi] != 0){
+					diffSlice.fData2[index] = diffSlice.fData2[index] / baseSlice.fData2[bsi];
+				}
 			}
 			for(int i=0; i < diffSlice.reservoirNames.length; i++){
 				int index = k * diffSlice.reservoirNames.length + i;
 				int si = k*slice.reservoirNames.length+indexReservoirSlice[i];
 				int bsi = k*baseSlice.reservoirNames.length+indexReservoirBaseSlice[i];
 				diffSlice.reservoirValues[index] = slice.reservoirValues[si] - baseSlice.reservoirValues[bsi];
+				if (!absoluteDiff && baseSlice.reservoirValues[bsi] != 0){
+					diffSlice.reservoirValues[index] = diffSlice.reservoirValues[index] / baseSlice.reservoirValues[bsi];
+				}
 			}
 		}
 		return diffSlice;

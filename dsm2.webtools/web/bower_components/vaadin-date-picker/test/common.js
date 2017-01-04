@@ -1,5 +1,6 @@
 var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 var safari = navigator.userAgent.toLowerCase().indexOf('safari/') > -1 && navigator.userAgent.toLowerCase().indexOf('chrome/') == -1;
+var android = /(android)/i.test(navigator.userAgent);
 
 function getDefaultI18n() {
   return {
@@ -7,8 +8,12 @@ function getDefaultI18n() {
       'January', 'February', 'March', 'April', 'May',
       'June', 'July', 'August', 'September', 'October', 'November', 'December'
     ],
+    weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     firstDayOfWeek: 0,
+    week: 'Week',
+    calendar: 'Calendar',
+    clear: 'Clear',
     today: 'Today',
     cancel: 'Cancel',
     formatDate: function(d) {
@@ -18,6 +23,24 @@ function getDefaultI18n() {
       return monthName + ' ' + fullYear;
     }
   };
+}
+
+function listenForEvent(elem, type, callback) {
+  var listener = function() {
+    elem.removeEventListener(type, listener);
+    callback();
+  };
+  elem.addEventListener(type, listener);
+}
+
+function open(datepicker, callback) {
+  listenForEvent(datepicker, 'iron-overlay-opened', callback);
+  datepicker.open();
+}
+
+function close(datepicker, callback) {
+  listenForEvent(datepicker, 'iron-overlay-closed', callback);
+  datepicker.close();
 }
 
 function tap(element) {
