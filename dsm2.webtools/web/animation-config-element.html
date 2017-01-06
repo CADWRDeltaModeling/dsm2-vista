@@ -18,6 +18,11 @@
 <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="bower_components/paper-item/paper-item.html">
 <link rel="import" href="bower_components/paper-material/paper-material.html">
+<style>
+#configSelector{
+	width: 100%;
+}
+</style>
 </head>
 <dom-module id="animation-config-element">
   <template>
@@ -25,8 +30,8 @@
 			handle-as="json"
 			on-response="handleServerConfigResponse">
 	</iron-ajax>
-	<paper-dropdown-menu id="configSelector" label="Select Config" >
-		<paper-listbox id="configListBox" class="dropdown-content" selected="{{configName}}" attr-for-selected="value" on-tap="onSelectConfig">
+	<paper-dropdown-menu id="configSelector" label="Select Config"  style="width: 100%" >
+		<paper-listbox id="configListBox" selected="{{configName}}" class="dropdown-content" attr-for-selected="value" on-tap="onSelectConfig" style="width: 100%;">
 		<template is="dom-repeat" items="[[configs]]">
 			<paper-item value="[[item.name]]">[[item.name]]</paper-item>
 		</template>

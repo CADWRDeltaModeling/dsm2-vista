@@ -17,13 +17,13 @@
 <link rel="stylesheet" href="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.css" />
 <script src="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.min.js"></script>
 <!-- D3 for svg rendering -->
-<script type="text/javascript" src="js/d3-4.2.2.js"></script>
+<script type="text/javascript" src="js/d3-4.4.0.js"></script>
 <script type="text/javascript" src="js/d3-legend.js"></script>
 <!-- Data and custom scripts -->
 <style type="text/css">
 #map {
 	width: 100%;
-	height: 1200px;
+	height: 100%;
 }
 </style>
 <style type="text/css">
@@ -67,6 +67,16 @@
 				  observer: "_changeBaseTidefile",
 				  notify: true,
 				},
+				fileStartTime : {
+					type: String,
+					notify: true,
+					readOnly: false
+				},
+				fileEndTime : {
+					type: String,
+					notify: true,
+					readOnly: false
+				},
 				layerName : {
 					type : String,
 					value : "Hydda.Base",
@@ -99,16 +109,6 @@
 					value: "01JAN2000 0000",
 					notify: true,
 					observer: "_changeAnimateStartTime"
-				},
-				fileStartTime : {
-					type: String,
-					notify: true,
-					readOnly: false
-				},
-				fileEndTime : {
-					type: String,
-					notify: true,
-					readOnly: false
 				},
 				colorClasses : {
 					type: Array,
@@ -212,8 +212,7 @@
 
 			created : function(){
 				this.verticalLegend = d3legend().labelFormat("none")
-				.cellPadding(5).orientation("vertical").units(
-						"Colors/Values").cellWidth(25).cellHeight(15).cellStepping(10);
+				.cellPadding(5).orientation("vertical").cellWidth(25).cellHeight(15).cellStepping(10).units("Legend");
 			},
 			
 			_createGridOnMap : function(){
@@ -402,11 +401,9 @@
 			animate: function(elapsed){
 				if (this.slice == 0) { // slice is in use, get next slice data
 					if (this.sliceData == null) {
-						////console.log("No data found!. Stopping animation");
 						this.timer.stop();
 						return;
 					}
-					////console.log('Getting next slice: '+this.sliceData.endTimeOffset+' @ slice size: '+this.data_fetch_size);
 					d3.json(this._generateURLForSliceRequest(this.sliceData.endTimeOffset), function(d) {
 						this.nextSliceData = d;
 
@@ -422,13 +419,11 @@
 					this.step_size = Math.max(1, Math
 							.round((elapsed - this.prev_elapsed)
 									/ this.animateInterval));
-					////console.log('step_size: ', this.step_size, this);
 				}
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
 					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
-					////console.log('Next slice @ slice '+slice);
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {
@@ -471,24 +466,61 @@
 						elementThis.reset();
 				    });
 				});
-				//  add legend
-				this.g_controls = d3
-						.select(
-								"#map > div.leaflet-control-container > div.leaflet-top.leaflet-left")
-						.append("svg").attr("height", 300).attr("width", 235)
-						.append("g");
-				this.g_controls.append("rect").attr("height", 300)
-				.attr("width", 75).attr("fill", "white").attr(
-						"transform", "translate(0,-50)");
-				this.g_controls.append("rect").attr("height", 25)
-				.attr("width", 215).attr("fill", "white").attr(
-						"transform", "translate(0,-50)");
-				this.svg_legend_container = this.g_controls.attr("transform",
-						"translate(20,50)").attr("class", "legend");
-				this.svg_legend_container.call(this.verticalLegend);
-				this.svg_text = this.g_controls.append("text").attr("x", "0")
-						.attr("y", "-30").attr("font-family", "sans-serif")
+				L.Control.Text = L.Control.extend({
+				    onAdd: function(map){
+						var div =  L.DomUtil.create('div');
+						var g_controls = d3.select(div).append("svg").attr("height",35).attr("width",215).append("g");
+						g_controls.attr("transform","translate(0,0)");
+						g_controls.append("rect").attr("height", 25)
+						.attr("width", 215).attr("fill", "white").attr(
+								"transform", "translate(0,0)");
+						elementThis.svg_text = g_controls.append("text").attr("x", "0")
+						.attr("y", "20").attr("font-family", "sans-serif")
 						.attr("font-size", "20px").attr("fill", "red");
+						return div;
+				    },
+				    onRemove: function(map){
+				
+				    }
+				});
+				L.control.text = function(opts){
+				    return new L.Control.Text(opts);
+				};
+				L.control.text({ position: 'topleft'}).addTo(this.map);
+				
+				L.Control.Legend = L.Control.extend({
+				    onAdd: function(map){
+						var div =  L.DomUtil.create('div');
+						d3.select(div).style("display","flex").style("flex-direction","column");
+						d3.select(div).append("input").attr("type","button").attr("value","Hide")
+							.on("click", function(e){
+							    if (this.value=="Hide"){
+									this.value="Show Legend";
+									elementThis.svg_legend_container.attr("visibility","hidden");
+							    } else {
+									this.value="Hide";
+									elementThis.svg_legend_container.attr("visibility","inherit");
+							    }
+							    return false;
+							    });
+						var ht=275;
+						var legend_group = d3.select(div).append("svg").attr("height",ht).attr("width",75).append("g");
+						legend_group.append("rect").attr("height", ht+25)
+						.attr("width", 75).attr("fill", "white").attr(
+								"transform", "translate(0,-25)");
+						elementThis.svg_legend_container = legend_group.attr("transform",
+								"translate(0,20)").attr("class", "legend");
+						elementThis.svg_legend_container.call(elementThis.verticalLegend);
+						return div;
+				    },
+				    onRemove: function(map){
+					
+				    }
+				});
+				L.control.legend = function(opts){
+				    return new L.Control.Legend(opts);
+				};
+				L.control.legend({ position: 'topleft'}).addTo(this.map);
 			}
 
 		});
