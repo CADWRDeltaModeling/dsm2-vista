@@ -312,26 +312,16 @@ public class H5TimeSliceServlet extends HttpServlet {
 			selectedDims[2] = 1;
 		}
 		// read upstream slice
-		Object rawData = ds.read();
-		if (!(rawData != null && rawData instanceof float[])) {
-			throw new IllegalArgumentException(
-					"Path: " + " in HDF5 file: " + file + " is either null or not a floating point array");
-		}
 		// FIXME: data sets should be able to hold floats?
-		float[] fData1 = (float[]) rawData;
+		float[] fData1 = readRawDataAsFloat(ds.read());
 		// read downstream slice
 		if (startDims.length == 4) {
 			startDims[3] = 1;
 		} else {
 			startDims[2] = 1;
 		}
-		rawData = ds.read();
-		if (!(rawData != null && rawData instanceof float[])) {
-			throw new IllegalArgumentException(
-					"Path: " + " in HDF5 file: " + file + " is either null or not a floating point array");
-		}
 
-		float[] fData2 = (float[]) rawData;
+		float[] fData2 = (float[]) readRawDataAsFloat(ds.read());
 
 		int[] channelArray = readChannelIds(h5file, qualTidefile);
 		
@@ -380,6 +370,26 @@ public class H5TimeSliceServlet extends HttpServlet {
 		return slice;
 	}
 	
+	public float[] readRawDataAsFloat(Object rawData){
+		float[] fData;
+		if (rawData==null){
+			throw new IllegalArgumentException("Data from HDF5 File is null!");
+		}
+		if (rawData instanceof float[]) {
+			fData = (float[]) rawData;
+		} else if (rawData instanceof double[]) {
+			double[] dData = (double[]) rawData; 
+			fData = new float[dData.length];
+			for(int i=0; i < dData.length; i++){
+				fData[i] = (float) dData[i];
+			}
+		} else {
+			throw new IllegalArgumentException(
+					"Data is not a floating point array");
+		}
+		return fData;
+	}
+	
 	public float[] readReservoirValues(H5File h5file, boolean qualTidefile, String dataType, long timeOffset, int sliceSize) throws Exception, OutOfMemoryError{
 		String pathToData = "/output/reservoir concentration";
 		if (!qualTidefile) {
@@ -418,12 +428,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 			return null; //FIXME: not implemented yet
 		}
 		// read upstream slice
-		Object rawData = ds.read();
-		if (!(rawData != null && rawData instanceof float[])) {
-			throw new IllegalArgumentException(
-					"Path: " + pathToData + " in HDF5 file: is either null or not a floating point array");
-		}
-		return (float[]) rawData;
+		return readRawDataAsFloat(ds.read());
 	}
 
 	public String[] readReservoirNames(H5File h5file, boolean qualTidefile) throws Exception, OutOfMemoryError {
