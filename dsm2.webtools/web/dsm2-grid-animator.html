@@ -4,7 +4,7 @@
 <title>DSM2 Grid Animation of Tidefile</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" type="image/ico" href="favicon.png" />
+<link rel="shortcut icon" type="image/png" href="favicon.png" />
 <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js">
 </script>
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -55,6 +55,7 @@
 	<paper-toolbar></paper-toolbar>
 		<div class="container flex-vertical">
 			<paper-material elevation="3">
+				<div label="Controls" class="layout horizontal">
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
 					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{tidefile}}"
 							handle-as="json"
@@ -66,7 +67,9 @@
 							<paper-item value="[[index]]">[[item]]</paper-item>
 						</template>
 					</paper-listbox>
-					</paper-dropdown-menu>
+				</paper-dropdown-menu>
+				<paper-toggle-button id="tidalFilterToggle" checked="{{tidalFilter}}">Tidally Filter</paper-toggle-button>
+				</div>	
 				<paper-input id="fileinput" value="{{tidefile}}" label="Tidefile"></paper-input>
 				<paper-input id="basefileinput" value="{{baseTidefile}}" label="Base Tidefile"></paper-input>
 				<paper-dropdown-menu id="diffTypeSelector" label="Difference Type" >
@@ -152,6 +155,7 @@
 	</paper-toolbar>
 	<dsm2grid-animation-element id="animationElement"
 	type="[[dataType]]"
+	tidal-filter="{{tidalFilter}}"
 	tidefile="{{tidefile}}"
 	base-tidefile = "{{baseTidefile}}"
 	center="[38.125, -121.6]"
@@ -180,8 +184,7 @@
 		   mc.layerOpacity = 100;
 		   mc.globalStartTime = '01JAN1970'
 		   mc.globalEndTime = '01JAN2001'
-		   
-		   
+
            var animateStartStop = document.getElementById("animateStartStop");
 		   mc.restartAnimation = function(){
 			 document.getElementById('animationElement').startTimer();
@@ -195,6 +198,10 @@
 			   } else {
 				mc.dataType = config.dataType;
 			   }
+			   if (typeof config.tidalFilter == "undefined"){
+			       config.tidalFilter=false;
+			   }
+			   mc.tidalFilter=config.tidalFilter
 			   mc.tidefile = config.tidefile;
 			   mc.baseTidefile = config.baseTidefile;
 			   mc.differenceType = config.differenceType;

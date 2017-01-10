@@ -134,6 +134,7 @@
 		    config = {
 				name : configInputElement.value,
 				dataType : mc.dataType,
+				tidalFilter: mc.tidalFilter,
 				tidefile : mc.tidefile,
 				baseTidefile : mc.baseTidefile,
 				differenceType: mc.differenceType,
@@ -155,6 +156,9 @@
 			    if (override) {
 				if ( typeof (config.differenceType) == 'undefined'){
 				    config.differenceType = 'absolute';
+				}
+				if ( typeof (config.tidalFilter) == 'undefined'){
+				    config.tidalFilter = false;
 				}
 				Object.assign(xconfig, config);
 			    }

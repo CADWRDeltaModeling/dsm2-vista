@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import filter.fft.FilterWeightGenerator;
 import hec.heclib.dss.HecTimeSeriesBase;
 import hec.heclib.util.HecTime;
 import hecdssvue.ca.dwr.dsm2.tidefile.HDF5DataReference;
@@ -60,6 +61,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 			response.getWriter().println("No h5 file specified");
 			return;
 		}
+		boolean tidalFilter = request.getParameter("tidalFilter") == null || request.getParameter("tidalFilter").equals("") ? false: true; 
 		// starting time
 		String startTimeReq = request.getParameter("time"); 
 		// type-> one of ec, stage, flow, area.
@@ -69,9 +71,9 @@ public class H5TimeSliceServlet extends HttpServlet {
 		//file to difference values ~ file - base file
 		String baseFile = request.getParameter("basefile"); 
 		try {
-			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize, dataType);
+			H5Slice slice = extractSliceFromFile(file, startTimeReq, sliceSize, dataType, tidalFilter);
 			if (baseFile != null) {
-				H5Slice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize, dataType);
+				H5Slice baseSlice = extractSliceFromFile(baseFile, startTimeReq, sliceSize, dataType, tidalFilter);
 				String diffType = request.getParameter("differenceType");
 				slice = diff(slice, baseSlice, diffType==null || diffType.trim().equals("") || diffType.trim().startsWith("abs") ? true : false);
 			}
@@ -201,7 +203,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		return diffSlice;
 	}
 
-	public H5Slice extractSliceFromFile(String file, String startTimeReq, int sliceSize, String dataType)
+	public H5Slice extractSliceFromFile(String file, String startTimeReq, int sliceSize, String dataType, boolean tidalFilter)
 			throws Exception, HDF5Exception, OutOfMemoryError {
 
 		H5File h5file = new H5File(file);
@@ -292,13 +294,20 @@ public class H5TimeSliceServlet extends HttpServlet {
 		HecTime endTimeOffset = new HecTime(startTimeOffset);
 		endTimeOffset.increment(sliceSize, timeIntervalInMins);
 		//
+		float[] tidalFilterWeights = null;
+		if (tidalFilter){
+			tidalFilterWeights = getFilterWeights(timeIntervalInMins+"MIN");
+		}
+		int tidalFilterShift = tidalFilterWeights == null ? 0 : (tidalFilterWeights.length-1)/2;
+		//
 		long[] startDims = ds.getStartDims();
 		long[] stride = ds.getStride();
 		long[] selectedDims = ds.getSelectedDims();
 		long[] dims = ds.getDims();
-		startDims[0] = timeOffset; // common to both hydro and qual, first
+		startDims[0] = Math.max(0, timeOffset - tidalFilterShift); // common to both hydro and qual, first
 									// dimension is time
-		selectedDims[0] = sliceSize;
+		
+		selectedDims[0] = Math.min(dims[0]-startDims[0],sliceSize + 2*tidalFilterShift);
 		if (startDims.length == 4) { // qual has 4 dimensions for concentration,
 										// 2nd dimension for constituent type as
 										// defined in /output/constituent_names
@@ -311,9 +320,13 @@ public class H5TimeSliceServlet extends HttpServlet {
 			startDims[2] = 0;
 			selectedDims[2] = 1;
 		}
+		// read channel array
+		int[] channelArray = readChannelIds(h5file, qualTidefile);
 		// read upstream slice
-		// FIXME: data sets should be able to hold floats?
 		float[] fData1 = readRawDataAsFloat(ds.read());
+		if (tidalFilterWeights != null){
+			fData1 = applyFilter(fData1, tidalFilterWeights, (int) selectedDims[0], channelArray.length, (int) Math.min(startDims[0], tidalFilterShift), (int) Math.min(selectedDims[0],tidalFilterShift));
+		}
 		// read downstream slice
 		if (startDims.length == 4) {
 			startDims[3] = 1;
@@ -322,12 +335,14 @@ public class H5TimeSliceServlet extends HttpServlet {
 		}
 
 		float[] fData2 = (float[]) readRawDataAsFloat(ds.read());
+		if (tidalFilterWeights != null){
+			fData2 = applyFilter(fData2, tidalFilterWeights, (int) selectedDims[0], channelArray.length, (int) Math.min(startDims[0], tidalFilterShift), (int) Math.min(selectedDims[0], tidalFilterShift));
+		}
 
-		int[] channelArray = readChannelIds(h5file, qualTidefile);
 		
 		String[] reservoirNames = readReservoirNames(h5file, qualTidefile);
 		
-		float[] reservoirValues = readReservoirValues(h5file, qualTidefile, dataType, timeOffset, sliceSize);
+		float[] reservoirValues = readReservoirValues(h5file, qualTidefile, dataType, timeOffset, sliceSize, tidalFilterWeights);
 		
 		if (reservoirValues == null){
 			reservoirValues = new float[reservoirNames.length*sliceSize];
@@ -359,7 +374,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		slice.reservoirValues = reservoirValues;
 		// area is not meaningful so return velocity instead.
 		if (dataType.equals("2") && !qualTidefile){
-			H5Slice flowSlice = extractSliceFromFile(file, startTimeReq, sliceSize, "1");
+			H5Slice flowSlice = extractSliceFromFile(file, startTimeReq, sliceSize, "1", tidalFilter);
 			for(int i=0; i < slice.fData1.length; i++){
 				slice.fData1[i] = flowSlice.fData1[i]/slice.fData1[i]; 
 			}
@@ -370,6 +385,24 @@ public class H5TimeSliceServlet extends HttpServlet {
 		return slice;
 	}
 	
+	public float[] applyFilter(float[] sliceData, float[] tidalFilterWeights, int numberSlices, int eachSliceLength, int skipFromStart, int skipFromEnd) {
+		int tidalFilterHalf = (tidalFilterWeights.length-1)/2;
+		float[] tfData1 = new float[sliceData.length-(skipFromStart+skipFromEnd)*eachSliceLength];
+		for (int k = skipFromStart; k < numberSlices-skipFromEnd; k++) {
+			int sliceBeginIndex = k*eachSliceLength;
+			for (int i = 0; i < eachSliceLength; i++) {
+				float sum=0.0f;
+				for(int j = -tidalFilterHalf; j < tidalFilterHalf+1; j++){
+					int indexInArray = sliceBeginIndex + i + j*eachSliceLength;
+					if (indexInArray < 0 || indexInArray >= sliceData.length) continue;
+					sum += sliceData[indexInArray]*tidalFilterWeights[j+tidalFilterHalf];
+				}
+				tfData1[(k-skipFromStart)*eachSliceLength+i] = sum;
+			}
+		}
+		return tfData1;
+	}
+
 	public float[] readRawDataAsFloat(Object rawData){
 		float[] fData;
 		if (rawData==null){
@@ -390,7 +423,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		return fData;
 	}
 	
-	public float[] readReservoirValues(H5File h5file, boolean qualTidefile, String dataType, long timeOffset, int sliceSize) throws Exception, OutOfMemoryError{
+	public float[] readReservoirValues(H5File h5file, boolean qualTidefile, String dataType, long timeOffset, int sliceSize, float[] tidalFilterWeights) throws Exception, OutOfMemoryError{
 		String pathToData = "/output/reservoir concentration";
 		if (!qualTidefile) {
 			if (dataType.equals("0")) {
@@ -418,8 +451,9 @@ public class H5TimeSliceServlet extends HttpServlet {
 		long[] selectedDims = ds.getSelectedDims();
 		long[] dims = ds.getDims();
 		//first dimension is time
-		startDims[0] = timeOffset; 
-		selectedDims[0] = sliceSize;
+		int tidalFilterShift = tidalFilterWeights == null ? 0 : (tidalFilterWeights.length-1)/2;
+		startDims[0] = Math.max(0, timeOffset - tidalFilterShift); 
+		selectedDims[0] = Math.min(dims[0]-startDims[0], sliceSize + 2*tidalFilterShift);
 		if (qualTidefile){
 			// second dimension is constituent index
 			startDims[1] = Integer.parseInt(dataType);
@@ -428,7 +462,11 @@ public class H5TimeSliceServlet extends HttpServlet {
 			return null; //FIXME: not implemented yet
 		}
 		// read upstream slice
-		return readRawDataAsFloat(ds.read());
+		float[] rData =  readRawDataAsFloat(ds.read());
+		if (tidalFilterWeights != null){
+			rData = applyFilter(rData, tidalFilterWeights, (int) selectedDims[0], (int) selectedDims[2], (int) Math.min(startDims[0], tidalFilterShift), (int) Math.min(selectedDims[0], tidalFilterShift));
+		}
+		return rData;
 	}
 
 	public String[] readReservoirNames(H5File h5file, boolean qualTidefile) throws Exception, OutOfMemoryError {
@@ -600,6 +638,15 @@ public class H5TimeSliceServlet extends HttpServlet {
 			slashCount++;
 		}
 		return sb.toString();
+	}
+	
+	public static float[] getFilterWeights(String timeInterval){
+		double[] dwts = FilterWeightGenerator.generateGodinFilterWeights(timeInterval);
+		float[] wts = new float[dwts.length];
+		for(int i=0; i < dwts.length; i++){
+			wts[i] = (float) dwts[i];
+		}
+		return wts;
 	}
 
 	/**

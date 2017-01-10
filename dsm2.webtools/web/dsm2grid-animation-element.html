@@ -47,6 +47,13 @@
 					notify: true,
 					relectToAttribute: true
 			    },
+			    tidalFilter: {
+					type: Boolean,
+					value: false,
+					observer: "_changeTidalFilter",
+					notify: true,
+					reflectToAttribute: true
+			    },
 				tidefile : {
 					type: String,
 					value: "",
@@ -204,6 +211,10 @@
 			_changeDataType: function(value){
 			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
 			},
+
+			_changeTidalFilter: function(value){
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			},
 			
 			_stopStartTimer: function(value){
 			    this.stopTimer();
@@ -298,6 +309,7 @@
 
 			_generateURLForSliceRequest: function(sliceRequestTime){
 				return encodeURI("h5slice?type="+this.type+"&file=" + this.tidefile
+						+ (this.tidalFilter ? "&tidalFilter=true" : "")
 						+ (this.baseTidefile == "" ? "" : "&basefile="+this.baseTidefile)
 						+ (this.baseTidefile == "" ? "" : "&differenceType="+this.differenceType)
 						+ "&time=" + sliceRequestTime + "&slice="
