@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning"></style>
 <link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
@@ -26,7 +27,6 @@
 <link rel="import" href="animation-config-element.html">
 <link rel="import" href="bower_components/iron-icons/av-icons.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">	
-<style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning">
 <style>
 #configSelector{
 	width: 100%;
@@ -172,9 +172,6 @@
 		   handlersInitialized = true;
 			 	  
 		   var mc = document.getElementById('mainContext');
-		   mc.layerOpacity = 100;
-		   mc.globalStartTime = '01JAN1970'
-		   mc.globalEndTime = '01JAN2001'
 
            var animateStartStop = document.getElementById("animateStartStop");
 		   mc.restartAnimation = function(){
@@ -192,6 +189,9 @@
 			   if (typeof config.tidalFilter == "undefined"){
 			       config.tidalFilter=false;
 			   }
+			   if (typeof config.layerOpacity == 'undefined'){
+			       config.layerOpacity = 100;
+			   }
 			   mc.tidalFilter=config.tidalFilter
 			   mc.tidefile = config.tidefile;
 			   mc.baseTidefile = config.baseTidefile;
@@ -201,11 +201,10 @@
 			   mc.animationInterval = config.animationInterval;
 			   mc.colorClasses = config.colorClasses;
 			   mc.valueClasses = config.valueClasses;
+			   mc.layerOpacity = config.layerOpacity;
 			   mc.restartAnimation();
 		   };
 
-     	   mc.setConfiguration(document.getElementById('config-selector').configSelected);
-		   
 		   mc.handleConfigSelected = function(event){
 			mc.setConfiguration(event.detail);		       
 		   };
@@ -241,7 +240,9 @@
 			 document.getElementById('mainContext').baseTidefile = e.target.value;
 			})
           
-			
+
+     	   mc.setConfiguration(document.getElementById('config-selector').configSelected);
+
       });
 		
 	</script>

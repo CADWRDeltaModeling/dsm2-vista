@@ -7,7 +7,8 @@
     "leaflet": "^1.0.2",
     "app-storage": "PolymerElements/app-storage#^0.9.8",
     "Leaflet.ZoomBox": "^0.3.4",
-    "file-saver": "^1.3.3"
+    "file-saver": "^1.3.3",
+    "leaflet-providers": "^1.1.15"
   },
   "homepage": "https://github.com/dwr-psandhu/dsm2-vista",
   "description": "DSM2 Web Tools",

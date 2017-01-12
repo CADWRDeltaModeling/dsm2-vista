@@ -26,17 +26,14 @@
 		properties : {
 		    currentTime : {
 			type : String,
-			value : '02JAN1990',
 			notify : true,
 			observer : '_updateCurrentTimeValue'
 		    },
 		    beginTime : {
-			type : String,
-			value : '01JAN1990'
+			type : String
 		    },
 		    endTime : {
-			type : String,
-			value : '01JAN2000'
+			type : String
 		    },
 		    currentImmediateTime : {
 			type : String,
@@ -53,7 +50,7 @@
 		    'slider.immediate-value-change' : '_onImmediateValueChange',
 		    'slider.change' : '_onValueChange'
 		},
-
+		
 		_onImmediateValueChange : function() {
 		    this.currentImmediateTime = this.timeFormat(
 			    this.$.slider.immediateValue).toUpperCase();
@@ -101,9 +98,17 @@
 			    this.$.slider.max = this.endTimeInMins;
 			    this.$.slider.min = this.beginTimeInMins;
 			}
-			this.$.slider.value = this.$.slider.min;
-			this._onImmediateValueChange();
-			this._onValueChange();
+			if (this.$.slider.value < this.$.slider.min){
+				this.$.slider.value = this.$.slider.min;
+				this._onImmediateValueChange();
+				this._onValueChange();
+			} else if (this.$.slider.value > this.$.slider.max) {
+			    this.$.slider.value=this.$.slider.max;
+				this._onImmediateValueChange();
+				this._onValueChange();
+			} else {
+			    
+			}
 		    }.bind(this), 100);
 		},
 

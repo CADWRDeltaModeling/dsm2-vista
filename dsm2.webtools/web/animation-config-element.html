@@ -107,7 +107,9 @@
 		
 		mergeConfiguration : function(configs) {
 		    var mc = this;
-		    mc.configs = null; // FIXME: for now overwrite the configs from server
+		    if (location.hostname != 'localhost' || location.hostname != '127.0.0.1'){
+		    	mc.configs = null;
+		    }
 		    if (!mc.configs) {
 				this.configs = configs;
 		    } else {
@@ -143,7 +145,8 @@
 				animationInterval : mc.animationInterval,
 				layerName : mc.layerName,
 				colorClasses : mc.colorClasses,
-				valueClasses : mc.valueClasses
+				valueClasses : mc.valueClasses,
+				layerOpacity : mc.layerOpacity
 		    }
 		    this.addOrUpdateConfig(config);
 		},
