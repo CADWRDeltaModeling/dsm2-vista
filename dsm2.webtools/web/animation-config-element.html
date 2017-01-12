@@ -107,6 +107,7 @@
 		
 		mergeConfiguration : function(configs) {
 		    var mc = this;
+		    mc.configs = null; // FIXME: for now overwrite the configs from server
 		    if (!mc.configs) {
 				this.configs = configs;
 		    } else {

@@ -4,9 +4,7 @@
 <title>DSM2 Grid Animation of Tidefile</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" type="image/png" href="favicon.png" />
-<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js">
-</script>
+<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="bower_components/paper-header-panel/paper-header-panel.html">
@@ -28,18 +26,11 @@
 <link rel="import" href="animation-config-element.html">
 <link rel="import" href="bower_components/iron-icons/av-icons.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">	
-<style is="custom-style" include="iron-flex iron-flex-alignment">
+<style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning">
 <style>
-
-#map {
-	width: 100%;
-	height: 100%;
-}
 #configSelector{
 	width: 100%;
 }
-</style>
-<style>
 #slider {
 	margin: 10px;
 }
@@ -148,12 +139,12 @@
 			</paper-material>
 		</div>
 	</paper-header-panel> 
-	<paper-header-panel main> 
+	<paper-header-panel main class="layout vertical"> 
 	<paper-toolbar>
 		<span class="title">DSM2 Grid Animation from DSM2 Tidefile Output</span>
 		<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
 	</paper-toolbar>
-	<dsm2grid-animation-element id="animationElement"
+	<dsm2grid-animation-element id="animationElement" class="fit"
 	type="[[dataType]]"
 	tidal-filter="{{tidalFilter}}"
 	tidefile="{{tidefile}}"

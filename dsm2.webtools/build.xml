@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="dsm2.webtools">
+    <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="D:/Programs/eclipse-jee-mars-R-win32/eclipse/"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <path id="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath">
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/annotations-api.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/catalina-ant.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/catalina-ha.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/catalina-tribes.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/catalina.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/ecj-4.2.2.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/el-api.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/jasper-el.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/jasper.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/jsp-api.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/servlet-api.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-api.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-coyote.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-dbcp.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-i18n-fr.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-i18n-ja.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-jdbc.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat-util.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/tomcat7-websocket.jar"/>
+        <pathelement location="D:/Programs/apache-tomcat-7.0.47/lib/websocket-api.jar"/>
+    </path>
+    <path id="Web App Libraries.libraryclasspath">
+        <pathelement location="web/WEB-INF/lib/JTransforms-3.1-with-dependencies.jar"/>
+        <pathelement location="web/WEB-INF/lib/ca.dwr.dsm2.jar"/>
+        <pathelement location="web/WEB-INF/lib/commons-math3-3.6.1.jar"/>
+        <pathelement location="web/WEB-INF/lib/vista.jar"/>
+        <pathelement location="web/WEB-INF/lib/dsm2-input-model.jar"/>
+        <pathelement location="web/WEB-INF/lib/dsm2-tidal-filters.jar"/>
+        <pathelement location="web/WEB-INF/lib/gridUtil.jar"/>
+        <pathelement location="web/WEB-INF/lib/gson-2.7.jar"/>
+        <pathelement location="web/WEB-INF/lib/gson-2.8.0.jar"/>
+        <pathelement location="web/WEB-INF/lib/gwt-servlet.jar"/>
+        <pathelement location="web/WEB-INF/lib/hec.jar"/>
+        <pathelement location="web/WEB-INF/lib/hecData.jar"/>
+        <pathelement location="web/WEB-INF/lib/heclib.jar"/>
+        <pathelement location="web/WEB-INF/lib/images.jar"/>
+        <pathelement location="web/WEB-INF/lib/jhdf5.jar"/>
+        <pathelement location="web/WEB-INF/lib/jhdf5obj.jar"/>
+        <pathelement location="web/WEB-INF/lib/jhdfobj.jar"/>
+        <pathelement location="web/WEB-INF/lib/rma.jar"/>
+    </path>
+    <path id="EAR Libraries.libraryclasspath"/>
+    <path id="dsm2.webtools.classpath">
+        <pathelement location="web/WEB-INF/classes"/>
+        <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
+        <path refid="Web App Libraries.libraryclasspath"/>
+        <path refid="EAR Libraries.libraryclasspath"/>
+        <pathelement location="D:/dev/gwt-2.8.0-rc3/gwt-codeserver.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="web/WEB-INF/classes"/>
+        <copy includeemptydirs="false" todir="web/WEB-INF/classes">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="web/WEB-INF/classes">
+            <fileset dir="test">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="web/WEB-INF/classes"/>
+        <delete dir="${build.dir}"/>
+    	<delete file="dsm2.webtools.war"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="web/WEB-INF/classes" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <src path="test"/>
+            <classpath refid="dsm2.webtools.classpath"/>
+        </javac>
+    </target>
+   	<property name="build.dir" value="ant-build"/>
+    <target name="polymer-build">
+    	<exec executable="cmd" dir="web" logError="yes">
+    		<arg line="/c ..\resources\polymerbuild.bat"/>
+    	</exec>
+    </target>
+    <target name="war-only">
+    	<zip destfile="dsm2.webtools.war" basedir="${build.dir}">
+    	</zip>
+    </target>
+    <target name="assemble-war" depends="clean,build">
+        <mkdir dir="${build.dir}"/>
+    	<copy includeEmptyDirs="false" todir="${build.dir}">
+    		<fileset dir="web">
+    			<exclude name="animconfigs/**"/>
+    			<exclude name="archived/**"/>
+    			<exclude name="build/**"/>
+    			<exclude name="**/*.dll"/>
+    			<!-- <exclude name="bower_components/**"/> 
+    			 <exclude name="*.html"/> 
+    			<exclude name="*.json"/> -->
+    		</fileset>
+    	</copy>
+    	<copy includeEmptyDirs="false" todir="${build.dir}/animconfigs">
+    		<fileset dir="resources/production-anim-configs">
+    		</fileset>
+    	</copy>
+	    <!--	<antcall target="polymer-build"/> -->
+    	<zip destfile="dsm2.webtools.war" basedir="${build.dir}">
+    	</zip>
+    	<copy todir="S:/Nicky/dsm2.webtools.server-production">
+    		<fileset file="dsm2.webtools.war">
+    		</fileset>
+    	</copy>
+    </target>
+       
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="AddChannelWidthToFlowlines">
+        <java classname="geojson.AddChannelWidthToFlowlines" failonerror="true" fork="yes">
+            <classpath refid="dsm2.webtools.classpath"/>
+        </java>
+    </target>
+    <target name="TestDSSCatalogSearch">
+        <java classname="dsm2.server.hec.test.TestDSSCatalogSearch" failonerror="true" fork="yes">
+            <jvmarg line="-Djava.library.path=&quot;C:/Program Files (x86)/HEC/HEC-DSSVue/lib&quot;"/>
+            <classpath refid="dsm2.webtools.classpath"/>
+        </java>
+    </target>
+    <target name="TestH5TimeSlice">
+        <java classname="dsm2.server.hec.test.TestH5TimeSlice" failonerror="true" fork="yes">
+            <jvmarg line="-Djava.library.path=U:/git/hec-dssvue-plugins/hecdssvue.ca.dwr.dsm2/lib-pkg;U:/git/hec-dssvue-plugins/hecdssvue.ca.dwr.dsm2/lib;"/>
+            <classpath refid="dsm2.webtools.classpath"/>
+        </java>
+    </target>
+    <target name="TestLowPassFilter">
+        <java classname="dsm2.server.hec.test.TestLowPassFilter" failonerror="true" fork="yes">
+            <jvmarg line="-Djava.library.path=&quot;C:/Program Files (x86)/HEC/HEC-DSSVue/lib;d:/wk-web/dsm2.webtools/web/WEB-INF/lib&quot;"/>
+            <classpath refid="dsm2.webtools.classpath"/>
+        </java>
+    </target>
+    <target name="TestLowPassFilterImpulseResponse">
+        <java classname="dsm2.server.hec.test.TestLowPassFilterImpulseResponse" failonerror="true" fork="yes">
+            <jvmarg line="-Djava.library.path=&quot;C:/Program Files (x86)/HEC/HEC-DSSVue/lib;d:/wk-web/dsm2.webtools/web/WEB-INF/lib&quot;"/>
+            <classpath refid="dsm2.webtools.classpath"/>
+        </java>
+    </target>
+</project>
