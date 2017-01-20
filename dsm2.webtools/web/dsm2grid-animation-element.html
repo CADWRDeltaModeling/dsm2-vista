@@ -160,6 +160,9 @@
 				if (!this.map){
 					return;
 				}
+				if (typeof(layerName) == 'undefined'){
+				    layerName = "Hydda.Full";
+				}
 				var newLayer = L.tileLayer.provider(layerName);
 				if (newLayer) {
 					if (this._layer) {

@@ -83,7 +83,7 @@
 		_configsChanged: function(){
 		    var mc = this;
 		    var locationElement = this.$.location;
-		    if (this.configs) {
+		    if (this.configs && mc.configs.length > 0) {
 				locationElement.hash.length > 0 ? mc.loadConfiguration(locationElement.hash) : mc.loadConfiguration(mc.configs[0].name);
 		    }
 		},

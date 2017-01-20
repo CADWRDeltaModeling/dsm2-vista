@@ -2,24 +2,38 @@
 <html>
 <head>
 <title>Time Slider</title>
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="./bower_components/polymer/polymer.html">
-<link rel="import"
-	href="./bower_components/paper-slider/paper-slider.html">
-<link rel="import"
-	href="./bower_components/paper-input/paper-input.html">
+<link rel="import" href="./bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="./bower_components/paper-input/paper-input.html">
+<link rel="import" href="./bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="./bower_components/paper-card/paper-card.html">
+<link rel="import" href="bower_components/iron-label/iron-label.html">	
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">	
+<script src="js/d3-time.v1.min.js"></script> 
+<script	src="js/d3-time-format.v2.min.js"></script> 
 </head>
 <body>
-	<dom-module id="time-slider"> <template>
-	<style>
-:host {
-	display: block;
-}
-</style>
-	<paper-input label="Date" value="[[currentImmediateTime]]"
-		on-change="_updateCurrentTime"></paper-input> <paper-slider
-		id="slider" snaps="true" maxMarkers="100000" name="Time" step="86400"></paper-slider>
-	</template> <script src="js/d3-time.v1.min.js"></script> <script
-		src="js/d3-time-format.v2.min.js"></script> <script>
+<dom-module id="time-slider"> 
+	<template>
+		<style include="iron-flex iron-flex-alignment iron-positioning"></style>
+		<style>
+			:host {
+				display: block;
+			}
+		</style>
+		<div class="layout horizontal">
+			<paper-input label="Date" value="[[currentImmediateTime]]"	on-change="_updateCurrentTime"></paper-input>
+			<!-- 
+			<iron-label> Month 
+			<paper-icon-button icon="icons:add"></paper-icon-button>
+			<paper-icon-button icon="icons:remove"></paper-icon-button>
+			</iron-label>
+			 -->
+		</div> 
+		<paper-slider id="slider" snaps="true" maxMarkers="100000" name="Time" step="86400"></paper-slider>
+	</template> 
+	<script>
 	    //allowed-pattern="\d+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d+"
 	    Polymer({
 		is : 'time-slider',
@@ -68,6 +82,7 @@
 		    this.currentTime = value;
 		    this.$.slider.value = this.timeParse(this.currentTime)
 			    .getTime();
+			this.currentImmediateTime = this.currentTime;
 		},
 
 		_onValueChange : function() {
@@ -142,6 +157,7 @@
 		ready : function() {
 		}
 	    });
-	</script> </dom-module>
+	</script> 
+</dom-module>
 </body>
 </html>

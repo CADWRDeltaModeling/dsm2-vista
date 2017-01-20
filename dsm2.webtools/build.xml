@@ -99,7 +99,7 @@
     	<zip destfile="dsm2.webtools.war" basedir="${build.dir}">
     	</zip>
     </target>
-    <target name="assemble-war" depends="clean,build">
+    <target name="assemble-war-production" depends="clean,build">
         <mkdir dir="${build.dir}"/>
     	<copy includeEmptyDirs="false" todir="${build.dir}">
     		<fileset dir="web">
@@ -107,9 +107,6 @@
     			<exclude name="archived/**"/>
     			<exclude name="build/**"/>
     			<exclude name="**/*.dll"/>
-    			<!-- <exclude name="bower_components/**"/> 
-    			 <exclude name="*.html"/> 
-    			<exclude name="*.json"/> -->
     		</fileset>
     	</copy>
     	<copy includeEmptyDirs="false" todir="${build.dir}/animconfigs">
@@ -123,6 +120,28 @@
     		<fileset file="dsm2.webtools.war">
     		</fileset>
     	</copy>
+    </target>
+    <target name="assemble-zip-dist" depends="clean,build">
+        <mkdir dir="${build.dir}"/>
+    	<copy includeEmptyDirs="false" todir="${build.dir}">
+    		<fileset dir="web">
+    			<exclude name="archived/**"/>
+    			<exclude name="build/**"/>
+    			<exclude name="**/*.dll"/>
+    		</fileset>
+    	</copy>
+    	<war destfile="dsm2.webtools.war" basedir="${build.dir}" webxml="${build.dir}/WEB-INF/web.xml">
+    	</war>
+    	<delete quiet="true">
+			<fileset dir="Z:/dsm2.webtools.server/apache-tomcat-7.0.47/webapps/ROOT">
+			</fileset>
+			<fileset dir="Z:/dsm2.webtools.server/apache-tomcat-7.0.47/logs">
+			</fileset>
+		</delete>
+    	<copy file="dsm2.webtools.war" tofile="Z:/dsm2.webtools.server/apache-tomcat-7.0.47/webapps/ROOT.war">
+    	</copy>
+    	<zip destfile="S:/Nicky/dsm2.webtools.server.zip" basedir="Z:/dsm2.webtools.server">
+    	</zip>
     </target>
        
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
