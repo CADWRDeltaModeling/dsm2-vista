@@ -1,10 +1,19 @@
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="bower_components/paper-item/paper-item.html">
+<!DOCTYPE html>
+<html>
 
-<dom-module id="color-brewer-selector">
-	<template>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="import" href="bower_components/polymer/polymer.html">
+    <link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+    <link rel="import" href="bower_components/paper-item/paper-item.html">
+</head>
+
+<body>
+    <dom-module id="color-brewer-selector">
+        <template>
     <style type="text/css">
       :host {
       background: #ccc;
@@ -43,53 +52,56 @@
 	   	  	<paper-item colors="{{item.colors}}">
 				<div class="palette" title="{{item.key}}">
 				<template is="dom-repeat" as="color" items="{{item.colors}}">
-					<div class="swatch" style="background-color: {{color"></div>
+					<div class="swatch" style$="background-color: [[color]]"></div>
 				</template>
-	</div>
-	</paper-item>
-	</template>
-	</paper-listbox>
-	</paper-dropdown-menu>
-	</template>
-	<script src="js/colorbrewer.js" type="text/javascript"></script>
-	<script type="text/javascript">
-		var schemeNames = {
-			"sequential": ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
-			"singlehue": ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
-			"diverging": ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
-			"qualitative": ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
-		};
-		Polymer({
-			is: 'color-brewer-selector',
-			properties: {
-				selectedColors: {
-					type: Array,
-					value: ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"],
-					notify: true,
-					readOnly: false,
-					observer: '_changedSelectedColors'
-				}
-			},
-			_changedSelectedColors: function(newValue, oldValue) {},
+        </div>
+        </paper-item>
+        </template>
+        </paper-listbox>
+        </paper-dropdown-menu>
+        </template>
+        <script src="js/colorbrewer.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            var schemeNames = {
+                "sequential": ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
+                "singlehue": ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
+                "diverging": ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
+                "qualitative": ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
+            };
+            Polymer({
+                is: 'color-brewer-selector',
+                properties: {
+                    selectedColors: {
+                        type: Array,
+                        value: ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"],
+                        notify: true,
+                        readOnly: false,
+                        observer: '_changedSelectedColors'
+                    }
+                },
+                _changedSelectedColors: function(newValue, oldValue) {},
 
-			ready: function() {
-				var data = []
-				var keys = Object.keys(colorbrewer);
-				for (i = 0; i < keys.length; i++) {
-					var key = keys[i];
-					var k2 = Object.keys(colorbrewer[key]).sort(function(a, b) {
-						return parseInt(a) - parseInt(b)
-					});
-					var cc = colorbrewer[key][k2[k2.length - 1]];
-					var cckey = key + "_" + k2[k2.length - 1];
-					data.push({
-						key: cckey,
-						colors: cc
-					});
-				}
-				this.colorData = data; // done to push the change notification
+                ready: function() {
+                    var data = []
+                    var keys = Object.keys(colorbrewer);
+                    for (i = 0; i < keys.length; i++) {
+                        var key = keys[i];
+                        var k2 = Object.keys(colorbrewer[key]).sort(function(a, b) {
+                            return parseInt(a) - parseInt(b)
+                        });
+                        var cc = colorbrewer[key][k2[k2.length - 1]];
+                        var cckey = key + "_" + k2[k2.length - 1];
+                        data.push({
+                            key: cckey,
+                            colors: cc
+                        });
+                    }
+                    this.colorData = data; // done to push the change notification
 
-			}
-		});
-	</script>
-</dom-module>
+                }
+            });
+        </script>
+    </dom-module>
+</body>
+
+</html>
