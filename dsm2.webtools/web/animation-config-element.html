@@ -131,7 +131,7 @@
                 },
 
                 setConfiguration: function(config) {
-                    this.configSelected = Object.assign({},config); // make a copy
+                    this.configSelected = this.copyProperties({}, config); //Object.assign({},config); // make a copy
                     this.configName = this.configSelected.name;
                     this.fire('config-selected', this.configSelected);
                 },
@@ -143,7 +143,7 @@
                 saveConfig: function() {
                     var mc = document.getElementById('mainContext');
                     var configInputElement = this.$.configNameInput
-                    var config = Object.assign({},this.configSelected,{name: configInputElement.value});
+                    var config = this.copyProperties(this.copyProperties({},this.configSelected),{name: configInputElement.value});
                     this.addOrUpdateConfig(config);
                     this.setConfiguration(config);
                 },
@@ -155,13 +155,7 @@
                         var xconfig = mc.configs[i];
                         if (xconfig.name == config.name) {
                             if (override) {
-                                if (typeof(config.differenceType) == 'undefined') {
-                                    config.differenceType = 'absolute';
-                                }
-                                if (typeof(config.tidalFilter) == 'undefined') {
-                                    config.tidalFilter = false;
-                                }
-                                Object.assign(xconfig, config);
+                                xconfig = this.copyProperties(xconfig, config);
                             }
                             return;
                         }
@@ -223,6 +217,16 @@
                     for (var i = 0; i < files.length; i++) {
                         r.readAsText(files[i]);
                     }
+                },
+
+                /* FIXME: This function is because Object.assign is not available in IE */
+                copyProperties: function(target, source) {
+                    var nms = Object.getOwnPropertyNames(source);
+                    for (var i = 0; i < nms.length; i++) {
+                		var key = nms[i];
+                		target[key] = source[key];
+                    }
+                    return target;
                 }
             });
         </script>
