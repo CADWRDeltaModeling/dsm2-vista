@@ -52,23 +52,23 @@
 			<paper-material elevation="3">
 				<div label="Controls" class="layout horizontal">
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
-					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{tidefile}}"
+					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{config.tidefile}}"
 							handle-as="json"
 							last-response="{{h5info}}"
 							debounce-duration="1000">
 					</iron-ajax>
-					<paper-listbox class="dropdown-content" selected="{{dataType}}" attr-for-selected="value">
+					<paper-listbox class="dropdown-content" selected="{{config.dataType}}" attr-for-selected="value">
 						<template is="dom-repeat" items="[[h5info.dataTypeNames]]">
 							<paper-item value="[[index]]">[[item]]</paper-item>
 						</template>
 	</paper-listbox>
 	</paper-dropdown-menu>
-	<paper-toggle-button id="tidalFilterToggle" checked="{{tidalFilter}}">Tidally Filter</paper-toggle-button>
+	<paper-toggle-button id="tidalFilterToggle" checked="{{config.tidalFilter}}">Tidally Filter</paper-toggle-button>
 	</div>
-	<paper-input id="fileinput" value="{{tidefile}}" label="Tidefile"></paper-input>
-	<paper-input id="basefileinput" value="{{baseTidefile}}" label="Base Tidefile"></paper-input>
+	<paper-input id="fileinput" value="{{config.tidefile}}" label="Tidefile"></paper-input>
+	<paper-input id="basefileinput" value="{{config.baseTidefile}}" label="Base Tidefile"></paper-input>
 	<paper-dropdown-menu id="diffTypeSelector" label="Difference Type">
-		<paper-listbox class="dropdown-content" selected="{{differenceType}}" attr-for-selected="value">
+		<paper-listbox class="dropdown-content" selected="{{config.differenceType}}" attr-for-selected="value">
 			<paper-item value="absolute">Absolute</paper-item>
 			<paper-item value="relative">Relative</paper-item>
 		</paper-listbox>
@@ -81,25 +81,25 @@
 		</div>
 	</paper-material>
 	<paper-material elevation="3">
-		<time-slider current-time="{{animateStartTime}}" begin-time="[[h5info.startDate]]" end-time="[[h5info.endDate]]"></time-slider>
+		<time-slider current-time="{{config.animateStartTime}}" begin-time="[[h5info.startDate]]" end-time="[[h5info.endDate]]"></time-slider>
 	</paper-material>
 	<paper-material elevation="3">
 		<div class="container flex-horizontal">
-			<div id="anim">Animation Interval: {{animationInterval}} milliseconds</div>
+			<div id="anim">Animation Interval: {{config.animationInterval}} milliseconds</div>
 			<div class="container flex-horizontal">
-				<paper-slider id="slider" name="Animation Interval: " min="5" max="500" step="5" value="{{animationInterval}}"></paper-slider>
+				<paper-slider id="slider" name="Animation Interval: " min="5" max="500" step="5" value="{{config.animationInterval}}"></paper-slider>
 			</div>
 		</div>
 	</paper-material>
 	<paper-material elevation="3">
 		<div class="container flex-horizontal">
-			<div id="layer-opacity">Layer Opacity: [[layerOpacity]] </div>
+			<div id="layer-opacity">Layer Opacity: [[config.layerOpacity]] </div>
 			<div class="container flex-horizontal">
-				<paper-slider id="opacity-slider" name="Layer Opacity: " min="0" max="100" step="1" value="{{layerOpacity}}"></paper-slider>
+				<paper-slider id="opacity-slider" name="Layer Opacity: " min="0" max="100" step="1" value="{{config.layerOpacity}}"></paper-slider>
 			</div>
 		</div>
 		<paper-dropdown-menu id="mapselector" label="Map Background">
-			<paper-listbox class="dropdown-content" selected="{{layerName}}" attr-for-selected="value">
+			<paper-listbox class="dropdown-content" selected="{{config.layerName}}" attr-for-selected="value">
 				<paper-item value="Hydda.Full">Hydda.Full</paper-item>
 				<paper-item value="Hydda.Base">Hydda.Base</paper-item>
 				<paper-item value="Hydda.RoadsAndLabels">Hydda.RoadsAndLabels</paper-item>
@@ -133,13 +133,13 @@
 	</paper-material>
 	<paper-material elevation="3">
 		<paper-icon-button icon="editor:linear-scale" id="autoscale"></paper-icon-button>
-		<array-input-editor label="Value Classes" current-value-as-array="{{valueClasses}}"></array-input-editor>
+		<array-input-editor label="Value Classes" current-value-as-array="{{config.valueClasses}}"></array-input-editor>
 	</paper-material>
 	<paper-material elevation="3">
-		<color-brewer-selector selected-colors='{{colorClasses}}'></color-brewer-selector>
+		<color-brewer-selector selected-colors='{{config.colorClasses}}'></color-brewer-selector>
 	</paper-material>
 	<paper-material elevation="3">
-		<animation-config-element id="config-selector" on-config-selected="handleConfigSelected" config-selected="[[config]]"></animation-config-element>
+		<animation-config-element id="config-selector" config-selected="{{config}}"></animation-config-element>
 	</paper-material>
 	</div>
 	</paper-header-panel>
@@ -148,8 +148,8 @@
 			<span class="title">DSM2 Grid Animation from DSM2 Tidefile Output</span>
 			<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
 		</paper-toolbar>
-		<dsm2grid-animation-element id="animationElement" class="fit" type="[[dataType]]" tidal-filter="{{tidalFilter}}" tidefile="{{tidefile}}" base-tidefile="{{baseTidefile}}" center="[38.125, -121.6]" zoom="10" animate-interval="{{animationInterval}}" animate-start-time="[[animateStartTime]] 0000"
-						color-classes="{{colorClasses}}" value-classes="{{valueClasses}}" layer-opacity="{{layerOpacity}}" layer-name="{{layerName}}" difference-type="{{differenceType}}">
+		<dsm2grid-animation-element id="animationElement" class="fit" type="[[config.dataType]]" tidal-filter="{{config.tidalFilter}}" tidefile="{{config.tidefile}}" base-tidefile="{{config.baseTidefile}}" center="[38.125, -121.6]" zoom="10" animate-interval="{{config.animationInterval}}" animate-start-time="[[config.animateStartTime]] 0000"
+						color-classes="{{config.colorClasses}}" value-classes="{{config.valueClasses}}" layer-opacity="{{config.layerOpacity}}" layer-name="{{config.layerName}}" difference-type="{{config.differenceType}}">
 			</dsm2grid-animation-element>
 	</paper-header-panel>
 	</paper-drawer-panel>
@@ -172,35 +172,6 @@
 				animateStartStop.checked = true;
 			}
 
-			mc.setConfiguration = function(config) {
-				if (typeof config.dataType === "undefined") {
-					config.dataType = "0"; // upgrade code, not needed over time
-					mc.dataType = "0";
-				} else {
-					mc.dataType = config.dataType;
-				}
-				if (typeof config.tidalFilter == "undefined") {
-					config.tidalFilter = false;
-				}
-				if (typeof config.layerOpacity == 'undefined') {
-					config.layerOpacity = 100;
-				}
-				mc.tidalFilter = config.tidalFilter
-				mc.tidefile = config.tidefile;
-				mc.baseTidefile = config.baseTidefile;
-				mc.differenceType = config.differenceType;
-				mc.layerName = config.layerName;
-				mc.animateStartTime = config.animateStartTime;
-				mc.animationInterval = config.animationInterval;
-				mc.colorClasses = config.colorClasses;
-				mc.valueClasses = config.valueClasses;
-				mc.layerOpacity = config.layerOpacity;
-				mc.restartAnimation();
-			};
-
-			mc.handleConfigSelected = function(event) {
-				mc.setConfiguration(event.detail);
-			};
 
 			var restart = document.getElementById("restart");
 			animateStartStop.addEventListener('change', function(e) {
@@ -214,7 +185,6 @@
 				mc.restartAnimation();
 			});
 
-
 			var autoscale = document.getElementById("autoscale");
 			autoscale.addEventListener('tap', function() {
 				document.getElementById('animationElement').autoScale();
@@ -223,18 +193,13 @@
 
 			var fileInput = document.getElementById("fileinput");
 			fileInput.addEventListener('change', function(e) {
-				//console.log('File Input changed',e);
 				document.getElementById('mainContext').tidefile = e.target.value;
 			});
 
 			var baseFileInput = document.getElementById("basefileinput");
 			baseFileInput.addEventListener('change', function(e) {
-				//console.log('Base File Input changed',e);
 				document.getElementById('mainContext').baseTidefile = e.target.value;
 			})
-
-
-			mc.setConfiguration(document.getElementById('config-selector').configSelected);
 
 		});
 	</script>

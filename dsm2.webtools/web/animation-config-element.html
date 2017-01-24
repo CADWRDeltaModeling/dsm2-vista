@@ -27,7 +27,8 @@
                 width: 100%;
             }
         </style>
-        <template>
+    <template>
+    <input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display: none" onchange="this.parentElement.uploadConfig(this.files)" />
 	<iron-ajax id="animConfigRequest" auto url="dsm2animconfig"
 			handle-as="json"
 			on-response="handleServerConfigResponse">
@@ -45,9 +46,8 @@
                 <div>
                     <paper-input id="configNameInput" label="Config Name" value="[[configName]]"></paper-input>
                     <paper-icon-button alt="Save" icon="icons:save" id="save" on-tap="saveConfig"></paper-icon-button>
-                    <paper-icon-button alt="Delte" icon="icons:delete" id="load" on-tap="deleteConfig"></paper-icon-button>
+                    <paper-icon-button alt="Delete" icon="icons:delete" id="load" on-tap="deleteConfig"></paper-icon-button>
                     <paper-icon-button alt="Download" icon="icons:file-download" id="download" on-tap="downloadConfig"></paper-icon-button>
-                    <input type="file" id="uploadFileInputElement" multiple accept="*/*" style="display: none" onchange="document.getElementById('mainContext').uploadConfig(this.files)" />
                     <paper-icon-button alt="Upload" icon="icons:file-upload" id="upload" on-tap="openUploadDialog"></paper-icon-button>
                 </div>
                 <app-localstorage-document key="configs" data="{{configs}}"></app-localstorage-document>
@@ -73,8 +73,6 @@
                 },
 
                 ready: function() {
-                    //console.log("ready fired on animation-config-element");
-                    //console.log(this);
                     var mc = this;
                     var locationElement = this.$.location;
                     if (locationElement) {
@@ -86,11 +84,8 @@
                 },
 
                 _configsChanged: function() {
-                    //console.log("_configsChanged: animation-config-element");
-                    //console.log(this);
                     var mc = this;
                     var locationElement = this.$.location;
-                    //console.log('location element: ', locationElement);
                     if (locationElement) {
                         if (this.configs && mc.configs.length > 0) {
                             locationElement.hash.length > 0 ? mc.loadConfiguration(locationElement.hash) : mc.loadConfiguration(mc.configs[0].name);
@@ -121,7 +116,7 @@
 
                 mergeConfiguration: function(configs) {
                     var mc = this;
-                    if (location.hostname != 'localhost' || location.hostname != '127.0.0.1') {
+                    if (location.hostname != 'localhost' && location.hostname != '127.0.0.1') {
                         mc.configs = null;
                     }
                     if (!mc.configs) {
@@ -136,7 +131,8 @@
                 },
 
                 setConfiguration: function(config) {
-                    this.configSelected = config;
+                    this.configSelected = Object.assign({},config); // make a copy
+                    this.configName = this.configSelected.name;
                     this.fire('config-selected', this.configSelected);
                 },
 
@@ -147,21 +143,9 @@
                 saveConfig: function() {
                     var mc = document.getElementById('mainContext');
                     var configInputElement = this.$.configNameInput
-                    config = {
-                        name: configInputElement.value,
-                        dataType: mc.dataType,
-                        tidalFilter: mc.tidalFilter,
-                        tidefile: mc.tidefile,
-                        baseTidefile: mc.baseTidefile,
-                        differenceType: mc.differenceType,
-                        animateStartTime: mc.animateStartTime,
-                        animationInterval: mc.animationInterval,
-                        layerName: mc.layerName,
-                        colorClasses: mc.colorClasses,
-                        valueClasses: mc.valueClasses,
-                        layerOpacity: mc.layerOpacity
-                    }
+                    var config = Object.assign({},this.configSelected,{name: configInputElement.value});
                     this.addOrUpdateConfig(config);
+                    this.setConfiguration(config);
                 },
 
                 addOrUpdateConfig: function(config, override) {
@@ -187,6 +171,9 @@
 
                 deleteConfig: function() {
                     var mc = this;
+                    if (mc.configs.length == 0){
+                    	return;
+                    }
                     var i = 0;
                     for (i = 0; i < mc.configs.length; i++) {
                         var config = mc.configs[i]
@@ -194,8 +181,14 @@
                             break;
                         }
                     }
+                    if (i >= mc.configs.length){
+                    	return;
+                    }
+                    var configToBeDeleted = mc.configs[i].name;
                     mc.splice('configs', i, 1);
-                    //console.log('Deleted config',config.name);
+                    if (mc.configs.length > 0){
+                    	mc.setConfiguration(mc.configs[0]);
+                    }
                 },
 
                 downloadConfig: function() {
@@ -214,9 +207,9 @@
                 },
 
                 openUploadDialog: function() {
-                    this.$.uploadFileInputElement.click();
+                   this.$.uploadFileInputElement.click();
                 },
-
+                
                 uploadConfig: function(files) {
                     var mc = this;
                     var r = new FileReader();
@@ -224,6 +217,7 @@
                         if (e.target.readyState == FileReader.DONE) {
                             var config = JSON.parse(e.target.result);
                             mc.addOrUpdateConfig(config);
+                            mc.setConfiguration(config);
                         }
                     }
                     for (var i = 0; i < files.length; i++) {
