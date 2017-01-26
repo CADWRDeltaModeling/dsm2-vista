@@ -412,9 +412,9 @@
 				//--- update reservoir colors
 				this.reservoirStops.data(rdata)
 				if (this.animateInterval > 200) {
-					this.stops1.transition("smoother").duration(this.animateInterval * 1.5).style('stop-color', this._interpolateColor)
-					this.stops2.transition("smoother").duration(this.animateInterval * 1.5).style('stop-color', this._interpolateColor)
-					this.reservoirStops.transition("smoother").duration(this.animateInterval * 1.5).style('stop-color', this._interpolateColor)
+					this.stops1.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
+					this.stops2.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
+					this.reservoirStops.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
 				} else {
 					this.stops1.style('stop-color', this._interpolateColor)
 					this.stops2.style('stop-color', this._interpolateColor)
