@@ -235,9 +235,11 @@
 					var point = pt._subtract(lmap.getPixelOrigin())
 					this.stream.point(point.x, point.y);
 				};
+				
 				var transform = d3.geoTransform({
 					point: projectPoint
 				})
+
 				this.path = d3.geoPath().projection(transform);
 				// now svg elements and gradient elements are added to dom
 				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
@@ -290,6 +292,8 @@
 				}).style('fill', 'none').style('stroke-width', function(d) {
 					return d.properties.width / 100.0;
 				}).style('shape-rendering', 'optimizeSpeed');
+				
+				this.gX2 = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 			},
 
 			// Reposition the SVG to cover the features.
@@ -302,9 +306,10 @@
 					"height", bottomRight[1] - topLeft[1]).style(
 					"left", topLeft[0] + "px").style("top",
 					topLeft[1] + "px");
-
+				//this.svg.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 				this.gChannels.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 				this.gReservoirs.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+				this.gX2.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 
 				var factor = (bottomRight[0] - topLeft[0])
 				this.flow_features.attr("d", this.path).style(
@@ -315,6 +320,9 @@
 						return Math.max(swidth, 8);
 					});
 				this.reservoir_features.attr("d", this.path);
+				if (this.x2lines){
+					this.x2lines.attr("d", this.x2lg);
+				}
 			},
 
 			_generateURLForSliceRequest: function(sliceRequestTime) {
@@ -404,8 +412,76 @@
 				this.timer = d3.interval(this.animate.bind(this), this.animateInterval);
 				////console.log('initDataLoad: ', this.timer);
 			},
-
+			
+			_calcX2Points: function(data){
+			    var n = data[0].length;
+			    var x2val = 2750; // value of X2 in EC umhos/cm
+			    var cfeatures = this.dsm2_flowlines.features;
+			    x2locs = [];
+			    for(var i=0; i<n; i++){
+					var uval = data[0][i]; 
+					var dval = data[1][i];
+					if ((x2val > uval && x2val < dval) || (x2val < uval && x2val > dval)){
+						//console.log(i,this.sliceData.channelIds[i], uval, dval, x2val);
+						var r = (x2val-uval)/(dval-uval);
+						var c = cfeatures[i].geometry.coordinates;
+						var uc = c[0];
+						var dc = c[c.length-1];
+						var x2loc = [uc[0]+r*(dc[0]-uc[0]),uc[1]+r*(dc[1]-uc[1])];
+						//console.log(x2loc);
+						x2locs.push(x2loc);
+					}
+			    }
+			    //console.log(x2locs);
+			    x2locs.sort(function(a,b){ return a[1]-b[1];});
+				/*
+			    if (x2locs.length == 1){
+			    	pt = x2locs[0]
+					x2locs.splice(0,0,[pt[0],pt[1]-0.05]);				
+					x2locs.push([pt[0],pt[1]+0.05]);				
+			    } else {
+					var extendToDist = function(p1,p2,direction){
+						var xl = p2[0]-p1[0];
+						var yl = p2[1]-p1[1];
+						var dt = Math.sqrt(xl*xl+yl*yl);
+						var ny = p1[1]+direction*Math.sin(yl/dt)*dt;
+						var nx = p2[0]+(p2[1]-ny)*(xl/yl);
+						return [nx,ny];    
+					}
+					n=x2locs.length;
+					var p1 = x2locs[0];
+					var p2 = x2locs[n-1];
+					x2locs.splice(0,0,extendToDist(p1,p2,-0.5));
+					//
+					p2=x2locs[0];
+					p1=x2locs[n-1];
+					x2locs.push(extendToDist(p1,p2,-0.5));
+			    }
+				*/
+			    //console.log(x2locs);
+				return x2locs;  
+			},
+			
 			_updateColorsForSlice: function(data, rdata, stime) {
+			    // --- draw line for x2
+			    var x2pts = this._calcX2Points(data);
+			    if (this.x2line){
+					this.x2line.data([x2pts]).attr("d",this.x2lg);
+			    } else {
+					var mapProjectPoint = function(c) {
+	  					y = c[1], x = c[0];
+  						var pt = this.map.project(new L.LatLng(y, x), this.map.getZoom());
+  						var point = pt._subtract(this.map.getPixelOrigin())
+  						return point;
+					}.bind(this);
+					this.x2lg = d3.line()
+						.curve(d3.curveBasis)
+						.x(function(d){ return mapProjectPoint(d).x; })
+						.y(function(d){ return mapProjectPoint(d).y; });
+	  				this.x2line = this.gX2.selectAll("path").data([x2pts]).enter().append("path").attr("d",this.x2lg)
+	  				.style("stroke","red").style("fill","none").style("stroke-width","6")
+	  				.style("stroke-linecap","round").style("stroke-linejoin","bevel");
+			    }
 				//--------- UPDATE COLORS ON VIEW-----------
 				this.stops1.data(data[0])
 				this.stops2.data(data[1])
