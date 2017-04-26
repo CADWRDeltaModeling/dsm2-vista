@@ -90,7 +90,7 @@
 				},
 				flowLinesFile: {
 					type: String,
-					value: "json/dsm2-flowlines-width.geojson",
+					value: "json/dsm2-channels.geojson",
 					readOnly: false,
 				},
 				hydroEchoFile: {
@@ -193,6 +193,16 @@
 			},
 
 			drawDSM2Channels: function(value) {
+			    /*
+				for (var i=0; i < value.features.length; i++){
+					var f = value.features[i];
+					var carray = f.geometry.coordinates;
+					parray = carray.map(L.point);
+					parray = L.LineUtil.simplify(parray,0.005);
+					carray = parray.map(function(d){return [d.x,d.y]});
+					f.geometry.coordinates = carray;
+				}
+			    */
 				this.dsm2_flowlines = value;
 				// Use Leaflet to implement a D3 geometric transformation.
 				var lmap = this.map;
@@ -211,7 +221,7 @@
 					.data(this.dsm2_flowlines.features)
 					.enter().insert("path", "circle")
 					.attr("id", function getid(d) {
-						return d.properties.channel_nu;
+						return d.properties.Name;
 					})
 					.style('stroke', 'blue')
 					.style('fill', 'none').style('stroke-width', '10px')
@@ -234,16 +244,17 @@
 					.attr("dy", "-10px")
 					.append("textPath")
 					.attr("xlink:href", function(d) {
-						return "#" + d.properties.channel_nu
+						return "#" + d.properties.Name
 					}).attr("startOffset", "50%")
 				this.flow_text.text(function(d) {
-					return d.properties.channel_nu
+					return d.properties.Name
 				});
 				this.flow_features.attr("d", function(d) {
-					c0 = d.geometry.coordinates[0];
-					cn = d.geometry.coordinates[d.geometry.coordinates.length - 1];
+					var carray = d.geometry.coordinates[0];
+					c0 = carray[0];
+					cn = carray[carray.length - 1];
 					if (c0[0] > cn[0]) {
-						d.geometry.coordinates.reverse();
+						carray.reverse();
 					}
 					return this.path(d);
 				}.bind(this))

@@ -44,6 +44,18 @@ public class XSectionProfileTest extends TestCase {
 		List<XSectionLayer> layers = profile.calculateLayers();
 		assertNotNull(layers);
 	}
+	
+	public void testChannel604Profile(){
+		XSectionProfile profile = new XSectionProfile();
+		profile.setChannelId(604);
+		profile.setDistance(0.1);
+		profile.setEndPoints(Arrays.asList(new double[] { 0, 10 }, new double[] {
+				0, -0.71 }, new double[]{6701.83,-1.98}, new double[]{7421.05,-1.83}, new double[]{7421.05,10}));
+		profile.setId(123);
+		profile.getMinimumElevation();
+		XSectionLayer bottomLayer = profile.calculateLayer(profile.getMinimumElevation());
+		
+	}
 
 	public static void assertApproxEquals(double expected, double actual) {
 		assertTrue(Math.abs(expected - actual) < 1e-6);

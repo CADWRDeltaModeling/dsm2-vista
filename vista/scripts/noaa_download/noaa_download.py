@@ -15,7 +15,11 @@ import java
 sdf = SimpleDateFormat("yyyyMMdd")
 def get_noaa_data_as_array_of_lines(stationId, beginDate, endDate):
     import urllib
-    url = "http://opendap.co-ops.nos.noaa.gov/axis/webservices/waterlevelverifiedsixmin/response.jsp?stationId=%s&beginDate=%s&endDate=%s&datum=MSL&unit=1&timeZone=1&format=text&Submit=Submit"%(stationId, beginDate, endDate)
+    #url for 6 min verified data 
+    #url = "http://opendap.co-ops.nos.noaa.gov/axis/webservices/waterlevelverifiedsixmin/response.jsp?stationId=%s&beginDate=%s&endDate=%s&datum=MSL&unit=1&timeZone=1&format=text&Submit=Submit"%(stationId, beginDate, endDate)
+    #url for hourly verified data
+    url = "https://tidesandcurrents.noaa.gov/api/datagetter?product=hourly_height&application=NOS.COOPS.TAC.WL&begin_date=%s&end_date=%s&datum=NAVD&station=%s&time_zone=GMT&units=english&format=csv"%(beginDate, endDate, stationId)
+    print url
     response = urllib.urlopen(url)
     result = response.readlines()
     response.close()
@@ -114,8 +118,8 @@ if __name__=='__main__':
                   #'MTZ':['9415102'] #
                   #'RICHMOND':['9414863']
                   }
-    beginDate='20080101'
-    endDate='20140701'
+    beginDate='19900101'
+    endDate='20170101'
     for name in station_info.keys():
         print 'Downloading data for %s'%name
         stationId=station_info[name][0]

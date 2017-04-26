@@ -40,7 +40,7 @@ def create_path_pattern(pathstr):
     parts=['A','B','C','D','E','F']
     pattern=""
     for part in range(len(parts)):
-        pattern=pattern+"%s=%s"%(parts[part],fields[part])
+        pattern=pattern+"%s=%s"%(parts[part],fields[part+1])
     return pattern
 def get_matching(dss,pattern):
     """
