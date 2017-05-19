@@ -25,5 +25,6 @@
 	<classpathentry kind="lib" path="lib/logback-core-1.0.9.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/dsm2-input-model.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.8.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
