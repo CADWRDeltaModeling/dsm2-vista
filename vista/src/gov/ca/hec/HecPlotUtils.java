@@ -28,13 +28,23 @@ public class HecPlotUtils {
 	    panel.remove(components[-1]);
 	}
 	
+	/**
+	 * Create a new plot with the title
+	 * @param title
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	public static  G2dDialog newPlot(String title){
 	    G2dPanelProp plotProp = new G2dPanelProp();
 	    plotProp.sethasToolbar(false);
 	    return new G2dDialog(null, title, false, new Vector(), plotProp);
 	}
-	
+	/**
+	 * Saves the plot to a png file
+	 * @param p
+	 * @param filename
+	 * @throws IOException
+	 */
 	public static void saveToPNG(JPanel p, String filename) throws IOException{
 	    BufferedImage bi = new BufferedImage(p.getSize().width, p.getSize().height, BufferedImage.TYPE_INT_ARGB); 
 	    Graphics2D g = bi.createGraphics();
@@ -44,12 +54,20 @@ public class HecPlotUtils {
 	    g.dispose();
 	    ImageIO.write(bi, "png", new File(filename));
 	}
-
-	public static void plot(DataContainer[] data, String title) {
+	
+	/**
+	 * Create a new plot with the given data array and title
+	 * @param data array of time series
+	 * @param title
+	 * @return
+	 */
+	public static G2dDialog plot(DataContainer[] data, String title) {
 		G2dDialog plot = newPlot(title);
 		for(int i=0; i < data.length; i++){
 			plot.addData(data[i]);
 		}
+		plot.showPlot();
+		return plot;
 	}
 
 }
