@@ -90,7 +90,7 @@ def generate_ccfb_timings(th, tl):
         prev_e = e
     ccfb_cleaned = IrregularTimeSeries('CCFB cleaned', times, values, None, attr)
     print 'Writing CCFB gate open/close timings to priority-3 pathname in ccfb.dss'
-    vdss.writedss('ccfb.dss','/planning/ccfb-cleaned/gate//ir-mon/priority-3/',ccfb_cleaned)
+    vdss.writedss('ccfb.dss','/planning/ccfb/gate//ir-mon/priority-3/',ccfb_cleaned)
     return ccfb
 #
 if __name__ == '__main__':
