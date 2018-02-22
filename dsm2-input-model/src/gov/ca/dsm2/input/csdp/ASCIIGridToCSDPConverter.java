@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 
 /**
  * Convers an ASCII grid DEM file to CSDP prn file :-
+ * The ASCII grid should be in NAD83 with units of meter.
  * 
  * <pre>
  *   ;HorizontalDatum: UTMNAD83
@@ -37,17 +38,17 @@ public class ASCIIGridToCSDPConverter {
 		converter.convert();
 	}
 
-	private File inFile;
-	private File outFile;
+	private String inFilename;
+	private String outFilename;
 
 	public ASCIIGridToCSDPConverter(String inFileName, String outFileName) {
-		inFile = new File(inFileName);
-		outFile = new File(outFileName);
+		this.inFilename = inFileName;
+		this.outFilename = outFileName;
 	}
 
 	public void convert() throws Exception {
-		BufferedReader reader = new BufferedReader(new FileReader(inFile));
-		PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+		BufferedReader reader = new BufferedReader(new FileReader(this.inFilename));
+		PrintWriter writer = new PrintWriter(new FileWriter(this.outFilename));
 		String[] headers = new String[] { ";HorizontalDatum:  UTMNAD83",
 				";HorizontalZone:   10", ";HorizontalUnits:  Meters",
 				";VerticalDatum:    NAVD88", ";VerticalUnits:    USSurveyFeet",
@@ -91,7 +92,7 @@ public class ASCIIGridToCSDPConverter {
 			String[] fields = line.split("\\s");
 			if ((i % pct) == 0) {
 				System.out.println("Processed " + i + " of " + nrows
-						+ " rows from file " + inFile);
+						+ " rows from file " + inFilename);
 			}
 			for (int j = 0; j < fields.length; j++) {
 				double x = xllcorner + (j * cellsize);
