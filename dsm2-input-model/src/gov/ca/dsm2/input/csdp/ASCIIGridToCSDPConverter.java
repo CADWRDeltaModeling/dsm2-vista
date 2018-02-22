@@ -48,7 +48,8 @@ public class ASCIIGridToCSDPConverter {
 
 	public void convert() throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader(this.inFilename));
-		PrintWriter writer = new PrintWriter(new FileWriter(this.outFilename));
+		File tempFile = File.createTempFile("csdp", "prn");
+		PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
 		String[] headers = new String[] { ";HorizontalDatum:  UTMNAD83",
 				";HorizontalZone:   10", ";HorizontalUnits:  Meters",
 				";VerticalDatum:    NAVD88", ";VerticalUnits:    USSurveyFeet",
@@ -88,6 +89,7 @@ public class ASCIIGridToCSDPConverter {
 		int numberOfValues = nrows * ncols;
 		writer.println(";NumElements: " + numberOfValues);
 		int pct = nrows / 100;
+		int realCount=0;
 		for (int i = 0; i < nrows; i++) {
 			String[] fields = line.split("\\s");
 			if ((i % pct) == 0) {
@@ -105,15 +107,32 @@ public class ASCIIGridToCSDPConverter {
 				if (Math.abs(rawDepth - nodataValue) <= 1e-5) {
 					depth = -9999;
 				} else {
-					depth = rawDepth / 0.3048 / 1000;
+					depth = rawDepth / 0.3048;
+					realCount++;
+					writer.println(String.format("%12.5f,%12.5f,%4.2f,%s,%s", x, y,
+							depth, "2014", "RFW-DEM"));
 				}
-				writer.println(String.format("%12.5f,%12.5f,%4.2f,%s,%s", x, y,
-						depth, "2014", "RFW-DEM"));
 			}
 			line = reader.readLine();
 		}
 		writer.close();
 		reader.close();
+		//
+		System.out.println("Actual number of points in data: "+realCount);
+		// rewrite with realcount
+		reader = new BufferedReader(new FileReader(tempFile));
+		writer = new PrintWriter(new FileWriter(this.outFilename));
+		 line = reader.readLine();
+		while (line!=null){
+			if (line.startsWith(";NumElements:")){
+				line=";NumElements: "+realCount;
+			}
+			writer.println(line);
+			line=reader.readLine();
+		}
+		reader.close();
+		writer.close();
+		tempFile.delete();
 	}
 
 }
