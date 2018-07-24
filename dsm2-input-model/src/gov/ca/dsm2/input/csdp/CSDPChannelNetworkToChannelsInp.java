@@ -18,7 +18,7 @@ import java.io.PrintWriter;
  */
 public class CSDPChannelNetworkToChannelsInp {
 	public static void main(String[] args) throws Exception {
-		String filename = "resources/delta_2009Calib.cdn"; //+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+		String filename = "resources/dsm2-ext-grid.cdn"; //+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
 		//String filename = "resources/05jul2000.cdn"; //+proj=utm +zone=10 +datum=NAD27 +units=m +no_defs
 		LineNumberReader reader = new LineNumberReader(new FileReader(filename));
 		String line = reader.readLine();
@@ -26,7 +26,7 @@ public class CSDPChannelNetworkToChannelsInp {
 			line=reader.readLine();
 		}
 		//PrintWriter wr = new PrintWriter(new FileWriter("resources/delta_2008Calib.wkt"));
-		PrintWriter wr = new PrintWriter(new FileWriter("resources/delta_2009Calib_channels.inp"));
+		PrintWriter wr = new PrintWriter(new FileWriter("resources/dsm2-ext-grid.inp"));
 		wr.println("channel;length");
 		while(line!=null){
 			while(line.trim().equals("")){

@@ -10,7 +10,7 @@ if __name__ == '__main__':
     if len(sys.argv) <> 3:
         print len(sys.argv),sys.argv[1],sys.argv[2],sys.argv[3]
         raise SystemExit("""
-        Usage: vscript dsm2.py [both|hydro|qual] [configurationfile]
+        Usage: vscript dsm2ui.py [both|hydro|qual] [configurationfile]
         where  configurationfile  is the input file for env variables
         (give full path if not in current running shell)
         and  both|hydro|qual indicates which DSM2 module
@@ -48,7 +48,7 @@ if dsm2module == "both" or dsm2module == "hydro":
    
     
     
-    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2-dbase\dsm2.dsw'
+    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2ui-dbase\dsm2ui.dsw'
 
     print "Command: ", command
     status=os.system(command)
@@ -79,7 +79,7 @@ if dsm2module == "both" or dsm2module == "qual" or dsm2module == "qual_ec":
         command=getAttr('qualexe') + ' qual_ec.inp ' 
  ##################################################  
    
-    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2-dbase\dsm2.dsw'
+    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2ui-dbase\dsm2ui.dsw'
     print "Command: ", command
     #print time.asctime()
     status=os.system(command)
@@ -94,7 +94,7 @@ if dsm2module == "both" or dsm2module == "qual" or dsm2module == "qual_ec":
 if dsm2module == "both" or dsm2module == "qual_do":
     print 'Running Qual DO Run'
     command=getAttr('qualexe') + ' qual_do.inp ' 
-    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2-dbase\dsm2.dsw'
+    #command='"C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin\DFDEV.EXE"' + ' d:\delta\models\dsm2ui-dbase\dsm2ui.dsw'
     print "Command: ", command
     #print time.asctime()
     status=os.system(command)

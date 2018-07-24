@@ -1,4 +1,4 @@
-""" Cleanup script for dsm2 input files.
+""" Cleanup script for dsm2ui input files.
 Usage:
 > dsm2_tidy.py inputfile outputfile
 where 

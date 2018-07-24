@@ -19,14 +19,14 @@ import java.io.PrintWriter;
 public class CSDPChannelNetworkToWKT {
 	public static void main(String[] args) throws Exception {
 		//String filename = "resources/delta_2009Calib.cdn"; //+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
-		String filename = "resources/05jul2000.cdn"; //+proj=utm +zone=10 +datum=NAD27 +units=m +no_defs
+		String filename = "resources/dsm2-ext-grid.cdn"; //+proj=utm +zone=10 +datum=NAD27 +units=m +no_defs
 		LineNumberReader reader = new LineNumberReader(new FileReader(filename));
 		String line = reader.readLine();
 		while (line.startsWith(";")){
 			line=reader.readLine();
 		}
 		//PrintWriter wr = new PrintWriter(new FileWriter("resources/delta_2008Calib.wkt"));
-		PrintWriter wr = new PrintWriter(new FileWriter("resources/05jul2000.wkt"));
+		PrintWriter wr = new PrintWriter(new FileWriter("resources/dsm2-ext-grid.wkt"));
 		wr.println("id;wkt");
 		while(line!=null){
 			while(line.trim().equals("")){

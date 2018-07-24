@@ -15,15 +15,18 @@ import java.io.PrintWriter;
  */
 public class CSDPNodeCDLToWKT {
 	public static void main(String[] args) throws Exception {
-		String filename = "resources/node.cdl";
+		String filename = "resources/ext-nodes.cdl";
 		LineNumberReader reader = new LineNumberReader(new FileReader(filename));
 		String line = reader.readLine();
-		int numberOfNodes = Integer.parseInt(line.trim());
-		PrintWriter wr = new PrintWriter(new FileWriter("resources/node.wkt"));
+		while(!line.startsWith(";NumElements")){
+			line=reader.readLine();
+		}
+		int numberOfNodes = Integer.parseInt(line.trim().split("\\s+")[1]);
+		PrintWriter wr = new PrintWriter(new FileWriter("resources/ext-node.wkt"));
 		wr.println("id;wkt");
 		for (int i = 0; i < numberOfNodes; i++) {
 			line = reader.readLine();
-			String[] fields = line.trim().split("\\s+");
+			String[] fields = line.trim().split(",");
 			wr.println(fields[2]+";"+"POINT("+fields[0]+" "+fields[1]+")");
 		}
 		wr.close();

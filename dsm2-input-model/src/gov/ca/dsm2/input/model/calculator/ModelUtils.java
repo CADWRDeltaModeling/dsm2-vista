@@ -12,19 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ModelUtils {
-
-	/**
+	/*
 	 * Calculates the profile from the xsection characteristics, the flow line
 	 * of the channel and using the relative distance along channel length to
 	 * calculate the position of the xsection line end points
-	 * 
-	 * @param xSection
-	 * @param channel
-	 * @param upNode
-	 * @param downNode
-	 * @return
 	 */
-	public static XSectionProfile calculateProfileFrom(XSection xSection) {
+	public static XSectionProfile calculateProfileFrom(XSection xSection, boolean centerProfile){
 		XSectionProfile profile = new XSectionProfile();
 		profile.setChannelId(Integer.parseInt(xSection.getChannelId()));
 		profile.setDistance(xSection.getDistance());
@@ -33,7 +26,7 @@ public class ModelUtils {
 		//
 		List<double[]> profilePoints = new ArrayList<double[]>();
 		profile.setProfilePoints(profilePoints);
-		double maxWidth = getMaxTopWidth(xSection);
+		double maxWidth = centerProfile ? 0 : getMaxTopWidth(xSection);
 		for (XSectionLayer layer : xSection.getLayers()) {
 			double w = layer.getTopWidth();
 			double[] point1 = new double[2];
@@ -50,6 +43,20 @@ public class ModelUtils {
 			}
 		}
 		return profile;
+	}
+	/**
+	 * Calculates the profile from the xsection characteristics, the flow line
+	 * of the channel and using the relative distance along channel length to
+	 * calculate the position of the xsection line end points
+	 * 
+	 * @param xSection
+	 * @param channel
+	 * @param upNode
+	 * @param downNode
+	 * @return
+	 */
+	public static XSectionProfile calculateProfileFrom(XSection xSection) {
+		return calculateProfileFrom(xSection, false);
 	}
 
 	/**

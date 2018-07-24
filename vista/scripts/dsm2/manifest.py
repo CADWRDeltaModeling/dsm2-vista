@@ -1,4 +1,4 @@
-""" The manifest script takes a dsm2 echo file and produces a list of all the .inp and .dss files in the simulation
+""" The manifest script takes a dsm2ui echo file and produces a list of all the .inp and .dss files in the simulation
     It can also optionally (by providing and empty or nonexistent directory name) copy all the files to the specified location
 """
 

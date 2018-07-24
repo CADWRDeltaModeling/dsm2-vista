@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
-    <jar path="vista_for_release/lib/dsm2-input-model.jar"/>
+    <jar path="U:/git/dsm2-vista/vista/lib/dsm2-input-model.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/dsm2-input-model/export-to-vista.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -10,7 +10,7 @@
             <packagesToUnSeal/>
         </sealing>
     </manifest>
-    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
         <javaElement handleIdentifier="=dsm2-input-model/src"/>
     </selectedElements>
 </jardesc>

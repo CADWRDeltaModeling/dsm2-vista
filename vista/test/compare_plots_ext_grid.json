@@ -1,0 +1,15 @@
+{
+  "meta":"This is a json file for compare plots",
+  "comment": "Extended Grid (Different calibrations) vs Observed",
+  "doDiffToFirst": "False",
+  "doAverage": "True",
+  "stime": "01APR2001 2400",
+  "etime": "01MAR2012 2400",
+   "files": ["Z:/dsm2_v812_2016_QAQC_Lan/studies/DSM2-Extended-Grid/ext2017_res48k_shorter_sidechannel_lengths/output/IF_Ext2017_Shorter_SideChannels_out.dss", 
+				"Z:/dsm2_v812_2016_QAQC_Lan/studies/DSM2-Extended-Grid/ext2017_res48kNOOA/output/IF_Ext2017_48kNOAAt1_out.dss",
+				"Z:/dsm2_v812_2016_QAQC_Lan/studies/DSM2-Extended-Grid/timeseries/hist_19902012.dss"
+   ],
+   "plots":[ 
+   	{ "title": "Martinez EC", refs:["//441_0/EC////", "//441_0/EC////", "//RSAC054/EC////"]},
+   ]
+}

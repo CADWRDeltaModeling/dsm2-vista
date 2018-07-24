@@ -43,7 +43,7 @@ def subEnv(val):
 def setConfigVars(infile):
   """Add name-value pairs from a file
      Input: infile name of a 'config' file whose contents
-            look like a single ENVVARS section in dsm2 input
+            look like a single ENVVARS section in dsm2ui input
      Output: the dictionary containing the name-value pairs.
             the name-value pairs from the file will also
             be added to the system environment.

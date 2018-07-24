@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/381/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model
+END
+CalculationState.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svn/!svn/ver/312/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/CalculationState.java
+END
+Profile.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/287/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/Profile.java
+END
+DataPoint.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/241/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/DataPoint.java
+END
+XYZPoint.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/310/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/XYZPoint.java
+END
+CoordinateGeometryUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svn/!svn/ver/273/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/CoordinateGeometryUtils.java
+END
+GeomUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/381/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/GeomUtils.java
+END
+Geometry.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/273/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/Geometry.java
+END
+DEMGridSquare.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/!svn/ver/241/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/DEMGridSquare.java
+END
+BathymetryDataPoint.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/!svn/ver/241/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/BathymetryDataPoint.java
+END
+CoordinateConversion.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svn/!svn/ver/241/trunk/dsm2-elevation/src/gov/ca/modeling/maps/elevation/client/model/CoordinateConversion.java
+END

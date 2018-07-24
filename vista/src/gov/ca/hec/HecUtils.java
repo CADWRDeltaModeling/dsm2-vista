@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import hec.heclib.dss.CondensedReference;
 import hec.heclib.dss.DSSPathname;
 import hec.heclib.dss.HecDss;
+import hec.heclib.util.HecTime;
 import hec.hecmath.HecMath;
 import hec.hecmath.HecMathException;
 import hec.hecmath.TimeSeriesMath;
@@ -133,13 +134,19 @@ public class HecUtils {
 		if (dsspathRegEx == null) {
 			return null;
 		}
+		String startTime = null;
+		String endTime = null;
 		if (twStr == null || twStr.length() == 0) {
-			twStr = parseTimeWindowFromPath(dsspathRegEx);
-			// dss.setTimeWindow(twStr);
+			HecTime start = new HecTime();
+			HecTime end = new HecTime();
+			dss.getTimeSeriesExtents(dsspathRegEx, start, end);
+			startTime = start.dateAndTime();
+			endTime = end.dateAndTime();
+		} else {
+			String[] twFields = twStr.split(" ");
+			startTime = twFields[0] + " " + twFields[1];
+			endTime = twFields[2] + " " + twFields[3];
 		}
-		String[] twFields = twStr.split(" ");
-		String startTime = twFields[0] + " " + twFields[1];
-		String endTime = twFields[2] + " " + twFields[3];
 		DataContainer dataContainer = dss.get(dsspathRegEx, startTime, endTime);
 		return dataContainer;
 	}

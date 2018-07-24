@@ -11,7 +11,7 @@ from planning_time_window import prepro_window
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         raise SystemExit("""
-        Usage: vscript dsm2.py infile-for-envvars
+        Usage: vscript dsm2ui.py infile-for-envvars
         where infile-for-envvars is the input file for env variables
         (give full path if not in current running shell)
         """)

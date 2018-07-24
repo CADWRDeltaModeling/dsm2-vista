@@ -1,0 +1,17 @@
+{
+  "meta":"This is a json file for compare plots",
+  "comment": "Astro Tide vs Actual Tide @ MTZ Historical Simulation",
+  "doDiffToFirst": "False",
+  "doAverage": "False",
+  "stime": "15NOV2000 0000",
+  "etime": "15DEC2000 2400",
+   "files": ["D:/delta/dsm2_v812_2016_QAQC_Lan/studies/DSM2_201602_DETAW/output/historical_v81.dss", 
+				"D:/delta/dsm2_v812_2016_QAQC_Lan/studies/DSM2_201602_QAQC/output/historical_v81.dss",
+				"D:/delta/dsm2_v812_2016_QAQC_Lan/documentation/observed_data/observed_EC.dss"
+   ],
+   "plots":[ 
+   	{ "title": "Jersey Pt EC", refs:["//RSAN018/EC////", "//RSAN018/EC////", "/RSAN018/JER/EC////"]},
+   	{ "title": "Emmaton EC", refs:["//RSAC092/EC////", "//RSAC092/EC////", "/RSAC092/EMM/EC////"]},
+   	{ "title": "Antioch EC", refs:["//RSAN007/EC////", "//RSAN007/EC////", "/RSAN007/ANH/EC////"]},
+   ]
+}

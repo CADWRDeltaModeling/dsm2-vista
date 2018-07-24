@@ -4,7 +4,7 @@ import vtimeseries
 from vdisplay import plot
 from vista.set import Pathname, TimeElement
 from vista.gui import VistaUtils
-from vdss import writedss, set_part
+from vdss import writedss, set_part, findpath
 import os
 import math
 import csv
@@ -25,12 +25,30 @@ def matches(path1, path2):
         return True
     else: 
         return False
-def compare_dss_files(file1, file2, showPlot=False, outputFile=None, outputPathFile=None):
+def set_timewindow(ref1,ref2, twOption="1"):
+    """
+    Set timewindow based on twOption of 1 for ref1 and 2 for ref2 else parse time window from twOption string in the format DDMMMYYYY HHmm-DDMMMYYYY HHmm
+    """
+    if twOption == "1":
+        tw = ref1.getTimeWindow()
+        ref2=ref2.create(ref2,tw)
+    elif twOption == "2":
+        tw = ref2.getTimeWindow()
+        ref1=ref1.create(ref1,tw)
+    else:
+        tw=vtimeseries.timewindow(twOption)
+        ref1=ref1.create(ref1,tw)
+        ref2=ref2.create(ref2,tw)
+    return ref1,ref2
+def compare_dss_files(file1, file2, showPlot="Abs", outputFile=None, outputPathFile=None, twOption="1", pathFilter=None):
     """
     Simply compares the files and outputs differences if any of those that differ and lists mismatching pathnames in either
     """
     g1 = vutils.opendss(file1)
     g2 = vutils.opendss(file2)
+    if pathFilter:
+        g1=vutils.findpath(g1, pathFilter)
+        g2=vutils.findpath(g2, pathFilter)
     print 'Comparing %s to %s' % (file1, file2)
     print '%12s\t%32s' % ('DIFFERENCE', 'PATHNAME')
     if outputPathFile:
@@ -45,13 +63,19 @@ def compare_dss_files(file1, file2, showPlot=False, outputFile=None, outputPathF
             p2 = ref2.pathname
             if matches(p1, p2):
                 found = True
+                ref1,ref2=set_timewindow(ref1,ref2,twOption)
                 diff = ref2.data - ref1.data
                 absdiff = diff.createSlice(diff.getTimeWindow())
                 vtimeseries.apply(absdiff, math.fabs)
                 diff_total = vtimeseries.total(absdiff)
                 if (diff_total > 1e-06) :
                     no_diff=False
-                    if showPlot: plot(ref1.data, ref2.data)
+                    if showPlot.find("Diff") >=0 : 
+                        graphs = plot(diff)
+                        #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
+                    else: 
+                        graphs = plot(ref1.data, ref2.data)
+                        #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
                     print '%10.2f\t%32s' % (diff_total, p1)
                     if outputFile:
                         diffp = set_part(p1, 'DIFF-%s-%s' % (os.path.basename(file1), os.path.basename(file2)), Pathname.A_PART)
@@ -149,26 +173,30 @@ def do_interactive():
     f.setVisible(True)
 #
 def usage():
-    print 'Usage: compare_dss_files [-i | --interactive] [-s|--show] [-o|--output=<outputdssfile>] [-od|--output-paths=<output_path_file.csv>] file1.dss file2.dss'
+    print 'Usage: compare_dss_files [-i | --interactive] [-f | --filter=</A/B/C////>][-s|--show="Diff|Abs"] [-d | --differences] [-o|--output=<outputdssfile>] [-od|--output-paths=<output_path_file.csv>] [-t| --timewindow=1|2|01JAN1990 2400-01FEB1990 2400] file1.dss file2.dss'
 if __name__ == '__main__':
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ihso:d:", ["interactive", "help", "show", "output=", "differences="])
+        opts, args = getopt.getopt(sys.argv[1:], "ihf:s:o:d:t:", ["interactive", "help","filter=","show=", "output=", "differences=","timewindow="])
     except err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
         usage()
         sys.exit(2)    
-    showPlot = False
+    showPlot = None
+    pathFilter=None
     outputFile = None
     outputPathFile = None
     interactive=False
+    twOption="1"
     for o, a in opts:
         if o in ("-h", "help"):
             usage()
             exit(0)
+        elif o in ("-f", "--filter"):
+            pathFilter = a 
         elif o in ("-s", "--show"):
-            showPlot = True
+            showPlot = a 
         elif o in ("-o", "--output"):
             outputFile = a
             print 'Writing paths that differ to %s' % outputFile
@@ -177,6 +205,9 @@ if __name__ == '__main__':
             print 'Writing paths that differ to %s' % outputFile
         elif o in ("-i", "--interactive"):
             interactive=True
+        elif o in ("-t","--timewindow"):
+            twOption = a
+            print "Time Window set to %s"%twOption
         else:
             assert False, "unhandled option"
     if interactive:
@@ -187,7 +218,7 @@ if __name__ == '__main__':
             sys.exit(3)
         file1 = args[0]
         file2 = args[1]
-        compare_dss_files(file1, file2, showPlot, outputFile, outputPathFile)
+        compare_dss_files(file1, file2, showPlot, outputFile, outputPathFile,twOption, pathFilter)
         if not showPlot:
             sys.exit(0)
 #    

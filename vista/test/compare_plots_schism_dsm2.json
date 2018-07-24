@@ -1,0 +1,28 @@
+{
+  "meta":"This is a json file for compare plots",
+  "comment": "Schism vs DSM2 Compare",
+  "doDiffToFirst": "False",
+  "doAverage": "False",
+  "stime": "20JUL2009 0000",
+  "etime": "22JUL2009 0000",
+   "files": ["Z:/ines.dsm2.extended.grid.test/dsm2_v812_2309/Ext2017/Output/IF_Ext17b_NS_out.dss", 
+				"Z:/ines.dsm2.extended.grid.test/dsm2_v812_2309/Ext2017/Output/IF_Ext17b_NS_BAYCH_out.dss",
+				"Z:/ines.dsm2.extended.grid.test/dsm2_v812_2309/extended_ts/schism208141.dss"
+   ],
+   "plots":[ 
+   	{ "title": "SF Stage Boundary", refs:["//725_1/STAGE////", "//725_1/STAGE////", "//725_1/STAGE////"]},
+   	{ "title": "SF Stage Outside Bay", refs:["//725_0/STAGE////", "//725_0/STAGE////", "//725_0/STAGE////"]},
+   	{ "title": "SF Stage Inside Bay", refs:["//724_0/STAGE////", "//724_0/STAGE////", "//724_0/STAGE////"]},
+   	{ "title": "At Angel Island", refs:["//721_0/STAGE////", "//721_0/STAGE////", "//721_0/STAGE////"]},
+   	{ "title": "Around Angel Island", refs:["//717_0/STAGE////", "//717_0/STAGE////", "//717_0/STAGE////"]},
+   	{ "title": "Approaching Richmond Stage", refs:["//641_0/STAGE////", "//641_0/STAGE////", "//641_0/STAGE////"]},
+   	{ "title": "Richmond Stage", refs:["//636_0/STAGE////", "//636_0/STAGE////", "//636_0/STAGE////"]},
+   	{ "title": "Past Richmond Stage", refs:["//640_0/STAGE////", "//640_0/STAGE////", "//640_0/STAGE////"]},
+   	{ "title": "Main Channel San Pablo (Past Richmond)", refs:["//623_0/STAGE////", "//623_0/STAGE////", "//623_0/STAGE////"]},
+   	{ "title": "Main Channel San Pablo approaching Carquinez", refs:["//615_0/STAGE////", "//615_0/STAGE////", "//615_0/STAGE////"]},
+   	{ "title": "Main Channel Before Carquinez", refs:["//591_0/STAGE////", "//591_0/STAGE////", "//591_0/STAGE////"]},
+   	{ "title": "Carquinez Strait Begin", refs:["//581_0/STAGE////", "//581_0/STAGE////", "//581_0/STAGE////"]},
+   	{ "title": "Carquinez Strait", refs:[ "//578_0/STAGE////", "//578_0/STAGE////", "//578_0/STAGE////"]},
+   	{ "title": "Martinez", refs:["//441_0/STAGE////", "//441_0/STAGE////", "//441_0/STAGE////"] },
+   ]
+}
