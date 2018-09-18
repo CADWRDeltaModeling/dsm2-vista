@@ -61,10 +61,8 @@ public class CDNReader {
 					for (int i = 0; i < numberPoints; i++) {
 						line = reader.readLine();
 						String[] split = line.split(",");
-						profilePoints.add(new double[] {
-								Double.parseDouble(split[0]),
-								Double.parseDouble(split[1]),
-								Double.parseDouble(split[2]) });
+						profilePoints.add(new double[] { Double.parseDouble(split[0].trim()),
+								Double.parseDouble(split[1].trim()) });
 					}
 					line = reader.readLine();
 					line = line.trim();
@@ -74,23 +72,20 @@ public class CDNReader {
 					if (profilePoints.size() == 0) {
 						continue;
 					}
-					double distanceAlongCenterline = Double
-							.parseDouble(split[0]);
+					double distanceAlongCenterline = Double.parseDouble(split[0]);
 					if (c == null) {
 						continue;
 					}
 					double dist = distanceAlongCenterline / c.getLength();
 					List<double[]> endPoints = calculateXSectEndPoints(profilePoints);
 					double xsectLineLength = calculateLength(endPoints);
-					profilePoints = calculateXSectRelativeProfile(
-							profilePoints, endPoints);
+					profilePoints = calculateXSectRelativeProfile(profilePoints, endPoints);
 					xsProfile.setProfilePoints(profilePoints);
 					xsProfile.setChannelId(Integer.parseInt(c.getId()));
 					xsect = c.getXSectionAt(dist);
 					boolean newXSection = false;
 					if (xsect == null) {
-						xsect = ModelUtils.createXSection(c.getId(), dist,
-								xsectLineLength);
+						xsect = ModelUtils.createXSection(c.getId(), dist, xsectLineLength);
 						c.addXSection(xsect);
 						newXSection = true;
 					}
@@ -108,8 +103,7 @@ public class CDNReader {
 					for (int i = 0; i < nPoints; i++) {
 						line = reader.readLine();
 						String[] split = line.split(",");
-						points.add(new double[] { Double.parseDouble(split[0]),
-								Double.parseDouble(split[1]) });
+						points.add(new double[] { Double.parseDouble(split[0]), Double.parseDouble(split[1]) });
 					}
 					line = reader.readLine(); // number of xsections expected
 					if (c == null) {
@@ -118,8 +112,9 @@ public class CDNReader {
 					c.setLatLngPoints(points);
 					int oldLength = c.getLength();
 					c.setLength(calculateLength(points));
-					System.out.println("Channel: " + c.getId() + " length: "
-							+ oldLength + " -> " + c.getLength());
+					if (Math.abs(oldLength - c.getLength()) > 250) {
+						System.out.println("Channel: " + c.getId() + " length: " + oldLength + " -> " + c.getLength());
+					}
 				} else if ((fields.length == 1) && fields[0].equals("2")) {
 					c = null;
 				} else if (readingChannelOutline) {
@@ -135,17 +130,14 @@ public class CDNReader {
 		Channels channels = dsm2Model.getChannels();
 		HashMap<String, List<double[]>> nodeLatLngs = new HashMap<String, List<double[]>>();
 		for (Node n : dsm2Model.getNodes().getNodes()) {
-			ArrayList<String> channelsWithNodes = ModelUtils
-					.getChannelsWithNodes(n, n, channels);
+			ArrayList<String> channelsWithNodes = ModelUtils.getChannelsWithNodes(n, n, channels);
 			if ((channelsWithNodes == null) || (channelsWithNodes.size() == 0)) {
 				continue;
 			}
 			for (String cid : channelsWithNodes) {
 				Channel channel = channels.getChannel(cid);
-				if ((channel.getLatLngPoints() == null)
-						|| (channel.getLatLngPoints().size() == 0)) {
-					System.out.println("No outline information for channel: "
-							+ channel.getId());
+				if ((channel.getLatLngPoints() == null) || (channel.getLatLngPoints().size() == 0)) {
+					System.out.println("No outline information for channel: " + channel.getId());
 					continue;
 				}
 				String uId = channel.getUpNodeId();
@@ -155,13 +147,10 @@ public class CDNReader {
 					nodeLatLngs.put(n.getId(), new ArrayList<double[]>());
 				}
 				if (n.getId().equals(uId)) {
-					nodeLatLngs.get(n.getId()).add(
-							channel.getLatLngPoints().get(0));
+					nodeLatLngs.get(n.getId()).add(channel.getLatLngPoints().get(0));
 				}
 				if (n.getId().equals(dId)) {
-					nodeLatLngs.get(n.getId()).add(
-							channel.getLatLngPoints().get(
-									channel.getLatLngPoints().size() - 1));
+					nodeLatLngs.get(n.getId()).add(channel.getLatLngPoints().get(channel.getLatLngPoints().size() - 1));
 				}
 			}
 		}
@@ -179,8 +168,7 @@ public class CDNReader {
 			avg[0] = avg[0] / latLngs.size();
 			avg[1] = avg[1] / latLngs.size();
 			Node node = nodes.getNode(nId);
-			double[] latLng = GeomUtils.convertToLatLng(avg[0] * 0.3048,
-					avg[1] * 0.3048);
+			double[] latLng = GeomUtils.convertToLatLng(avg[0] * 0.3048, avg[1] * 0.3048);
 			node.setLatitude(latLng[0]);
 			node.setLongitude(latLng[1]);
 		}
@@ -189,8 +177,7 @@ public class CDNReader {
 			List<double[]> latLngPoints = channel.getLatLngPoints();
 			if ((latLngPoints == null) || (latLngPoints.size() < 2)) {
 				if (latLngPoints.size() == 1) {
-					System.out.println("Channel : " + channel.getId()
-							+ " has no interior points");
+					System.out.println("Channel : " + channel.getId() + " has no interior points");
 				}
 				continue;
 			}
@@ -198,8 +185,7 @@ public class CDNReader {
 			latLngPoints.remove(latLngPoints.size() - 1);
 			List<double[]> interiorPoints = new ArrayList<double[]>();
 			for (double[] point : latLngPoints) {
-				double[] latLng = GeomUtils.convertToLatLng(point[0] * 0.3048,
-						point[1] * 0.3048);
+				double[] latLng = GeomUtils.convertToLatLng(point[0] * 0.3048, point[1] * 0.3048);
 				interiorPoints.add(latLng);
 			}
 			channel.setLatLngPoints(interiorPoints);
@@ -210,8 +196,7 @@ public class CDNReader {
 				}
 				List<double[]> endPoints = new ArrayList<double[]>();
 				for (double[] point : profile.getEndPoints()) {
-					endPoints.add(GeomUtils.convertToLatLng(point[0] * 0.3048,
-							point[1] * 0.3048));
+					endPoints.add(GeomUtils.convertToLatLng(point[0] * 0.3048, point[1] * 0.3048));
 				}
 				profile.setEndPoints(endPoints);
 			}
@@ -219,8 +204,7 @@ public class CDNReader {
 
 	}
 
-	private List<double[]> calculateXSectRelativeProfile(
-			List<double[]> profilePoints, List<double[]> endPoints) {
+	private List<double[]> calculateXSectRelativeProfile(List<double[]> profilePoints, List<double[]> endPoints) {
 		List<double[]> relativeProfile = new ArrayList<double[]>();
 		double[] origin = endPoints.get(0);
 		double[] endPoint = endPoints.get(1);
@@ -228,22 +212,18 @@ public class CDNReader {
 		double y0 = origin[1];
 		double x2 = endPoint[0];
 		double y2 = endPoint[1];
+		double xsectionMaxWidth = CoordinateGeometryUtils.distanceBetween(x0, y0, x2, y2);
 		double angle0 = CoordinateGeometryUtils.angle(x0, y0, x2, y2);
 		for (double[] point : profilePoints) {
-			double length = CoordinateGeometryUtils.distanceBetween(x0, y0,
-					point[0], point[1]);
-			double angle = CoordinateGeometryUtils.angle(x0, y0, point[0],
-					point[1])
-					- angle0;
+			double length = CoordinateGeometryUtils.distanceBetween(x0, y0, point[0], point[1]);
+			double angle = CoordinateGeometryUtils.angle(x0, y0, point[0], point[1]) - angle0;
 			// length * Math.sin(angle) is ignored i.e. distance to cross
 			// section line as its close to zero. maybe check that?
 			double distToXSectLine = length * Math.sin(angle);
-			if (Math.abs(distToXSectLine) > 5) {
-				System.err.println("Distance to profile is more than 5 feet: "
-						+ distToXSectLine);
+			if (Math.abs(distToXSectLine) > 100) {
+				System.err.println("Distance to profile is more than 5 feet: " + distToXSectLine);
 			}
-			relativeProfile.add(new double[] { length * Math.cos(angle),
-					point[2] });
+			relativeProfile.add(new double[] { length * Math.cos(angle) - xsectionMaxWidth / 2, point[1] });
 		}
 		return relativeProfile;
 	}
@@ -255,18 +235,14 @@ public class CDNReader {
 		return endPoints;
 	}
 
-	private List<double[]> calculateEndPoints(
-			List<double[]> channelOutlinePoints, double distance, double width) {
+	private List<double[]> calculateEndPoints(List<double[]> channelOutlinePoints, double distance, double width) {
 		int segmentIndex = findSegmentAtDistance(channelOutlinePoints, distance);
 		double[] point1 = channelOutlinePoints.get(segmentIndex);
 		double[] point2 = channelOutlinePoints.get(segmentIndex + 1);
-		double segmentDistance = findDistanceUptoSegment(segmentIndex,
-				channelOutlinePoints);
-		double[] point0 = findPointAtDistance(point1, point2, distance
-				- segmentDistance);
+		double segmentDistance = findDistanceUptoSegment(segmentIndex, channelOutlinePoints);
+		double[] point0 = findPointAtDistance(point1, point2, distance - segmentDistance);
 		double slope = getSlopeBetweenPoints(point1, point2);
-		return getLineWithSlopeOfLengthAndCenteredOnPoint(-1 / slope, width,
-				point0);
+		return getLineWithSlopeOfLengthAndCenteredOnPoint(-1 / slope, width, point0);
 	}
 
 	private int findSegmentAtDistance(List<double[]> segments, double distance) {
@@ -276,8 +252,7 @@ public class CDNReader {
 		int i = 0;
 		double segmentTotalDistance = 0;
 		for (i = 0; i < segments.size() - 1; i++) {
-			double segmentLength = getLength(segments.get(i + 1), segments
-					.get(i));
+			double segmentLength = getLength(segments.get(i + 1), segments.get(i));
 			segmentTotalDistance += segmentLength;
 			if (segmentTotalDistance > distance) {
 				break;
@@ -286,8 +261,7 @@ public class CDNReader {
 		return Math.min(i, segments.size() - 2);
 	}
 
-	private List<double[]> getLineWithSlopeOfLengthAndCenteredOnPoint(double m,
-			double length, double[] point0) {
+	private List<double[]> getLineWithSlopeOfLengthAndCenteredOnPoint(double m, double length, double[] point0) {
 		double x0 = point0[0];
 		double y0 = point0[1];
 		double c = y0 - m * x0;
@@ -309,8 +283,7 @@ public class CDNReader {
 		return scale;
 	}
 
-	private double[] findPointAtDistance(double[] point1, double[] point2,
-			double distance) {
+	private double[] findPointAtDistance(double[] point1, double[] point2, double distance) {
 		if (distance <= 0) {
 			return point1;
 		} else if (distance >= getLength(point1, point2)) {
@@ -325,15 +298,13 @@ public class CDNReader {
 		return new double[] { x, y };
 	}
 
-	private double findDistanceUptoSegment(int segmentIndex,
-			List<double[]> channelOutlinePoints) {
+	private double findDistanceUptoSegment(int segmentIndex, List<double[]> channelOutlinePoints) {
 		if (segmentIndex <= 0) {
 			return 0;
 		}
 		double distance = 0;
 		for (int i = 0; i < segmentIndex; i++) {
-			distance += getLength(channelOutlinePoints.get(i),
-					(channelOutlinePoints.get(i + 1)));
+			distance += getLength(channelOutlinePoints.get(i), (channelOutlinePoints.get(i + 1)));
 		}
 		return distance;
 	}

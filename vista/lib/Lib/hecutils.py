@@ -57,13 +57,16 @@ def get_matching(dss,pattern):
     else:
         print 'No match for: %s, %s'%(pattern,matches)
         return None
-def plot(data, title):
+def plot(data, title=''):
     """
     Takes an array of data and a title and displays a plot (HECDssVue style)
     """
     plotd = newPlot(title)
-    for d in data:
-        plotd.addData(d)
+    try:
+        for d in data:
+            plotd.addData(d)
+    except:
+        plotd.addData(data)
     plotd.showPlot()
 def newPlot(title):
     """
