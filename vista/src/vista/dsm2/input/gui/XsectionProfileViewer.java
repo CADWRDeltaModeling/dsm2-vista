@@ -68,7 +68,7 @@ public class XsectionProfileViewer {
 		}
 	}
 	
-	public static DataReference createDataReference(XSectionProfile xp){
+	public static DataReference createDataReference(XSectionProfile xp, boolean calculated){
 		List<double[]> profilePoints = xp.getProfilePoints();
 
 		double[] x = new double[profilePoints.size()];
@@ -77,7 +77,7 @@ public class XsectionProfileViewer {
 			x[i] = profilePoints.get(i)[0];
 			y[i] = profilePoints.get(i)[1];
 		}
-		DefaultDataSet set = new DefaultDataSet("XSection Profile-" + xp.getChannelId() + ":" + xp.getDistance(), x, y);
+		DefaultDataSet set = new DefaultDataSet("XSection Profile-" + (calculated ? "calculated": "from-csdp") + xp.getChannelId() + ":" + xp.getDistance(), x, y);
 		return new DefaultReference(set);
 	}
 	
@@ -105,10 +105,12 @@ public class XsectionProfileViewer {
 
 		// now add dataReferences
 		int ncurves = xsections.size();
-		DataReference[] refs = new DataReference[ncurves];
+		DataReference[] refs = new DataReference[ncurves*2];
 		for(int i=0; i < ncurves; i++){
-			XSectionProfile xp = ModelUtils.calculateProfileFrom(xsections.get(i), true);
-			refs[i] = createDataReference(xp);
+			XSectionProfile xpc = ModelUtils.calculateProfileFrom(xsections.get(i), true);
+			XSectionProfile xp = xsections.get(i).getProfile();
+			refs[2*i] = createDataReference(xp,false);
+			refs[2*i+1] = createDataReference(xpc,true);
 		}
 
 		GraphBuilderInfo info = new GraphBuilderInfo(refs, MainProperties.getProperties());
@@ -123,7 +125,7 @@ public class XsectionProfileViewer {
 			CurveAttr c = (CurveAttr) crv.getAttributes();
 			c.setDrawSymbol(true);
 			c.setDrawLines(true);
-			c.setForegroundColor(colors[i%colors.length]);
+			c.setForegroundColor(colors[(i/2)%colors.length]);
 			crv.setAttributes(c);
 			SymbolAttr networkSymbolAttr = new SymbolAttr();
 			int ps = 4;
@@ -136,9 +138,7 @@ public class XsectionProfileViewer {
 			crv.setSymbol(networkSymbol);
 			//
 			LegendItem li = factory.createLegendItem();
-			// li.setLegendName( _info.getLegendLabel(_refs[i]) );
-			XSection xs = xsections.get(i);
-			li.setLegendName("XP " + xs.getChannelId() + ":" + xs.getDistance());
+			li.setLegendName(refs[i].getName());
 			li.setCurve(crv);
 			LegendItemAttr lia = (LegendItemAttr) li.getAttributes();
 			legend.add(li);
