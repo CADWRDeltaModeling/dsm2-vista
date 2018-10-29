@@ -910,4 +910,12 @@ public class DSSUtil {
 	public static void closeDSSFile(int[] ifltab) {
 		Heclib.zclose(ifltab);
 	}
+
+	public static String[] getPathParts(Pathname pathname) {
+		String[] pathParts = new String[6];
+		for(int i=0; i < pathParts.length; i++){
+			pathParts[i]=pathname.getPart(i);
+		}
+		return pathParts;
+	}
 }

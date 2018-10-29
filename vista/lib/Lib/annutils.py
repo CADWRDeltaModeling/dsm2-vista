@@ -89,14 +89,14 @@ def dump_patterns(inputs,outputs,outfile,calibration_percentage=0.75,skip = 365,
     noutputs = len(outputs)
     #print 'Ncalibs: %d & Nverse: %d'%(ncalibs,npatterns-ncalibs)
     if append or not fast_write:
-	cfh.write('''SNNS pattern definition file V3.2
+	    cfh.write('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
 No. of output units              : %d
 
 '''%(time.ctime(time.time()),ncalibs+prev_no_patterns[0],ninputs,noutputs))
-	vfh.write('''SNNS pattern definition file V3.2
+	    vfh.write('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
@@ -104,14 +104,14 @@ No. of output units              : %d
 
 '''%(time.ctime(time.time()),npatterns-ncalibs+prev_no_patterns[1],ninputs,noutputs))
     else:
-	cfh.print('''SNNS pattern definition file V3.2
+        cfh.print('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
 No. of output units              : %d
 
 '''%(time.ctime(time.time()),ncalibs+prev_no_patterns[0],ninputs,noutputs))
-	vfh.print('''SNNS pattern definition file V3.2
+	   vfh.print('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
@@ -121,11 +121,11 @@ No. of output units              : %d
     #
     #goto end of file
     if append:
-	for fh in [cfh,vfh]:
-	    if fast_write:
-		fh.close()
-	    else:
-		fh.seek(0,2)
+    	for fh in [cfh,vfh]:
+    	    if fast_write:
+    		fh.close()
+    	    else:
+    		fh.seek(0,2)
 	if fast_write:
 	    cfh = PrintStream(BufferedOutputStream(FileOutputStream(outfile+'.cal',1)))
 	    vfh = PrintStream(BufferedOutputStream(FileOutputStream(outfile+'.ver',1)))

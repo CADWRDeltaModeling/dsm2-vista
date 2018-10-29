@@ -72,6 +72,7 @@ def interpolate(ref,tm_intvl='1day',flat=True):
     if not isinstance(ds,RegularTimeSeries):
         print ref, " is not a regular time-series data set"
         return None
+    dsattr=ds.getAttributes()
     tm = TimeFactory.getInstance().createTime(0);
     ti = ds.getTimeInterval();
     tiday = ti.create(tm_intvl)
@@ -107,7 +108,7 @@ def interpolate(ref,tm_intvl='1day',flat=True):
     stime.incrementBy(ti,-1)
     stime.incrementBy(tiday)
     rts = RegularTimeSeries(ds.getName(), 
-                            stime.toString(), repr(tiday), y_cfs)
+                            stime.toString(), repr(tiday), y_cfs, dsattr)
     if got_ref:
         path= ref.getPathname()
         path = Pathname.createPathname(path)
@@ -1456,3 +1457,54 @@ def dsIndex(ds,timeinst,ndxHint=0):
                 return ndx
         return None
 #
+def flat_interpolate(ts,ti='1DAY',tw=None):
+    """
+    Interpolates a time series to the time interval using the previous value. This should be identical to the "last" fill keyword used in DSM2
+    """
+    ti = timeinterval(ti)
+    if isinstance(ts,DataReference):
+        ts = ts.getData() # initialize time window accurately
+    if tw == None:
+        tw = ts.getTimeWindow()
+    else:
+        tw = timewindow(tw)
+    st = time(tw.getStartTime().ceiling(ti))
+    et = time(tw.getEndTime().floor(ti))
+    #print 'Start time: ',st
+    #print 'End time: ',et
+    nvals = st.getNumberOfIntervalsTo(et,ti)+1
+    path = ts.getName()
+    parts = string.split(path,'/')
+    if len(parts) == 8: parts[6] = parts[6]+'-REG'
+    name = string.join(parts,'/')
+    #print name
+    yvals = jarray.zeros(nvals,'d')
+    flags = jarray.zeros(nvals,'i')
+    index=0
+    iterator = ts.getIterator()
+    last_val = Constants.MISSING_VALUE
+    last_flag = 0
+    # get first time value in irregular time series
+    next_time = time(long(iterator.getElement().getX()))
+    # get starting time of regular time series
+    time_val = time(st)
+    # loop to fill values
+    while index < nvals:
+        #print index,time_val
+        #print next_time,last_val,last_flag
+        # if time value of rts is >= ts then update values
+        if not iterator.atEnd() and time_val.compare(next_time) >= 0:
+            last_val = iterator.getElement().getY()
+            last_flag = iterator.getElement().getFlag()
+            # advance by one & update next time value
+            iterator.advance()
+            if not iterator.atEnd():
+                next_time = time(long(iterator.getElement().getX()))
+        yvals[index] = last_val
+        flags[index] = last_flag
+        time_val.incrementBy(ti)
+        index=index+1
+    attr = ts.getAttributes().createClone()
+    attr.setType(DataType.REGULAR_TIME_SERIES)
+    rts = RegularTimeSeries(name,str(st),str(ti),yvals,flags,attr)
+    return rts

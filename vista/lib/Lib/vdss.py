@@ -11,6 +11,7 @@ from vista.set import Constants, DefaultReference,\
 from vista.db.dss import DSSUtil
 from vista.time import TimeFactory
 from vista.app import MainProperties
+from java.util.regex import Pattern
 DSSUtil.setAccessProperties(MainProperties.getProperties())
 
 def wrap_data(ds, filename='', server='',pathname=''):
@@ -372,4 +373,21 @@ def dsAddFlags(dataset):
         datasetFlagged = IrregularTimeSeries(
             dataset.getName(), xa, ya, fa, dataset.getAttributes())
     return datasetFlagged
+#
+SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]")
+def escape_regex(str):
+    """
+    escape regular expression special characters in the string. It is assumed that the string is a literal search and not a regular exrpession
+    """
+    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0")
+def get_ref(dssfile, path):
+    """
+    Get the reference from dss file name and the path which is matched literally (no regular expressions assumed)
+    """
+    group=opendss(dssfile)
+    refs = findpath(group, escape_regex(path))
+    if refs == None or len(refs) == 0:
+        print "No data found for %s and %s" % (group, path)
+    else:
+        return refs[0]
 #

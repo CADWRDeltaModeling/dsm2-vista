@@ -13,7 +13,7 @@ from javax.swing import JTable, Box, BoxLayout
 from javax.swing.table import AbstractTableModel,DefaultTableModel
 from javax.swing.tree import DefaultMutableTreeNode
 from javax.swing.event import TreeSelectionListener, TableModelEvent
-from com.sun.xml.tree import XmlDocument, TreeWalker, ElementNode
+#from com.sun.xml.tree import XmlDocument, TreeWalker, ElementNode
 from vista.gui import TableSorter
 from java.io import FileInputStream
 import sys; from sys import exit
