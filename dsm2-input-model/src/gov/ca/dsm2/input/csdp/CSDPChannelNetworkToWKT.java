@@ -1,7 +1,9 @@
 package gov.ca.dsm2.input.csdp;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 
@@ -19,14 +21,24 @@ import java.io.PrintWriter;
 public class CSDPChannelNetworkToWKT {
 	public static void main(String[] args) throws Exception {
 		//String filename = "resources/delta_2009Calib.cdn"; //+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
-		String filename = "resources/dsm2-ext-grid.cdn"; //+proj=utm +zone=10 +datum=NAD27 +units=m +no_defs
+		if (args.length < 2) {
+			System.out
+					.println("Usage: CSDPChannelNetworkToWKT <.cdn Filename> <.wkt Filename>");
+			System.exit(2);
+		}
+		String filename = args[0];//+proj=utm +zone=10 +datum=NAD27 +units=m +no_defs
+		String outfilename = args[1];
+		convertToChannelFlowlinesWKT(filename, outfilename);
+	}
+
+	public static void convertToChannelFlowlinesWKT(String filename, String outfilename)
+			throws FileNotFoundException, IOException {
 		LineNumberReader reader = new LineNumberReader(new FileReader(filename));
 		String line = reader.readLine();
 		while (line.startsWith(";")){
 			line=reader.readLine();
 		}
-		//PrintWriter wr = new PrintWriter(new FileWriter("resources/delta_2008Calib.wkt"));
-		PrintWriter wr = new PrintWriter(new FileWriter("resources/dsm2-ext-grid.wkt"));
+		PrintWriter wr = new PrintWriter(new FileWriter(outfilename));
 		wr.println("id;wkt");
 		while(line!=null){
 			while(line.trim().equals("")){
