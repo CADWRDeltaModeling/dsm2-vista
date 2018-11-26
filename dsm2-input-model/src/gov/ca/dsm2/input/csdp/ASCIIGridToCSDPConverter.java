@@ -28,24 +28,47 @@ import java.io.PrintWriter;
 public class ASCIIGridToCSDPConverter {
 
 	public static void main(String[] args) throws Exception {
-		if (args.length < 2) {
-			System.out
-					.println("Usage: ASCIIGridDEMSplitter <DEM file> <CSDP PRN File>");
+		if (args.length < 3) {
+			System.out.println("Usage: ASCIIGridDEMSplitter <DEM file> <CSDP PRN File> <Year>");
+			System.out.println("Alternate Usage: ASCIIGridDEMSplitter <DEM file> <CSDP PRN File> <Year> <Source>");
+			System.out.println("Alternate Usage: ASCIIGridDEMSplitter <DEM file> <CSDP PRN File> <Year> <Source> <Description>");
 			System.exit(2);
 		}
-		ASCIIGridToCSDPConverter converter = new ASCIIGridToCSDPConverter(
-				args[0], args[1]);
+		String year = args[2];
+		
+		String source = "RFW-DEM";
+		if(args.length>3) {
+			source = args[3];
+		}
+		String description = "";
+		if (args.length>4) {
+			description = args[4];
+		}
+		ASCIIGridToCSDPConverter converter = new ASCIIGridToCSDPConverter(args[0], args[1], year, source, description);
 		converter.convert();
 	}
 
 	private String inFilename;
 	private String outFilename;
+	/*
+	 * Examples: "RFW-DEM", "DWR-DMS", "USGS", etc.
+	 */
+	private String source;
+	/*
+	 * The description field is currently not used by CSDP, but it can be helpful when managing data to determine which data sets
+	 * to include in CSDP input files.
+	 */
+	private String description;
+	private String year;
 
-	public ASCIIGridToCSDPConverter(String inFileName, String outFileName) {
+	public ASCIIGridToCSDPConverter(String inFileName, String outFileName, String year, String source, String description) {
 		this.inFilename = inFileName;
 		this.outFilename = outFileName;
+		this.year = year;
+		this.source = source;
+		this.description = description;
 	}
-
+	
 	public void convert() throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader(this.inFilename));
 		File tempFile = File.createTempFile("csdp", "prn");
@@ -92,10 +115,10 @@ public class ASCIIGridToCSDPConverter {
 		int realCount=0;
 		for (int i = 0; i < nrows; i++) {
 			String[] fields = line.split("\\s");
-			if ((i % pct) == 0) {
-				System.out.println("Processed " + i + " of " + nrows
-						+ " rows from file " + inFilename);
-			}
+//			if ((i % pct) == 0) {
+//				System.out.println("Processed " + i + " of " + nrows
+//						+ " rows from file " + inFilename);
+//			}
 			for (int j = 0; j < fields.length; j++) {
 				double x = xllcorner + (j * cellsize);
 				double y = yllcorner + ((nrows - i) * cellsize);
@@ -103,14 +126,22 @@ public class ASCIIGridToCSDPConverter {
 				// int rawDepth = Integer.parseInt(fields[j]);
 				// ASCII Grid values in meters in float format while output is
 				// 10ths of feet in integer format
-				float rawDepth = Float.parseFloat(fields[j]);
+//				float rawDepth = Float.parseFloat(fields[j]);
+				float rawDepth = -Float.MAX_VALUE;
+				String rawDepthString = fields[j];
+				if (rawDepthString.equals("-nan(ind)")){
+					rawDepth = nodataValue;
+				}else{
+					rawDepth = Float.parseFloat(rawDepthString);
+				}
+
 				if (Math.abs(rawDepth - nodataValue) <= 1e-5) {
 					depth = -9999;
 				} else {
 					depth = rawDepth / 0.3048;
 					realCount++;
-					writer.println(String.format("%12.5f,%12.5f,%4.2f,%s,%s", x, y,
-							depth, "2014", "RFW-DEM"));
+					writer.println(String.format("%12.5f,%12.5f,%4.2f,%s,%s,%s", x, y,
+							depth, this.year, this.source, this.description));
 				}
 			}
 			line = reader.readLine();
