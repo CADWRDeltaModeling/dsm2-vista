@@ -70,7 +70,7 @@ def compare_dss_files(file1, file2, showPlot="Abs", outputFile=None, outputPathF
                 diff_total = vtimeseries.total(absdiff)
                 if (diff_total > 1e-06) :
                     no_diff=False
-                    if showPlot.find("Diff") >=0 : 
+                    if showPlot and showPlot.find("Diff") >=0 : 
                         graphs = plot(diff)
                         #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
                     else: 

@@ -294,7 +294,7 @@ def do3plots(plotfile='plots.data',ppg=3,diffplot=0,together=0):
     #for pl in plots:
     #    laxis = pl.getAxis(AxisAttr.LEFT);
     #    laxis.setDCRange(0.0,20000.0);
->>>>>>> 1.6
+#>>>>>>> 1.6
 #
 if __name__ == 'main' :
     do3plots('plots.data',4,0)

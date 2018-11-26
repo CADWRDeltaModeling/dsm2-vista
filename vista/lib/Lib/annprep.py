@@ -44,6 +44,8 @@ def write_to_csv(basedir,dssfile,csvfile,twstr):
     g=vutils.opendss(basedir+'/'+dssfile)
     refs=g.getAllDataReferences().tolist()
     refs.sort()
+    write_refs_to_csv(refs, basedir, csvfile, twstr)
+def write_refs_to_csv(refs, basedir, csvfile, twstr):
     from vtimeseries import timewindow
     from vista.set import DataReference
     tw=timewindow(twstr)

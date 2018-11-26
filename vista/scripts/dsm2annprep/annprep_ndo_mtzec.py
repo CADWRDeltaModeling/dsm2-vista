@@ -1,4 +1,5 @@
 from annprep import *
+from vtimeseries import flat_interpolate, godin, per_avg, per_min, per_max
 def create_dss_file(file, outfile):
     f = File(file)
     print 'Parsing %s'%f.absoluteFile
@@ -30,13 +31,19 @@ def create_dss_file(file, outfile):
     # stage at mtz
     print 'Tidally filtering and averaging boundary stage to daily'
     refmap_mtzstage = refmap['mtz']
+    mtzmin=per_min(refmap_mtzstage, '1DAY')
+    mtzmin.pathname.setPart(1,'MTZ-MIN')
+    mtzmax=per_max(refmap_mtzstage, '1DAY')
+    mtzmax.pathname.setPart(1,'MTZ-MAX')
     mtzstage=per_avg(godin(refmap_mtzstage),'1DAY')
+    write_ref(outfile, mtzmin)
+    write_ref(outfile, mtzmax)
     write_ref(outfile, mtzstage)
     #mtz ec
     rsac054ecref=vdss.get_ref(basedir+'/../../timeseries/hist_19902012.dss','/FILL+CHAN/RSAC054/EC//1HOUR/DWR-DMS-201203_CORRECTED/')
     rsac054ec=per_avg(godin(rsac054ecref),'1DAY')
     write_ref(outfile,rsac054ec)
-    return basedir
+    return ndoref, mtzmin, mtzmax, mtzstage, rsac054ec
 if __name__ == '__main__':
     if (len(sys.argv) < 2):
         print "Usage: annprep hydro_echo_file.inp"
@@ -44,7 +51,7 @@ if __name__ == '__main__':
     file = sys.argv[1]
     outfile_prefix = 'ann_ndo_mtzec'
     outfile='%s.dss'%outfile_prefix
-    create_dss_file(file,outfile)
+    refs = create_dss_file(file,outfile)
     #
     import os
     basedir_name=os.path.basename(os.path.abspath('.'))

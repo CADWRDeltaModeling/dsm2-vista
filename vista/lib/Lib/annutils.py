@@ -104,14 +104,14 @@ No. of output units              : %d
 
 '''%(time.ctime(time.time()),npatterns-ncalibs+prev_no_patterns[1],ninputs,noutputs))
     else:
-        cfh.print('''SNNS pattern definition file V3.2
+        cfh.write('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
 No. of output units              : %d
 
 '''%(time.ctime(time.time()),ncalibs+prev_no_patterns[0],ninputs,noutputs))
-	   vfh.print('''SNNS pattern definition file V3.2
+        vfh.write('''SNNS pattern definition file V3.2
 generated at date                : %s
 No. of patterns                  : %d
 No. of input units               : %d
@@ -164,7 +164,7 @@ No. of output units              : %d
 	    fh.write('\n# Input pattern %d:\n'%(pattern_no+prev_pattern_no))
 	while j < ninputs:
 	    if fast_write:
-		fh.print('%10.6f'%el.getY(j))
+		fh.write('%10.6f'%el.getY(j))
 	    else:
 		fh.write('%10.6f'%el.getY(j))
 	    j=j+1
@@ -175,7 +175,7 @@ No. of output units              : %d
 	    fh.write('\n# Output pattern %d:\n'%(pattern_no+prev_pattern_no))
 	while j < ninputs+noutputs:
 	    if fast_write:
-		fh.print('%10.6f'%el.getY(j))
+		fh.write('%10.6f'%el.getY(j))
 	    else:
 		fh.write('%10.6f'%el.getY(j))
 	    j=j+1
