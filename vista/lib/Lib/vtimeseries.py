@@ -966,68 +966,17 @@ def per_min_time(ds, interval='1mon'):
     """
     return TimeSeriesMath.getPeriodMinMax(ds, TimeFactory.getInstance().createTimeInterval(interval), TimeSeriesMath.PERIOD_MIN)
 #
-#def mov_avg(ts, backLength, forwardLength):
-#    '''
-#    mov_avg(ts,backLength,forwardLength):
-#    Does a moving average of the time series (dataset or ref) with 
-#    backLength previous points and forwardLength future points and
-#    the present point. Returns the result as a new time series.
-#    '''
-#    if isinstance(ts, DataReference):
-#        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
-#    else:
-#        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
-#  
-def mov_avg(dsref, backLength, forwardLength):
+def mov_avg(ts, backLength, forwardLength):
     '''
     mov_avg(ts,backLength,forwardLength):
     Does a moving average of the time series (dataset or ref) with 
     backLength previous points and forwardLength future points and
     the present point. Returns the result as a new time series.
     '''
-    filter = Constants.DEFAULT_FLAG_FILTER
-    if isinstance(dsref, DataReference):
-        ds = dsref.getData()
-        ref = dsref
-        isRef = True
-    else:   # dataset
-        if isinstance(dsref, RegularTimeSeries):    #RTS
-            ds = dsref
-        else:       # ITS
-            ds = IrregularTimeSeries(dsref)
-            ds.setAttributes(dsref.getAttributes())
-        isRef = False
-    # first fill a list with back and forward y values
-    # then MAs are then computed by
-    # adding the newest value, removing the oldest,
-    # divide by the number of good values in the vector
-    smallNumber = 1.e-10
-    totLength = backLength + forwardLength + 1
-    vecY = jarray.zeros(totLength, 'd')
-    for ndx in range(totLength - 1):
-        el1 = ds.getElementAt(ndx)
-        if filter.isAcceptable(el1): vecY[ndx + 1] = el1.getY()
-        else: vecY[ndx + 1] = smallNumber
-    for ndx in range(ds.size()):
-        el1 = ds.getElementAt(ndx)  # element now
-        if ndx < backLength or ndx >= (ds.size() - forwardLength):
-            el1.setY(Constants.MISSING_VALUE)
-        else:   # compute the MA centered at ndx
-            el2 = ds.getElementAt(ndx + forwardLength)    # farthest future element
-            # update vector with new value
-            if filter.isAcceptable(el2): vecY.append(el2.getY())
-            else: vecY.append(smallNumber)
-            vecY.pop(0)
-            if vecY.count(smallNumber) < totLength:
-                aveY = sum(vecY) / (totLength - vecY.count(smallNumber))
-            else:
-                aveY = Constants.MISSING_VALUE
-            el1.setY(aveY)
-        ds.putElementAt(ndx, el1)
-    if isRef:
-        return wrap_data(ds,filename=dsref.getFilename(),pathname=str(dsref.getPathname()))
+    if isinstance(ts, DataReference):
+        return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
     else:
-        return ds
+        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
 #  
 def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     """
