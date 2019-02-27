@@ -22,8 +22,4 @@ if __name__=='__main__':
             pass
     if file!=None and len(file)==0: 
         file=None
-    #xgui.MainGui(file)
-    from javax.swing import JFrame
-    fr=JFrame("Test")
-    fr.show();
-    print 'Start xgui '
+    xgui.MainGui(file)

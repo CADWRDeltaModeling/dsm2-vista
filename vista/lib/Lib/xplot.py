@@ -4,7 +4,7 @@ from vutils import *
 from vista.app import GroupFrame
 from vista.set import Group
 from vista.gui import VistaUtils
-from vista.graph import TextLine, GEAttr, GraphicElement, CurveAttr
+from vista.graph import TextLine, GEAttr, GraphicElement, CurveAttr, GraphAttr
 from vista.app import CurveFactory
 # XML library
 from org.w3c.dom import Document
