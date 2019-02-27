@@ -1,12 +1,31 @@
-#! /bin/csh -f 
-#setenv JAVA_COMPILER sunwjit
-setenv JAVA_COMPILER NONE
-setenv JAVA_HOME /site/java/jdk
-setenv VISTA_HOME /delta/models/java/vista
-setenv LD_LIBRARY_PATH $VISTA_HOME/lib/:/opt/SUNWspro/SC/lib:$OPENWINHOME/lib:/usr/ucblib:/site/lib:$JAVA_HOME/lib
-if ( $#argv == 0 ) then 
-$JAVA_HOME/bin/java -mx44m -Dvista.home=$VISTA_HOME -Dpython.path=.:$VISTA_HOME/lib -Dinstall.root=$VISTA_HOME/lib/ -classpath {$CLASSPATH}:$JAVA_HOME/lib/classes.zip:$VISTA_HOME/../:$VISTA_HOME/lib/jpy.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/swingall.jar:$VISTA_HOME/lib/jnios.jar:$VISTA_HOME/lib/jhall.jar:$VISTA_HOME/help org.python.util.jpython -i $VISTA_HOME/lib/__init__.py $*;
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export VISTA_HOME=$DIR/..
+echo "Vista home is $VISTA_HOME"
+if [ ! -f $VISTA_HOME/jython/jython.jar ]; then
+echo "############################################################"
+echo "  Error: VISTA files not found"
+echo "  ___"
+echo "  Installation instructions"
+echo "  ___"
+echo "  The value of the environment variable vista_home in the "
+echo "  file vista.bat needs to match the location where"
+echo "  VISTA has been installed"
+echo "############################################################"
+fi
+export LD_LIBRARY_PATH=$VISTA_HOME/lib/
+export PYPATH="$VISTA_HOME/jython/Lib:$VISTA_HOME/lib/Lib:$VISTA_HOME/../scripts"
+export CPATH=$VISTA_HOME/lib/vista.jar:$VISTA_HOME/lib/vista-help.jar:$VISTA_HOME/jython/jython.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/jhall.jar:$VISTA_HOME/lib/jnios.jar:$VISTA_HOME/lib/widgets.jar:$VISTA_HOME/lib/jhdf5.jar:$VISTA_HOME/lib/jhdf5obj.jar:$VISTA_HOME/lib/jhdfobj.jar:$VISTA_HOME/lib/heclib.jar:$VISTA_HOME/lib/dsm2-input-model.jar:$VISTA_HOME/lib/ojdbc6.jar
+export HECPATH=$VISTA_HOME/lib/heclib.jar:$VISTA_HOME/lib/hec.jar:$VISTA_HOME/lib/hecData.jar:$VISTA_HOME/lib/rma.jar:$VISTA_HOME/lib/dssvueHelp.jar:$VISTA_HOME/lib/images.jar
+export CPATH=$CPATH:$HECPATH
+export LPATH="$VISTA_HOME/lib" 
+export PYHOME="$VISTA_HOME/jython"
+###############
+#starting vscript
+###############
+if [ "$#" -ne 1 ]; then 
+$VISTA_HOME/jre8/bin/java -mx256m  -Djava.library.path="$LPATH" -Dvista.home="$VISTA_HOME" -Dpython.home="$PYHOME" -Dpython.path="$PYPATH" -Dpython.console=org.python.util.InteractiveConsole -classpath "$CPATH" org.python.util.jython -i "$VISTA_HOME/lib/__init__.py"
 else
-#$JAVA_HOME/bin/java -ss1m -mx44m -Dvista.home=$VISTA_HOME -Dinstall.root=$VISTA_HOME/lib/ -classpath {$CLASSPATH}:$JAVA_HOME/lib/classes.zip:$VISTA_HOME/../:$VISTA_HOME/lib/jpy.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/swingall.jar:$VISTA_HOME/lib/jnios.jar:$VISTA_HOME/lib/jhall.jar:$VISTA_HOME/help vista.app.VScript  -i $VISTA_HOME/lib/__init__.py -c $*;
-$JAVA_HOME/bin/java -ss1m -mx44m -Dvista.home=$VISTA_HOME -Dinstall.root=$VISTA_HOME/lib/ -classpath {$CLASSPATH}:$JAVA_HOME/lib/classes.zip:$VISTA_HOME/../:$VISTA_HOME/lib/jpy.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/swingall.jar:$VISTA_HOME/lib/jnios.jar:$VISTA_HOME/lib/jhall.jar:$VISTA_HOME/help org.python.util.jpython $*;
-endif
+$VISTA_HOME/jre8/bin/java -mx256m  -Djava.library.path=$LPATH -Dvista.home="$VISTA_HOME" -Dpython.home="$PYHOME" -Dpython.path="$PYPATH" -Dpython.console=org.python.util.InteractiveConsole -classpath "$CPATH" org.python.util.jython -i  $*
+fi
+

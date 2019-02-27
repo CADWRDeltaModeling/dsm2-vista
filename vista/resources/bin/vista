@@ -1,8 +1,26 @@
-#! /bin/csh -f 
-( setenv JAVA_COMPILER NONE; \
-setenv JAVA_HOME /site/java/jdk; \
-setenv VISTA_HOME /delta/models/java/vista;\
-setenv LD_LIBRARY_PATH /home/aqua/nsandhu/java/vista/db/dss:/opt/SUNWspro/SC/lib:$OPENWINHOME/lib:/usr/ucblib:/site/lib:$JAVA_HOME/lib:$VISTA_HOME/lib;\
-$JAVA_HOME/bin/java -mx44m -Dvista.home=$VISTA_HOME -classpath $JAVA_HOME/lib/classes.zip:$VISTA_HOME/../:$VISTA_HOME/lib/jpy.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/swingall.jar vista.app.MainGUI $*; \
-)
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export VISTA_HOME=$DIR/..
+echo "Vista home is $VISTA_HOME"
+if [ ! -f $VISTA_HOME/jython/jython.jar ]; then
+echo "############################################################"
+echo "  Error: VISTA files not found"
+echo "  ___"
+echo "  Installation instructions"
+echo "  ___"
+echo "  The value of the environment variable vista_home in the "
+echo "  file vista.bat needs to match the location where"
+echo "  VISTA has been installed"
+echo "############################################################"
+fi
 
+# ###############
+# Set path to location of dll
+# ###############
+export LD_LIBRARY_PATH=$VISTA_HOME/lib
+
+# ###############
+# starting vista
+# ###############
+#::start VISTA_HOME/jre/bin/
+"$VISTA_HOME/jre8/bin/java" -mx512m  -Djava.library.path="$VISTA_HOME/lib" -Dvista.home="$VISTA_HOME" -classpath "$VISTA_HOME/lib/vista.jar:$VISTA_HOME/lib/vista-help.jar:$VISTA_HOME/jython/jython.jar:$VISTA_HOME/lib/pd.jar:$VISTA_HOME/lib/misc.jar:$VISTA_HOME/lib/jhall.jar:$VISTA_HOME/lib/jnios.jar:$VISTA_HOME/lib/jhdf5.jar:$VISTA_HOME/lib/jhdfobj.jar:$VISTA_HOME/lib/jhdf5obj.jar:$VISTA_HOME/lib/heclib.jar:$VISTA_HOME/lib/ojdbc6.jar:$VISTA_HOME/lib/slf4j-api-1.7.2.jar:$VISTA_HOME/lib/logback-core-1.0.9.jar:$VISTA_HOME/lib/logback-classic-1.0.9.jar"  vista.app.MainGUI $*
