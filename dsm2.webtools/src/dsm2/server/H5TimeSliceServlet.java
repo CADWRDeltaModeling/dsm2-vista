@@ -220,8 +220,10 @@ public class H5TimeSliceServlet extends HttpServlet {
 			if (dataType.equals("0")) {
 				pathToData = "/hydro/data/channel stage";
 			} else if (dataType.equals("1")) {
+				pathToData = "/hydro/data/channel stage";
+			} else if (dataType.equals("2")) {
 				pathToData = "/hydro/data/channel flow";
-			} else if (dataType.equals("2")) { 
+			} else if (dataType.equals("3")) { 
 				pathToData = "/hydro/data/channel area";
 			} else {
 				System.err.println("Request for unknown data type: " + dataType);
@@ -347,8 +349,8 @@ public class H5TimeSliceServlet extends HttpServlet {
 		if (reservoirValues == null){
 			reservoirValues = new float[reservoirNames.length*sliceSize];
 		}
-		// if stage then adjust for channel bottoms
-		if (dataType.equals("stage")) {
+		// if depth then adjust for channel bottoms
+		if (!qualTidefile && dataType.equals("0")) {
 			float[] channelBottoms = getBottomElevations(h5file);
 			for (int k = 0; k < sliceSize; k++) {
 				int soffset = k * channelArray.length;

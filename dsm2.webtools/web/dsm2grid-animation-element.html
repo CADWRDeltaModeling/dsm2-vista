@@ -41,6 +41,10 @@
 					notify: true,
 					relectToAttribute: true
 				},
+				typeNames :{
+					type: Array,
+					value: [""]
+				},
 				tidalFilter: {
 					type: Boolean,
 					value: false,
@@ -464,7 +468,9 @@
 			
 			_updateColorsForSlice: function(data, rdata, stime) {
 			    // --- draw line for x2
-			    var x2pts = this._calcX2Points(data);
+			    if (this.typeNames[this.type] == "ec"){
+			    	var x2pts = this._calcX2Points(data);
+			    }
 			    if (this.x2line){
 					this.x2line.data([x2pts]).attr("d",this.x2lg);
 			    } else {
@@ -474,13 +480,15 @@
   						var point = pt._subtract(this.map.getPixelOrigin())
   						return point;
 					}.bind(this);
-					this.x2lg = d3.line()
-						.curve(d3.curveBasis)
-						.x(function(d){ return mapProjectPoint(d).x; })
-						.y(function(d){ return mapProjectPoint(d).y; });
-	  				this.x2line = this.gX2.selectAll("path").data([x2pts]).enter().append("path").attr("d",this.x2lg)
-	  				.style("stroke","red").style("fill","none").style("stroke-width","6")
-	  				.style("stroke-linecap","round").style("stroke-linejoin","bevel");
+					if (this.x2line){
+						this.x2lg = d3.line()
+							.curve(d3.curveBasis)
+							.x(function(d){ return mapProjectPoint(d).x; })
+							.y(function(d){ return mapProjectPoint(d).y; });
+		  				this.x2line = this.gX2.selectAll("path").data([x2pts]).enter().append("path").attr("d",this.x2lg)
+		  				.style("stroke","red").style("fill","none").style("stroke-width","6")
+		  				.style("stroke-linecap","round").style("stroke-linejoin","bevel");
+					}
 			    }
 				//--------- UPDATE COLORS ON VIEW-----------
 				this.stops1.data(data[0])
