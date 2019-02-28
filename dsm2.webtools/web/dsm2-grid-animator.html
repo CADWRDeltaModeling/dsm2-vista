@@ -52,11 +52,6 @@
 			<paper-material elevation="3">
 				<div label="Controls" class="layout horizontal">
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
-					<iron-ajax id="h5InfoRequest" auto url="h5info?file={{config.tidefile}}"
-							handle-as="json"
-							last-response="{{h5info}}"
-							debounce-duration="1000">
-					</iron-ajax>
 					<paper-listbox class="dropdown-content" selected="{{config.dataType}}" attr-for-selected="value">
 						<template is="dom-repeat" items="[[h5info.dataTypeNames]]">
 							<paper-item value="[[index]]">[[item]]</paper-item>
@@ -192,9 +187,14 @@
 			});
 
 			var fileInput = document.getElementById("fileinput");
-			fileInput.addEventListener('change', function(e) {
-				document.getElementById('mainContext').tidefile = e.target.value;
-			});
+			fileInput.addEventListener('value-changed', function(event) {
+				document.getElementById('mainContext').tidefile = event.target.value;
+				d3.json(encodeURI("h5info?file="+event.target.value), function(d){
+					document.getElementById('mainContext').h5info=d;
+					});
+				});
+			//
+			fileInput.fire('value-changed',fileInput.value)
 
 			var baseFileInput = document.getElementById("basefileinput");
 			baseFileInput.addEventListener('change', function(e) {
