@@ -88,6 +88,11 @@ public class MovingAverageProxy extends UnaryOperationProxy {
 		} else {
 			setFilter(Constants.DEFAULT_FILTER);
 		}
+		// check for regular time series
+		DataSet data = ref.getData();
+		if (!(data instanceof RegularTimeSeries)) {
+			throw new IllegalArgumentException("Moving average only implemented for regular time series! Convert data set to regular time series first");
+		}
 		super.checkInput(ref);
 		super.initializeAll(ref);
 	}
