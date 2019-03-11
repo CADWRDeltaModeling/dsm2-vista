@@ -192,9 +192,6 @@ public class AttributeSerializer {
 		} catch (FileNotFoundException fnfe) {
 			System.out.println("File " + propertiesFile + " not found");
 			System.out.println(fnfe);
-		} catch (IOException ioe) {
-			System.out.println("Could not save properties");
-			System.out.println(ioe);
 		}
 		return success;
 	}

@@ -47,9 +47,10 @@
 		</copy>
 	</target>
 	
-	<target name="package" depends="compile">
+	<target name="install" depends="compile">
 		<tstamp/>
 		<mkdir dir="${dist.dir}"/>
+		<jar destfile="${dist.dir}/lib/vista.jar" basedir="build/classes"></jar>
 		<copy todir="${dist.dir}">
 			<fileset dir="resources"/>
 		</copy>
@@ -65,6 +66,7 @@
 				<include name="jython.jar"/>
 				<include name="extlibs/**"/>
 				<include name="LICENSE*"/>
+				<exclude name="Lib/test/**"/>
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/jre8/">
@@ -72,7 +74,9 @@
 				<include name="**/**"/>
 			</fileset>
 		</copy>
-		<jar destfile="${dist.dir}/lib/vista.jar" basedir="build/classes"></jar>
+	</target>
+	
+	<target name="package" depends="install">
 		<zip destfile="build/vista-${DSTAMP}.zip" basedir="${dist.dir}/.." />
 	</target>
 	

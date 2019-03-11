@@ -9,7 +9,7 @@
 	<classpathentry kind="lib" path="lib/jhdf5.jar"/>
 	<classpathentry kind="lib" path="lib/jhdf5obj.jar"/>
 	<classpathentry kind="lib" path="lib/jhdfobj.jar"/>
-	<classpathentry kind="lib" path="lib/heclib.jar"/>
+	<classpathentry kind="lib" path="lib/heclib.jar" sourcepath="/hecdssvue"/>
 	<classpathentry kind="lib" path="lib/postgresql-8.4-702.jdbc4.jar"/>
 	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
 	<classpathentry kind="lib" path="lib/jyson-1.0.1.jar"/>
