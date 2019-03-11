@@ -976,7 +976,7 @@ def mov_avg(ts, backLength, forwardLength):
     if isinstance(ts, DataReference):
         return ProxyFactory.createMovingAverageProxy(ts, backLength, forwardLength)
     else:
-        return ProxyFactory.createMovingAverageProxy(wrap_data(ds), backLength, forwardLength).getData()
+        return ProxyFactory.createMovingAverageProxy(wrap_data(ts), backLength, forwardLength).getData()
 #  
 def merge(args, filter=Constants.DEFAULT_FLAG_FILTER):
     """
