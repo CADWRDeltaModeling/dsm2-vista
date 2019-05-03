@@ -1,48 +1,44 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-	<title>DSM2 Grid Animation of Tidefile</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" type="text/javascript"></script>
-	<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-	<style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning" type="text/css"></style>
-	<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
-	<link rel="import" href="bower_components/paper-header-panel/paper-header-panel.html">
-	<link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
-	<link rel="import" href="bower_components/paper-slider/paper-slider.html">
-	<link rel="import" href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
-	<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
-	<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-	<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
-	<link rel="import" href="bower_components/paper-item/paper-item.html">
-	<link rel="import" href="bower_components/paper-material/paper-material.html">
-	<link rel="import" href="bower_components/paper-slider/paper-slider.html">
-	<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
-	<link rel="import" href="bower_components/paper-input/paper-input.html">
-	<link rel="import" href="dsm2grid-animation-element.html">
-	<link rel="import" href="time-slider.html">
-	<link rel="import" href="color-brewer-selector.html">
-	<link rel="import" href="array-input-editor.html">
-	<link rel="import" href="animation-config-element.html">
-	<link rel="import" href="bower_components/iron-icons/av-icons.html">
-	<link rel="import" href="bower_components/iron-icons/iron-icons.html">
-	<style type="text/css">
-		#configSelector {
-			width: 100%;
-		}
-
-		#slider {
-			margin: 10px;
-		}
-
-		#mapselector {
-			width: 100%;
-		}
-	</style>
+<title>DSM2 Grid Animation of Tidefile</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning"></style>
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="bower_components/paper-material/paper-material.html">
+<link rel="import" href="bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="dsm2grid-animation-element.html">
+<link rel="import" href="time-slider.html">
+<link rel="import" href="color-brewer-selector.html">
+<link rel="import" href="array-input-editor.html">
+<link rel="import" href="animation-config-element.html">
+<link rel="import" href="bower_components/iron-icons/av-icons.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">	
+<style>
+#configSelector{
+	width: 100%;
+}
+#slider {
+	margin: 10px;
+}
+#mapselector{
+	width: 100%;
+}
+</style>
 </head>
-
 <body class="fullbleed layout vertical">
 	<template is="dom-bind" id="mainContext">
 	<paper-drawer-panel right-drawer drawer-width="400px">
@@ -52,156 +48,203 @@
 			<paper-material elevation="3">
 				<div label="Controls" class="layout horizontal">
 				<paper-dropdown-menu id="typeselector" label="Data Type" >
-					<paper-listbox class="dropdown-content" selected="{{config.dataType}}" attr-for-selected="value">
+					<iron-ajax id="h5InfoRequest" auto url="h5info?file=[[tidefile]]"
+							handle-as="json"
+							last-response="{{h5info}}"
+							debounce-duration="1000">
+					</iron-ajax>
+					<paper-listbox class="dropdown-content" selected="{{dataType}}" attr-for-selected="value">
 						<template is="dom-repeat" items="[[h5info.dataTypeNames]]">
 							<paper-item value="[[index]]">[[item]]</paper-item>
 						</template>
-	</paper-listbox>
-	</paper-dropdown-menu>
-	<paper-toggle-button id="tidalFilterToggle" checked="{{config.tidalFilter}}">Tidally Filter</paper-toggle-button>
-	</div>
-	<paper-input id="fileinput" value="{{config.tidefile}}" label="Tidefile"></paper-input>
-	<paper-input id="basefileinput" value="{{config.baseTidefile}}" label="Base Tidefile"></paper-input>
-	<paper-dropdown-menu id="diffTypeSelector" label="Difference Type">
-		<paper-listbox class="dropdown-content" selected="{{config.differenceType}}" attr-for-selected="value">
-			<paper-item value="absolute">Absolute</paper-item>
-			<paper-item value="relative">Relative</paper-item>
-		</paper-listbox>
-	</paper-dropdown-menu>
-	</paper-material>
-	<paper-material elevation="3">
-		<div label="Controls" class="layout horizontal">
-			<paper-toggle-button id="animateStartStop">Start/Stop</paper-toggle-button>
-			<paper-icon-button icon="av:replay" id="restart"></paper-icon-button>
-		</div>
-	</paper-material>
-	<paper-material elevation="3">
-		<time-slider current-time="{{config.animateStartTime}}" begin-time="[[h5info.startDate]]" end-time="[[h5info.endDate]]"></time-slider>
-	</paper-material>
-	<paper-material elevation="3">
-		<div class="container flex-horizontal">
-			<div id="anim">Animation Interval: {{config.animationInterval}} milliseconds</div>
-			<div class="container flex-horizontal">
-				<paper-slider id="slider" name="Animation Interval: " min="5" max="500" step="5" value="{{config.animationInterval}}"></paper-slider>
+					</paper-listbox>
+				</paper-dropdown-menu>
+				<paper-toggle-button id="tidalFilterToggle" checked="{{tidalFilter}}">Tidally Filter</paper-toggle-button>
+				</div>	
+				<paper-input id="fileinput" value="{{tidefile}}" label="Tidefile"></paper-input>
+				<paper-input id="basefileinput" value="{{baseTidefile}}" label="Base Tidefile"></paper-input>
+				<paper-dropdown-menu id="diffTypeSelector" label="Difference Type" >
+					<paper-listbox class="dropdown-content" selected="{{differenceType}}" attr-for-selected="value">
+						<paper-item value="absolute">Absolute</paper-item>
+						<paper-item value="relative">Relative</paper-item>
+					</paper-listbox>	
+				</paper-dropdown-menu>
+			</paper-material>
+			<paper-material elevation="3">
+			<div label="Controls" class="layout horizontal">
+				<paper-toggle-button id="animateStartStop">Start/Stop</paper-toggle-button>
+				<paper-icon-button icon="av:replay" id="restart"></paper-icon-button>
 			</div>
-		</div>
-	</paper-material>
-	<paper-material elevation="3">
-		<div class="container flex-horizontal">
-			<div id="layer-opacity">Layer Opacity: [[config.layerOpacity]] </div>
+			</paper-material>
+			<paper-material elevation="3">
+				<time-slider current-time="{{animateStartTime}}" begin-time="[[h5info.startDate]]" end-time="[[h5info.endDate]]"></time-slider>
+			</paper-material>
+			<paper-material elevation="3">
 			<div class="container flex-horizontal">
-				<paper-slider id="opacity-slider" name="Layer Opacity: " min="0" max="100" step="1" value="{{config.layerOpacity}}"></paper-slider>
+				<div id="anim">Animation Interval: {{animationInterval}} milliseconds</div>
+				<div class="container flex-horizontal">
+					<paper-slider id="slider" name = "Animation Interval: " min="5" max="500" step="5" value="{{animationInterval}}"></paper-slider>
+				</div>
 			</div>
-		</div>
-		<paper-dropdown-menu id="mapselector" label="Map Background">
-			<paper-listbox class="dropdown-content" selected="{{config.layerName}}" attr-for-selected="value">
-				<paper-item value="Hydda.Full">Hydda.Full</paper-item>
-				<paper-item value="Hydda.Base">Hydda.Base</paper-item>
-				<paper-item value="Hydda.RoadsAndLabels">Hydda.RoadsAndLabels</paper-item>
-				<paper-item value="OpenStreetMap.Mapnik">OpenStreetMap.Mapnik</paper-item>
-				<paper-item value="OpenStreetMap.BlackAndWhite">OpenStreetMap.BlackAndWhite</paper-item>
-				<paper-item value="OpenStreetMap.HOT">OpenStreetMap.HOT</paper-item>
-				<paper-item value="OpenMapSurfer.Roads">OpenMapSurfer.Roads</paper-item>
-				<paper-item value="OpenMapSurfer.AdminBounds">OpenMapSurfer.AdminBounds</paper-item>
-				<paper-item value="OpenMapSurfer.Grayscale">OpenMapSurfer.Grayscale</paper-item>
-				<paper-item value="Stamen.Toner">Stamen.Toner</paper-item>
-				<paper-item value="Stamen.TonerLabels">Stamen.TonerLabels</paper-item>
-				<paper-item value="Stamen.TonerLite">Stamen.TonerLite</paper-item>
-				<paper-item value="Stamen.Watercolor">Stamen.Watercolor</paper-item>
-				<paper-item value="Stamen.Terrain">Stamen.Terrain</paper-item>
-				<paper-item value="Stamen.TerrainBackground">Stamen.TerrainBackground</paper-item>
-				<paper-item value="Stamen.TopOSMRelief">Stamen.TopOSMRelief</paper-item>
-				<paper-item value="Stamen.TopOSMFeatures">Stamen.TopOSMFeatures</paper-item>
-				<paper-item value="Esri.WorldStreetMap">Esri.WorldStreetMap</paper-item>
-				<paper-item value="Esri.WorldTopoMap">Esri.WorldTopoMap</paper-item>
-				<paper-item value="Esri.WorldImagery">Esri.WorldImagery</paper-item>
-				<paper-item value="Esri.WorldTerrain">Esri.WorldTerrain</paper-item>
-				<paper-item value="Esri.WorldShadedRelief">Esri.WorldShadedRelief</paper-item>
-				<paper-item value="Esri.WorldPhysical">Esri.WorldPhysical</paper-item>
-				<paper-item value="Esri.OceanBasemap">Esri.OceanBasemap</paper-item>
-				<paper-item value="Esri.NatGeoWorldMap">Esri.NatGeoWorldMap</paper-item>
-				<paper-item value="Esri.WorldGrayCanvas">Esri.WorldGrayCanvas</paper-item>
-				<paper-item value="CartoDB.Positron">CartoDB.Positron</paper-item>
-				<paper-item value="CartoDB.DarkMatter">CartoDB.DarkMatter</paper-item>
+			</paper-material>
+			<paper-material elevation="3">
+			<div class="container flex-horizontal">
+				<div id="layer-opacity">Layer Opacity: [[layerOpacity]] </div>
+				<div class="container flex-horizontal">
+					<paper-slider id="opacity-slider" name="Layer Opacity: " min="0" max="100" step="1" value="{{layerOpacity}}"></paper-slider>
+				</div>
+			</div>
+			<paper-dropdown-menu id="mapselector" label="Map Background" >
+			<paper-listbox class="dropdown-content" selected="{{layerName}}" attr-for-selected="value">
+			<paper-item value="Hydda.Full">Hydda.Full</paper-item>
+			<paper-item value="Hydda.Base">Hydda.Base</paper-item>
+			<paper-item value="Hydda.RoadsAndLabels">Hydda.RoadsAndLabels</paper-item>
+			<paper-item value="OpenStreetMap.Mapnik">OpenStreetMap.Mapnik</paper-item>
+			<paper-item value="OpenStreetMap.BlackAndWhite">OpenStreetMap.BlackAndWhite</paper-item>
+			<paper-item value="OpenStreetMap.HOT">OpenStreetMap.HOT</paper-item>
+			<paper-item value="OpenMapSurfer.Roads">OpenMapSurfer.Roads</paper-item>
+			<paper-item value="OpenMapSurfer.AdminBounds">OpenMapSurfer.AdminBounds</paper-item>
+			<paper-item value="OpenMapSurfer.Grayscale">OpenMapSurfer.Grayscale</paper-item>
+			<paper-item value="Stamen.Toner">Stamen.Toner</paper-item>
+			<paper-item value="Stamen.TonerLabels">Stamen.TonerLabels</paper-item>
+			<paper-item value="Stamen.TonerLite">Stamen.TonerLite</paper-item>
+			<paper-item value="Stamen.Watercolor">Stamen.Watercolor</paper-item>
+			<paper-item value="Stamen.Terrain">Stamen.Terrain</paper-item>
+			<paper-item value="Stamen.TerrainBackground">Stamen.TerrainBackground</paper-item>
+			<paper-item value="Stamen.TopOSMRelief">Stamen.TopOSMRelief</paper-item>
+			<paper-item value="Stamen.TopOSMFeatures">Stamen.TopOSMFeatures</paper-item>
+			<paper-item value="Esri.WorldStreetMap">Esri.WorldStreetMap</paper-item>
+			<paper-item value="Esri.WorldTopoMap">Esri.WorldTopoMap</paper-item>
+			<paper-item value="Esri.WorldImagery">Esri.WorldImagery</paper-item>
+			<paper-item value="Esri.WorldTerrain">Esri.WorldTerrain</paper-item>
+			<paper-item value="Esri.WorldShadedRelief">Esri.WorldShadedRelief</paper-item>
+			<paper-item value="Esri.WorldPhysical">Esri.WorldPhysical</paper-item>
+			<paper-item value="Esri.OceanBasemap">Esri.OceanBasemap</paper-item>
+			<paper-item value="Esri.NatGeoWorldMap">Esri.NatGeoWorldMap</paper-item>
+			<paper-item value="Esri.WorldGrayCanvas">Esri.WorldGrayCanvas</paper-item>
+			<paper-item value="CartoDB.Positron">CartoDB.Positron</paper-item>
+			<paper-item value="CartoDB.DarkMatter">CartoDB.DarkMatter</paper-item>
 			</paper-listbox>
-		</paper-dropdown-menu>
-	</paper-material>
-	<paper-material elevation="3">
-		<paper-icon-button icon="editor:linear-scale" id="autoscale"></paper-icon-button>
-		<array-input-editor label="Value Classes" current-value-as-array="{{config.valueClasses}}"></array-input-editor>
-	</paper-material>
-	<paper-material elevation="3">
-		<color-brewer-selector selected-colors='{{config.colorClasses}}'></color-brewer-selector>
-	</paper-material>
-	<paper-material elevation="3">
-		<animation-config-element id="config-selector" config-selected="{{config}}"></animation-config-element>
-	</paper-material>
-	</div>
-	</paper-header-panel>
-	<paper-header-panel main class="layout vertical">
-		<paper-toolbar>
-			<span class="title">DSM2 Grid Animation from DSM2 Tidefile Output</span>
-			<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
-		</paper-toolbar>
-		<dsm2grid-animation-element id="animationElement" class="fit" typeNames="[[h5info.dataTypeNames]]" type="[[config.dataType]]" tidal-filter="{{config.tidalFilter}}" tidefile="{{config.tidefile}}" base-tidefile="{{config.baseTidefile}}" center="[38.125, -121.6]" zoom="10" animate-interval="{{config.animationInterval}}" animate-start-time="[[config.animateStartTime]] 0000"
-						color-classes="{{config.colorClasses}}" value-classes="{{config.valueClasses}}" layer-opacity="{{config.layerOpacity}}" layer-name="{{config.layerName}}" difference-type="{{config.differenceType}}">
-			</dsm2grid-animation-element>
-	</paper-header-panel>
+			</paper-dropdown-menu>
+			</paper-material>
+			<paper-material elevation="3">
+			<paper-icon-button icon="editor:linear-scale" id="autoscale"></paper-icon-button>
+			<array-input-editor label="Value Classes" current-value-as-array="{{valueClasses}}"></array-input-editor>
+			</paper-material>
+			<paper-material elevation="3">
+			<color-brewer-selector selected-colors='{{colorClasses}}'></color-brewer-selector>
+			</paper-material>
+			<paper-material elevation="3">
+				<animation-config-element id="config-selector" on-config-selected="handleConfigSelected" config-selected="[[config]]"></animation-config-element>
+			</paper-material>
+		</div>
+	</paper-header-panel> 
+	<paper-header-panel main class="layout vertical"> 
+	<paper-toolbar>
+		<span class="title">DSM2 Grid Animation from DSM2 Tidefile Output</span>
+		<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+	</paper-toolbar>
+	<dsm2grid-animation-element id="animationElement" class="fit"
+	type="[[dataType]]"
+	tidal-filter="{{tidalFilter}}"
+	tidefile="{{tidefile}}"
+	base-tidefile = "{{baseTidefile}}"
+	center="[38.125, -121.6]"
+	zoom="10"
+	animate-interval="{{animationInterval}}"
+	animate-start-time="[[animateStartTime]] 0000"
+	color-classes = "{{colorClasses}}"
+	value-classes = "{{valueClasses}}"
+	layer-opacity="{{layerOpacity}}"
+	layer-name="{{layerName}}"
+	difference-type="{{differenceType}}"
+	>
+	</dsm2grid-animation-element>
+	</paper-header-panel> 
 	</paper-drawer-panel>
 	</template>
+	
+	<script>
+      var handlersInitialized = false;
 
-	<script type="text/javascript">
-		'use strict';
-		var handlersInitialized = false;
+      document.addEventListener('WebComponentsReady', function(e) {
+		   if (handlersInitialized) return;
+		   handlersInitialized = true;
+			 	  
+		   var mc = document.getElementById('mainContext');
 
-		document.addEventListener('WebComponentsReady', function(e) {
-			// console.log("WebComponentsReady fired on dsm2-grid-animator");
-			if (handlersInitialized) return;
-			handlersInitialized = true;
+           var animateStartStop = document.getElementById("animateStartStop");
+		   mc.restartAnimation = function(){
+			 document.getElementById('animationElement').startTimer();
+			 animateStartStop.checked=true;
+		   }
 
-			var mc = document.getElementById('mainContext');
+		   mc.setConfiguration = function(config){
+			   if (typeof config.dataType === "undefined") {
+				config.dataType = "0"; // upgrade code, not needed over time
+				mc.dataType = "0";
+			   } else {
+				mc.dataType = config.dataType;
+			   }
+			   if (typeof config.tidalFilter == "undefined"){
+			       config.tidalFilter=false;
+			   }
+			   if (typeof config.layerOpacity == 'undefined'){
+			       config.layerOpacity = 100;
+			   }
+			   mc.tidalFilter=config.tidalFilter
+			   mc.tidefile = config.tidefile;
+			   mc.baseTidefile = config.baseTidefile;
+			   mc.differenceType = config.differenceType;
+			   mc.layerName = config.layerName;
+			   mc.animateStartTime = config.animateStartTime;
+			   mc.animationInterval = config.animationInterval;
+			   mc.colorClasses = config.colorClasses;
+			   mc.valueClasses = config.valueClasses;
+			   mc.layerOpacity = config.layerOpacity;
+			   mc.restartAnimation();
+		   };
 
-			var animateStartStop = document.getElementById("animateStartStop");
-			mc.restartAnimation = function() {
-				document.getElementById('animationElement').startTimer();
-				animateStartStop.checked = true;
-			}
-
-
+		   mc.handleConfigSelected = function(event){
+			mc.setConfiguration(event.detail);		       
+		   };
+	   			
 			var restart = document.getElementById("restart");
-			animateStartStop.addEventListener('change', function(e) {
-				if (e.srcElement.checked) {
-					document.getElementById('animationElement').restartTimer();
-				} else {
+			animateStartStop.addEventListener('change', function(e){
+			    if(e.srcElement.checked){
+				    document.getElementById('animationElement').restartTimer();
+			    } else {
 					document.getElementById('animationElement').stopTimer();
-				}
+			    }
 			});
-			restart.addEventListener('tap', function() {
-				mc.restartAnimation();
+			restart.addEventListener('tap', function(){
+			    mc.restartAnimation();
 			});
 
+			
 			var autoscale = document.getElementById("autoscale");
-			autoscale.addEventListener('tap', function() {
-				document.getElementById('animationElement').autoScale();
-				mc.valueClasses = document.getElementById('animationElement').valueClasses;
+			autoscale.addEventListener('tap', function(){
+			   document.getElementById('animationElement').autoScale();
+			   mc.valueClasses = document.getElementById('animationElement').valueClasses;
 			});
 
 			var fileInput = document.getElementById("fileinput");
-			fileInput.addEventListener('value-changed', function(event) {
-				document.getElementById('mainContext').tidefile = event.target.value;
-				d3.json(encodeURI("h5info?file="+event.target.value), function(d){
-					document.getElementById('mainContext').h5info=d;
-					});
-				});
-			//
-			fileInput.fire('value-changed',fileInput.value)
-
+			fileInput.addEventListener('change', function(e){
+			 //console.log('File Input changed',e);
+			 document.getElementById('mainContext').tidefile = e.target.value;
+			});
+			
 			var baseFileInput = document.getElementById("basefileinput");
-			baseFileInput.addEventListener('change', function(e) {
-				document.getElementById('mainContext').baseTidefile = e.target.value;
+			baseFileInput.addEventListener('change', function(e){
+			 //console.log('Base File Input changed',e);
+			 document.getElementById('mainContext').baseTidefile = e.target.value;
 			})
+          
 
-		});
+     	   mc.setConfiguration(document.getElementById('config-selector').configSelected);
+			
+      });
+		
 	</script>
 </body>
 

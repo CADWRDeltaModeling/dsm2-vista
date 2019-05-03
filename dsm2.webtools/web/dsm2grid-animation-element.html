@@ -1,26 +1,24 @@
 <!DOCTYPE html>
-
 <head>
-	<link rel="import" href="./bower_components/polymer/polymer.html">
-	<link rel="import" href="./bower_components/iron-collapse/iron-collapse.html">
-	<!--  Leaflet for maps -->
-	<link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
-	<script src="bower_components/leaflet/dist/leaflet.js" type="text/javascript"></script>
-	<script src="bower_components/leaflet-providers/leaflet-providers.js" type="text/javascript"></script>
-	<link rel="stylesheet" href="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.css" />
-	<script src="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.min.js" type="text/javascript"></script>
-	<!-- D3 for svg rendering -->
-	<script type="text/javascript" src="bower_components/d3/d3.js"></script>
-	<script type="text/javascript" src="js/d3-legend.js"></script>
-	<!-- Data and custom scripts -->
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<link rel="import" href="./bower_components/iron-collapse/iron-collapse.html">
+<!--  Leaflet for maps -->
+<link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
+<script src="bower_components/leaflet/dist/leaflet.js"></script>
+<script src="bower_components/leaflet-providers/leaflet-providers.js"></script>
+<link rel="stylesheet" href="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.css" />
+<script src="bower_components/Leaflet.ZoomBox/L.Control.ZoomBox.min.js"></script>
+<!-- D3 for svg rendering -->
+<script type="text/javascript" src="bower_components/d3/d3.js"></script>
+<script type="text/javascript" src="js/d3-legend.js"></script>
+<!-- Data and custom scripts -->
 </head>
-<dom-module id="dsm2grid-animation-element">
+	<dom-module id="dsm2grid-animation-element"> 
 	<style type="text/css">
 		:host {
-			display: block;
-			height: 100%;
+		  display: block;
+		  height: 100%;
 		}
-
 		#map {
 			width: 100%;
 			height: 100%;
@@ -31,10 +29,10 @@
 	</template>
 	<script type="text/javascript">
 		Polymer({
-			is: "dsm2grid-animation-element",
+			is : "dsm2grid-animation-element",
 
-			properties: {
-				type: {
+			properties : {
+			    type : {
 					type: String,
 					value: "0",
 					observer: "_changeDataType",
@@ -51,15 +49,15 @@
 					observer: "_changeTidalFilter",
 					notify: true,
 					reflectToAttribute: true
-				},
-				tidefile: {
+			    },
+				tidefile : {
 					type: String,
 					value: "",
 					observer: "_changeTidefile",
 					notify: true,
 					reflectToAttribute: true,
 				},
-				baseTidefile: {
+				baseTidefile : {
 					type: String,
 					value: "",
 					observer: "_changeBaseTidefile",
@@ -67,67 +65,66 @@
 					reflectToAttribute: true,
 				},
 				differenceType: {
-					type: String,
-					value: "absolute", // absolute or relative pct
-					observer: "_changeBaseTidefile",
-					notify: true,
+				  type: String, 
+				  value: "absolute", // absolute or relative pct
+				  observer: "_changeBaseTidefile",
+				  notify: true,
 				},
-				fileStartTime: {
-					type: String,
-					notify: true,
-					readOnly: false
-				},
-				fileEndTime: {
+				fileStartTime : {
 					type: String,
 					notify: true,
 					readOnly: false
 				},
-				layerName: {
+				fileEndTime : {
 					type: String,
-					value: "Hydda.Base",
-					observer: "_changeMapTileLayer",
+					notify: true,
+					readOnly: false
+				},
+				layerName : {
+					type : String,
+					value : "Hydda.Base",
+					observer : "_changeMapTileLayer",
 					notify: true,
 					reflectToAttribute: true
 				},
 				layerOpacity: {
-					type: Number,
-					value: 100,
-					notify: true,
-					observer: "_changeMapTileLayerOpacity"
+				  type: Number,
+				  value: 100,
+				  notify: true,
+				  observer: "_changeMapTileLayerOpacity"
 				},
-				center: {
-					type: Array,
-					value: [38.18, -121.61]
+				center : {
+					type : Array,
+					value : [ 38.18, -121.61 ]
 				},
-				zoom: {
-					type: Number,
-					value: 10
+				zoom : {
+					type : Number,
+					value : 10
 				},
-				animateInterval: { // time in millis between calls to animate function
-					type: Number,
-					value: 100,
+				animateInterval : { // time in millis between calls to animate function
+					type : Number,
+					value : 100,
 					notify: true,
 					observer: "_changeAnimateInterval"
 				},
-				animateStartTime: {
+				animateStartTime : {
 					type: String,
 					value: "01JAN2000",
 					notify: true,
 					observer: "_changeAnimateStartTime"
 				},
-				colorClasses: {
+				colorClasses : {
 					type: Array,
-					value: ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026'],
+					value: [ '#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026' ],
 					observer: "_changeColorClasses"
 				},
 				valueClasses: {
 					type: Array,
-					value: [200, 500, 1000, 2000, 3300, 3500, 3800, 10000, 20000],
+					value: [ 200, 500, 1000, 2000, 3300, 3500, 3800, 10000, 20000],
 					observer: "_changeValueClasses",
 					reflectToAttribute: true
 				}
 			},
-
 			_changeColorClasses: function(colorClasses) {
 				//console.log('Change color classes to : ', colorClasses)
 				this.colorClasses = colorClasses;
@@ -155,22 +152,33 @@
 					}
 				}
 			},
-
-			autoScale: function(scaleType) {
-				if (typeof(scaleType) == 'undefined') {
-					scaleType = "linear"
+			
+			_changeValueClasses : function(valueClasses){
+				//console.log('Change value classes to : ', valueClasses)
+				this.valueClasses = valueClasses;
+				if (this.colorClasses && this.valueClasses){
+					this._interpolateColor = d3.scaleLinear().domain(this.valueClasses)
+					.range(this.colorClasses).interpolate(
+							d3.interpolateRgb.gamma(3));
+					this.verticalLegend.inputScale(this._interpolateColor);
+					if (this.svg_legend_container){
+						this.svg_legend_container.call(this.verticalLegend);
+					}
 				}
-				var cdata = this.sliceData.data[this.slice];
-				this.valueClasses = d3.scaleLinear().domain(d3.extent(cdata[0])).nice().ticks(this.colorClasses.length + 1);
 			},
-
-			_changeMapTileLayer: function(layerName) {
+			
+			autoScale(scaleType = 'linear'){
+			    var cdata = this.sliceData.data[this.slice];
+			  	this.valueClasses = d3.scaleLinear().domain(d3.extent(cdata[0])).nice().ticks(this.colorClasses.length+1);
+			},
+			
+			_changeMapTileLayer : function(layerName) {
 				////console.log('Now selected: ' + layerName);
-				if (!this.map) {
+				if (!this.map){
 					return;
 				}
-				if (typeof(layerName) == 'undefined') {
-					layerName = "Hydda.Full";
+				if (typeof(layerName) == 'undefined'){
+				    layerName = "Hydda.Full";
 				}
 				var newLayer = L.tileLayer.provider(layerName);
 				if (newLayer) {
@@ -182,38 +190,65 @@
 					this.map.addLayer(this._layer);
 				}
 			},
-
+			
 			/**
 			 * Expecting opacity between 0 and 100.
 			 */
-			_changeMapTileLayerOpacity: function(opacity) {
-				opacity = Math.min(100, Math.max(0, opacity));
-				this.opacity = opacity;
-				if (this._layer) {
-					this._layer.setOpacity(opacity / 100.0);
-				}
+			_changeMapTileLayerOpacity : function(opacity){
+			    opacity = Math.min(100,Math.max(0,opacity));
+			    this.opacity = opacity;
+			    if (this._layer) {
+				    this._layer.setOpacity(opacity/100.0);
+			    }
 			},
-
-			_changeAnimateInterval: function(value) {
+			
+			_changeAnimateInterval : function(value){
 				this.restartTimer();
+			}, 
+			
+			_changeAnimateStartTime: function(value){
+			    this.debounce('animateStartTime', this._stopStartTimer, 1000);
 			},
-
-			_changeAnimateStartTime: function(value) {
-				this.debounce('animateStartTime', this._stopStartTimer, 1000);
+			
+			__checkValidH5File(value){
+				if (typeof(value) == "string" ){
+					if (!value.endsWith(".h5")){
+						return false;
+					}
+				}else{
+					return false;
+				}
+				return true;
 			},
-
-			_changeTidefile: function(value) {
-				this.debounce('stopStartTimer', function(d) {
-					this._stopStartTimer();
+			
+			_changeTidefile: function(value){
+			    this.debounce('stopStartTimer', function(d){
+				this._stopStartTimer();
 				}, 1000);
 			},
 
-			_changeBaseTidefile: function(value) {
-				this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			_changeBaseTidefile: function(value){
+				if (typeof(value) == "string" ){
+					if (!value.endsWith(".h5")){
+						return;
+					}
+				}else{
+					return;
+				}
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			},
+			
+			_changeDataType: function(value){
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
 			},
 
-			_changeDataType: function(value) {
-				this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			_changeTidalFilter: function(value){
+			    this.debounce('stopStartTimer', this._stopStartTimer, 1000);
+			},
+			
+			_stopStartTimer: function(value){
+			    this.stopTimer();
+			    this.startTimer();
 			},
 
 			_changeTidalFilter: function(value) {
@@ -239,177 +274,156 @@
 					var point = pt._subtract(lmap.getPixelOrigin())
 					this.stream.point(point.x, point.y);
 				};
-				
 				var transform = d3.geoTransform({
-					point: projectPoint
+					point : projectPoint
 				})
-
 				this.path = d3.geoPath().projection(transform);
 				// now svg elements and gradient elements are added to dom
 				this.svg = d3.select(this.map.getPanes().overlayPane).append("svg");
 				// add reservoirs first so they appear below channels
 				this.gReservoirs = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 				this.reservoir_features = this.gReservoirs.selectAll("path").data(this.dsm2_reservoirs.features)
-					.enter().append("path").attr("id", function(d) {
-						return d.properties.name;
-					}).style("fill", function(d) {
-						return 'url(#gradient-' + d.properties.name + ')'
-					});;
+				.enter().append("path").attr("id",function(d){return d.properties.name;}).style("fill", function(d){return 'url(#gradient-' + d.properties.name + ')'});;
 				this.reservoirStops = null;
 				// add channels next
 				this.gChannels = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 				var sdefs = this.svg.append('defs')
 				var lgs = sdefs.selectAll("linearGradient").data(
-					this.dsm2_flowlines.features).enter().append(
-					"linearGradient").attr("id", function(d, i) {
+						this.dsm2_flowlines.features).enter().append(
+						"linearGradient").attr("id", function(d, i) {
 					return "gradient" + i;
-				}).attr("gradientTransform", function(d, i) {
+				}).attr("gradientTransform", function(d,i){
 					var c = d.geometry.coordinates;
-					if (Array.isArray(c[0][0])) {
-						c = c[0];
+					if (Array.isArray(c[0][0])){
+						c=c[0];
 					}
-					var x1 = c[0][0],
-						x2 = c[c.length - 1][0];
-					var y1 = c[0][1],
-						y2 = c[c.length - 1][1];
-					var angle = Math.atan((y2 - y1) / (x2 - x1)) * 180 / Math.PI;
-					if (x2 - x1 > 0) {
+					var x1=c[0][0], x2=c[c.length-1][0];
+					var y1=c[0][1], y2=c[c.length-1][1];
+					var angle = Math.atan((y2-y1)/(x2-x1))*180/Math.PI;
+					if (x2-x1 > 0){
 						angle = -angle;
 					} else {
 						angle = 180 - angle;
 					}
 					////console.log("angle["+i+"] = "+angle);
-					return "rotate(" + angle + ",0.5,0.5)"
-				});
+					return "rotate("+angle+",0.5,0.5)"});
 				this.stops1 = lgs.append("stop").attr("offset", "0%").style(
-					'stop-color', 'rgb(0,255,0)'); //.transition().duration(this.animateInterval);
+						'stop-color', 'rgb(0,255,0)');//.transition().duration(this.animateInterval);
 				this.stops2 = lgs.append("stop").attr("offset", "100%").style(
-					'stop-color', 'rgb(255,0,0)'); //.transition().duration(this.animateInterval);
+						'stop-color', 'rgb(255,0,0)');//.transition().duration(this.animateInterval);
 				// add features from flow lines
 				this.flow_features = this.gChannels.selectAll("path").data(
-					this.dsm2_flowlines.features).enter().append("path").attr(
-					"id",
-					function getid(d) {
-						return d.properties.channel_nu;
-					}).style('stroke', function(d, i) {
+						this.dsm2_flowlines.features).enter().append("path").attr(
+						"id", function getid(d) {
+							return d.properties.channel_nu;
+						}).style('stroke', function(d, i) {
 					return 'url(#gradient' + i + ')'
 				}).style('fill', 'none').style('stroke-width', function(d) {
 					return d.properties.width / 100.0;
 				}).style('shape-rendering', 'optimizeSpeed');
-				
-				this.gX2 = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 			},
 
 			// Reposition the SVG to cover the features.
 			reset: function() {
-				var bounds = this.path.bounds(this.dsm2_flowlines),
-					topLeft = bounds[0],
-					bottomRight = bounds[1];
+				var bounds = this.path.bounds(this.dsm2_flowlines), topLeft = bounds[0], bottomRight = bounds[1];
 
 				this.svg.attr("width", bottomRight[0] - topLeft[0]).attr(
-					"height", bottomRight[1] - topLeft[1]).style(
-					"left", topLeft[0] + "px").style("top",
-					topLeft[1] + "px");
-				//this.svg.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+						"height", bottomRight[1] - topLeft[1]).style(
+						"left", topLeft[0] + "px").style("top",
+						topLeft[1] + "px");
+
 				this.gChannels.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 				this.gReservoirs.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-				this.gX2.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-
+				
 				var factor = (bottomRight[0] - topLeft[0])
 				this.flow_features.attr("d", this.path).style(
-					"stroke-width",
-					function(d) {
-						var swidth = d.properties.width * factor /
-							150000.0;
-						return Math.max(swidth, 8);
-					});
+						"stroke-width",
+						function(d) {
+							var swidth = d.properties.width * factor
+									/ 150000.0;
+							return Math.max(swidth, 8);
+						});
 				this.reservoir_features.attr("d", this.path);
-				if (this.x2lines){
-					this.x2lines.attr("d", this.x2lg);
-				}
 			},
 
-			_generateURLForSliceRequest: function(sliceRequestTime) {
-				var url = "h5slice?type=" + this.type + "&file=" + this.tidefile;
-				if (this.tidalFilter) {
-					url = url + "&tidalFilter=true"
-				}
-				if (this.baseTidefile != "") {
-					url = url + "&basefile=" + this.baseTidefile + "&differenceType=" + this.differenceType
-				}
-				url = url + "&time=" + sliceRequestTime + "&slice=" + this.data_fetch_size;
-				return encodeURI(url);
+			_generateURLForSliceRequest: function(sliceRequestTime){
+				if (!this.__checkValidH5File(this.tidefile)) return;
+				return encodeURI("h5slice?type="+this.type+"&file=" + this.tidefile
+						+ (this.tidalFilter ? "&tidalFilter=true" : "")
+						+ (this.baseTidefile == "" || this.baseTidefile == undefined ? "" : "&basefile="+this.baseTidefile)
+						+ (this.baseTidefile == "" || this.baseTidefile == undefined ? "" : "&differenceType="+this.differenceType)
+						+ "&time=" + sliceRequestTime + "&slice="
+						+ this.data_fetch_size);
 			},
-
-			startTimer: function() {
+			
+			startTimer: function(){
 				// now add timer and start animation
 				// how large a slice of animation data to fetch (multiples of 16 is best as that is HDF5 chunking size in file)
 				this.data_fetch_size = 48 * 5; //48 * 5;
-				var globalStartTime = null,
-					globalEndTime = null;
+				var globalStartTime = null, globalEndTime = null;
 				this.slice = 0;
 				this.sliceData = null, this.nextSliceData = null;
 				this.tf = d3.timeFormat("%d%b%Y %H%M")
 				this.tp = d3.timeParse("%d%b%Y %H%M")
 				this.stime = this.tp(this.animateStartTime);
 				// start the animation after data load.
-				if (this.tidefile && this.animateStartTime) {
-					////console.log('Starting from startTimer!');
-					d3.json(this._generateURLForSliceRequest(this.animateStartTime), this.initDataLoad.bind(this));
+				if (this.tidefile && this.animateStartTime){
+				////console.log('Starting from startTimer!');
+				d3.json(this._generateURLForSliceRequest(this.animateStartTime), this.initDataLoad.bind(this));
 				}
 				// animate function
 				this.prev_elapsed = 0, this.step_size = 1;
 			},
-
-			stopTimer: function() {
-				if (this.timer) {
+			
+			stopTimer: function(){
+				if (this.timer){
 					////console.log('Stopping timer', this.timer);
 					this.timer.stop();
 				}
 			},
-
-			restartTimer: function() {
-				if (this.timer) {
+			
+			restartTimer: function(){
+				if (this.timer){
 					this.timer.stop();
 					this.timer = d3.interval(this.animate.bind(this), this.animateInterval);
 				}
 			},
-
+			
 			//-- called on initial load of data from tidefile
 			initDataLoad: function(d) {
-				if (typeof(d) == 'undefined' || d == null) {
+				if (typeof(d) == 'undefined' || d == null ){
 					console.log('No data loaded on init');
 					return;
 				}
 				globalStartTime = this.tp(d.startTime.replace(",", "")
-					.replace(":", ""))
+						.replace(":", ""))
 				globalEndTime = this.tp(d.endTime.replace(",", "")
-					.replace(":", ""))
+						.replace(":", ""))
 				// now do setters after computations to avoid data binding update effects
 				this.sliceData = d;
 				this.stime = this.tp(this.sliceData.startTimeOffset.replace(",", "")
-					.replace(":", ""));
-				this.fileStartTime = this.tf(globalStartTime).substring(0, 9).toUpperCase();
-				this.fileEndTime = this.tf(globalEndTime).substring(0, 9).toUpperCase();
-				if (this.reservoirStops) { // when structure changes clear it out
-					var stopNodes = this.reservoirStops.nodes()
-					for (var i = 0; i < this.sliceData.reservoirNames.length; i++) {
+						.replace(":", ""));
+				this.fileStartTime = this.tf(globalStartTime).substring(0,9).toUpperCase();
+				this.fileEndTime = this.tf(globalEndTime).substring(0,9).toUpperCase();
+				if (this.reservoirStops){ // when structure changes clear it out
+				    var stopNodes = this.reservoirStops.nodes()
+				    for(var i=0; i < this.sliceData.reservoirNames.length; i++){
 						var stopName = stopNodes[i].parentNode.id.substring(9)
-						if (this.sliceData.reservoirNames[i] != stopName) {
+						if (this.sliceData.reservoirNames[i] != stopName){
 							this.gReservoirs.select('defs').remove();
 							this.reservoirStops = null;
 							break;
 						}
-					}
+				    }
 				}
-				if (!this.reservoirStops) { // add reservoir color stops
+				if (!this.reservoirStops){ // add reservoir color stops
 					this.reservoirStops = this.gReservoirs.append('defs').selectAll("linearGradient")
-						.data(this.sliceData.reservoirNames).enter()
-						.append("linearGradient").attr("id", function(d) {
-							return "gradient-" + d;
-						}).append("stop").attr("offset", "0%").style("stop-color", "rgb(255,255,0)");
+					.data(this.sliceData.reservoirNames).enter()
+					.append("linearGradient").attr("id", function(d){
+						return "gradient-"+d;
+					}).append("stop").attr("offset","0%").style("stop-color","rgb(255,255,0)");
 				}
-				if (this.timer) {
+				if (this.timer){
 					this.timer.stop();
 				}
 				//
@@ -495,10 +509,10 @@
 				this.stops2.data(data[1])
 				//--- update reservoir colors
 				this.reservoirStops.data(rdata)
-				if (this.animateInterval > 200) {
-					this.stops1.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
-					this.stops2.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
-					this.reservoirStops.transition("smoother").duration(this.animateInterval * 1).style('stop-color', this._interpolateColor)
+				if (this.animateInterval > 200){				
+					this.stops1.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+					this.stops2.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
+					this.reservoirStops.transition("smoother").duration(this.animateInterval*1.5).style('stop-color', this._interpolateColor)
 				} else {
 					this.stops1.style('stop-color', this._interpolateColor)
 					this.stops2.style('stop-color', this._interpolateColor)
@@ -507,8 +521,8 @@
 				//--------- UPDATE TEXT -------------
 				this.svg_text.text("Time: " + this.tf(stime).toUpperCase());
 			},
-
-			animate: function(elapsed) {
+			
+			animate: function(elapsed){
 				if (this.slice == 0) { // slice is in use, get next slice data
 					if (this.sliceData == null) {
 						this.timer.stop();
@@ -521,121 +535,118 @@
 				}
 
 				this.stime = d3.timeMinute.offset(this.stime,
-					this.sliceData.intervalInMins * this.step_size)
+						this.sliceData.intervalInMins * this.step_size)
 				//--------- UPDATE COLORS ON VIEW-----------
 				this._updateColorsForSlice(this.sliceData.data[this.slice], this.sliceData.reservoirValues[this.slice], this.stime);
 				//--------- UPDATE DONE --------------
 				if (this.prev_elapsed != 0) {
 					this.step_size = Math.max(1, Math
-						.round((elapsed - this.prev_elapsed) /
-							this.animateInterval));
+							.round((elapsed - this.prev_elapsed)
+									/ this.animateInterval));
 				}
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
-					this.data_fetch_size = Math.min(48 * 5 * this.step_size, 1200); // to avoid huge chunk of data request
+					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {
 						this.timer.stop();
 					}
 					this.stime = this.tp(this.sliceData.startTimeOffset.replace(",", "")
-						.replace(":", ""));
+							.replace(":", ""));
 				}
 			},
-
-			toggle: function() {
-				//console.log("toggle")
-				this.$.collapse.toggle();
+			
+			toggle: function(){
+			    //console.log("toggle")
+			    this.$.collapse.toggle();
 			},
-
-			attached: function() {
-				this.map = new L.Map("map", {
-					center: this.center,
-					zoom: this.zoom,
+			
+			attached : function() {
+			 	this.map = new L.Map("map", {
+					center : this.center,
+					zoom : this.zoom,
 					zoomSnap: 0.1,
 					zoomDelta: 0.1,
 				});
-				var zoomControl = L.control.zoomBox({
-					modal: false,
-
-				});
-				this.map.addControl(zoomControl);
-
+			 	var zoomControl = L.control.zoomBox({
+			 	   modal: false,
+			 	   
+			 	});
+			 	this.map.addControl(zoomControl);
+			 	
 				this._changeMapTileLayer(this.layerName);
 				this.map.on("viewreset", this.reset.bind(this));
 				this.map.on("zoom", this.reset.bind(this));
-
+				
 				var elementThis = this;
 				// a little slow as second request has to wait for first one to complete.
-				d3.json("json/dsm2-flowlines-width.geojson", function(value) {
-					elementThis.dsm2_flowlines = value;
-					d3.json("json/dsm2-reservoirs.geojson", function(value) {
+				d3.json("json/dsm2-flowlines-width.geojson", function(value){
+				   	elementThis.dsm2_flowlines = value;
+				    d3.json("json/dsm2-reservoirs.geojson", function(value){
 						elementThis.dsm2_reservoirs = value;
 						elementThis._createGridOnMap();
 						elementThis.reset();
-					});
+				    });
 				});
 				L.Control.Text = L.Control.extend({
-					onAdd: function(map) {
-						var div = L.DomUtil.create('div');
-						var g_controls = d3.select(div).append("svg").attr("height", 35).attr("width", 215).append("g");
-						g_controls.attr("transform", "translate(0,0)");
+				    onAdd: function(map){
+						var div =  L.DomUtil.create('div');
+						var g_controls = d3.select(div).append("svg").attr("height",35).attr("width",215).append("g");
+						g_controls.attr("transform","translate(0,0)");
 						g_controls.append("rect").attr("height", 25)
-							.attr("width", 215).attr("fill", "white").attr(
+						.attr("width", 215).attr("fill", "white").attr(
 								"transform", "translate(0,0)");
 						elementThis.svg_text = g_controls.append("text").attr("x", "0")
-							.attr("y", "20").attr("font-family", "sans-serif")
-							.attr("font-size", "20px").attr("fill", "red");
+						.attr("y", "20").attr("font-family", "sans-serif")
+						.attr("font-size", "20px").attr("fill", "red");
 						return div;
-					},
-					onRemove: function(map) {
-
-					}
+				    },
+				    onRemove: function(map){
+				
+				    }
 				});
-				L.control.text = function(opts) {
-					return new L.Control.Text(opts);
+				L.control.text = function(opts){
+				    return new L.Control.Text(opts);
 				};
-				L.control.text({
-					position: 'topleft'
-				}).addTo(this.map);
-
+				L.control.text({ position: 'topleft'}).addTo(this.map);
+				
 				L.Control.Legend = L.Control.extend({
-					onAdd: function(map) {
-						var div = L.DomUtil.create('div');
-						d3.select(div).style("display", "flex").style("flex-direction", "column");
-						d3.select(div).append("input").attr("type", "button").attr("value", "Hide")
-							.on("click", function(e) {
-								if (this.value == "Hide") {
-									this.value = "Show Legend";
-									elementThis.svg_legend_container.attr("visibility", "hidden");
-								} else {
-									this.value = "Hide";
-									elementThis.svg_legend_container.attr("visibility", "inherit");
-								}
-								return false;
-							});
-						var ht = 275;
-						var legend_group = d3.select(div).append("svg").attr("height", ht).attr("width", 75).append("g");
-						legend_group.append("rect").attr("height", ht + 25)
-							.attr("width", 75).attr("fill", "white").attr(
+				    onAdd: function(map){
+						var div =  L.DomUtil.create('div');
+						d3.select(div).style("display","flex").style("flex-direction","column");
+						d3.select(div).append("input").attr("type","button").attr("value","Hide")
+							.on("click", function(e){
+							    if (this.value=="Hide"){
+									this.value="Show Legend";
+									elementThis.svg_legend_container.attr("visibility","hidden");
+							    } else {
+									this.value="Hide";
+									elementThis.svg_legend_container.attr("visibility","inherit");
+							    }
+							    return false;
+							    });
+						var ht=275;
+						var legend_group = d3.select(div).append("svg").attr("height",ht).attr("width",75).append("g");
+						legend_group.append("rect").attr("height", ht+25)
+						.attr("width", 75).attr("fill", "white").attr(
 								"transform", "translate(0,-25)");
 						elementThis.svg_legend_container = legend_group.attr("transform",
-							"translate(0,20)").attr("class", "legend");
+								"translate(0,20)").attr("class", "legend");
 						elementThis.svg_legend_container.call(elementThis.verticalLegend);
 						return div;
-					},
-					onRemove: function(map) {
-
-					}
+				    },
+				    onRemove: function(map){
+					
+				    }
 				});
-				L.control.legend = function(opts) {
-					return new L.Control.Legend(opts);
+				L.control.legend = function(opts){
+				    return new L.Control.Legend(opts);
 				};
-				L.control.legend({
-					position: 'topleft'
-				}).addTo(this.map);
+				L.control.legend({ position: 'topleft'}).addTo(this.map);
 			}
+
 		});
 	</script>
 </dom-module>

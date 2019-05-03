@@ -13,12 +13,18 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import hec.heclib.dss.HecTimePattern;
+import hec.heclib.util.HecTime;
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
+import ncsa.hdf.object.Attribute;
 import ncsa.hdf.object.CompoundDS;
 import ncsa.hdf.object.HObject;
 import ncsa.hdf.object.h5.H5File;
 import ncsa.hdf.object.h5.H5Group;
 import ncsa.hdf.object.h5.H5ScalarDS;
+import vista.time.Time;
+import vista.time.TimeFactory;
+import vista.time.TimeInterval;
 
 /**
  * H5File Info Sends back a data structure in JSON with all the meta information
@@ -55,9 +61,21 @@ public class H5FileInfoServlet extends HttpServlet {
 			ex.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Assumes that the path points to H5ScalerDS of table with single column
+	 * @param pathToTable
+	 * @return
+	 * @throws Exception 
+	 * @throws OutOfMemoryError 
+	 */
+	public String[] getTableAsString(H5File h5file, String pathToTable) throws OutOfMemoryError, Exception {
+		H5ScalarDS ds = (H5ScalarDS) h5file.get(pathToTable);
+		Object obj = ds.getData();
+		return (String[]) obj;
+	}
 
 	public H5FileInfo extractFileInfo(String file) throws Exception, HDF5Exception, OutOfMemoryError {
-
 		H5File h5file = new H5File(file);
 		h5file.open();
 		H5FileInfo fileInfo = new H5FileInfo();
@@ -68,14 +86,24 @@ public class H5FileInfoServlet extends HttpServlet {
 			model="hydro";
 			path="/hydro/input";
 			fileInfo.dataTypeNames = new String[]{"stage","depth","flow","velocity"};
-		}
-		fileInfo.model = model;
-		if (model.equals("qual")){
+		}else if (h5file.get("/output/constituent_names") != null) {
+			model="qual";
 			H5ScalarDS ds = (H5ScalarDS) h5file.get("/output/constituent_names");
 			fileInfo.dataTypeNames = (String[]) ds.getData();
+		}else if (h5file.get("/output/bed_solids") != null) {
+			model="sediment";
+			H5ScalarDS ds = (H5ScalarDS) h5file.get("/output/bed_solid_names");
+			extractDataTypeNamesByZoneLayer(h5file, fileInfo, ds);
+		}else if (h5file.get("/output/bed_hg") != null) {
+			model="hg";
+			H5ScalarDS ds = (H5ScalarDS) h5file.get("/output/bed_hg_names");
+			extractDataTypeNamesByZoneLayer(h5file, fileInfo, ds);
 		}
 		
+		fileInfo.model = model;
+		
 		H5Group inputTables = (H5Group) h5file.get(path); 
+		if (inputTables != null) {
 		H5InputTable[] tables = new H5InputTable[inputTables.getNumberOfMembersInFile()];
 		List memberList = inputTables.getMemberList();
 		for (int i = 0; i < inputTables.getNumberOfMembersInFile(); i++) {
@@ -98,10 +126,98 @@ public class H5FileInfoServlet extends HttpServlet {
 			}
 		}
 		fileInfo.inputTables = tables;
+		} else { // try to get this information from the sediment or flux tables
+			H5ScalarDS ds = null;
+			if (model.equals("sediment")) {
+				ds = (H5ScalarDS) h5file.get("/output/bed_solids");
+			} else if (model.equals("hg")) {
+				ds = (H5ScalarDS) h5file.get("/output/bed_hg");
+			} else {
+				throw new IllegalArgumentException("Unknown type of h5 file");
+			}
+			
+			if (ds != null) {
+				String[] infoStr = extractInfoFromOutputTable(ds);
+				fileInfo.startDate = infoStr[0];
+				fileInfo.startTime = infoStr[1];
+				fileInfo.endDate = infoStr[2];
+				fileInfo.endTime = infoStr[3];
+				fileInfo.model = infoStr[4];
+			}
+		}
 		h5file.close();
 		return fileInfo;
 	}
 
+	private void extractDataTypeNamesByZoneLayer(H5File h5file, H5FileInfo fileInfo, H5ScalarDS ds)
+			throws Exception, OutOfMemoryError {
+		fileInfo.dataTypeNames = (String[]) ds.getData();
+		// now add on zone and layerInfo info
+		String[] layers = getTableAsString(h5file,"/output/layer");
+		String[] zones = getTableAsString(h5file,"/output/zone");
+		String [] dataTypeNames = new String[fileInfo.dataTypeNames.length*layers.length*zones.length];
+		for(int i=0; i < fileInfo.dataTypeNames.length; i++) {
+			String typeName = fileInfo.dataTypeNames[i];
+			for (int l=0; l < layers.length; l++) {
+				String layerName = "l"+(l+1);
+				for(int z=0; z < zones.length; z++) {
+					String zoneName = "z"+(z+1);
+					dataTypeNames[(i*layers.length+l)*zones.length+z] = typeName+"x"+layerName+"x"+zoneName;
+				}
+			}
+		}
+		fileInfo.dataTypeNames=dataTypeNames;
+	}
+
+	public String[] extractInfoFromOutputTable(H5ScalarDS ds) throws HDF5Exception {
+		List metadata = ds.getMetadata();
+		int numberOfIntervals = (int) ds.getDims()[0];
+		//
+		Time startTime = null;
+		Time endTime = null;
+		String timeInterval = null;
+		TimeInterval ti = null;
+		int timeIntervalInMins = 0;
+		String modelRun = "";
+		for (Object meta : metadata) {
+			Attribute attr = (Attribute) meta;
+			if (attr.getName().equals("start_time")) {
+				String timeStr = ((String[]) attr.getValue())[0];
+				// "yyyy-MM-dd HH:mm:ss");
+				startTime = TimeFactory.getInstance().createTime(timeStr,"yyyy-MM-dd HH:mm:ss");
+			}
+			if (attr.getName().equals("interval")) {
+				String tistr = ((String[]) attr.getValue())[0];
+				// FIXME: workaround for bug in qual tidefile, hydro ends with n
+				// as in min
+				if (tistr.toLowerCase().endsWith("m")) {
+					tistr += "in";
+				}
+				int[] status = new int[] { 0 };
+				String intervalAsString = ((String[]) attr.getValue())[0];
+				timeInterval = intervalAsString.toUpperCase();
+				if (timeInterval.equals("60MIN")) {
+					timeInterval = "1HOUR"; 
+				}
+				ti = TimeFactory.getInstance().createTimeInterval(intervalAsString);
+				timeIntervalInMins = (int) ti.getIntervalInMinutes(null);
+			}
+			if (attr.getName().equals("model")) {
+				modelRun = ((String[]) attr.getValue())[0];
+			}
+		}
+		startTime = startTime.create(startTime);
+		endTime = startTime.create(startTime);
+		endTime.incrementBy(ti,numberOfIntervals);
+		String[] startTimeStr = startTime.toString().split("\\s+");
+		String[] endTimeStr = endTime.toString().split("\\s+");
+		String[] infoStr = new String[5];
+		System.arraycopy(startTimeStr, 0, infoStr, 0, startTimeStr.length);
+		System.arraycopy(endTimeStr, 0, infoStr, startTimeStr.length, endTimeStr.length);
+		infoStr[4]=modelRun;
+		return infoStr;		
+	}
+	
 	private String[] getDataTypeNames(H5InputTable table) {
 		LinkedHashSet<String> set = new LinkedHashSet<String>();
 		String[] headers = table.headers;

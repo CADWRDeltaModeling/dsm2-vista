@@ -62,8 +62,8 @@
 	<!--  PROPERTIES TO BE CONFIGURED WHEN PROJECT MOVES -->
    	<property name="build.dir" value="ant-build"/>
 	<property name="dist.dir" value="dist-build"/>
-	<property name="tomcat.dir" value="z:\dev\apache-tomcat-8.5.38"/>
-	<property name="tomcat.name" value="apache-tomcat-8.5.38"/>
+	<property name="tomcat.dir" value="z:\dev\apache-tomcat-for-dsm2\apache-tomcat-7.0.47"/>
+	<property name="tomcat.name" value="apache-tomcat-7.0.47"/>
 	<!--  END -->
 	<target name="init">
         <mkdir dir="web/WEB-INF/classes"/>
@@ -171,8 +171,8 @@
     	<copy todir="${dist.dir}/${tomcat.name}/bin" overwrite="true">
     		<fileset file="setup_config/setenv.bat"/> 
    		</copy>
-    	<copy file="dsm2.webtools.war" tofile="${dist.dir}/${tomcat.name}/webapps/ROOT.war"/>
     	<delete quiet="true" includeEmptyDirs="true">
+    		<fileset file="${dist.dir}/${tomcat.name}/webapps/ROOT.war"></fileset>
 			<fileset dir="${dist.dir}/${tomcat.name}/webapps/ROOT">
 			</fileset>
     	</delete>
@@ -180,8 +180,9 @@
 			<fileset dir="${dist.dir}/${tomcat.name}/logs">
 			</fileset>
 		</delete>
+    	<copy file="dsm2.webtools.war" tofile="${dist.dir}/${tomcat.name}/webapps/ROOT.war"/>
     	<copy todir="${dist.dir}/jre">
-    		<fileset dir="C:/Program Files (x86)/Java/jre1.8.0_191"></fileset>
+    		<fileset dir="C:/Program Files (x86)/Java/jre1.8.0_201"></fileset>
     	</copy>
     	<zip destfile="dsm2.webtools.server.zip" basedir="${dist.dir}">
     	</zip>
