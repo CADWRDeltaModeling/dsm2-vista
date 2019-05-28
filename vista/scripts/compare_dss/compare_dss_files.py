@@ -70,12 +70,13 @@ def compare_dss_files(file1, file2, showPlot="Abs", outputFile=None, outputPathF
                 diff_total = vtimeseries.total(absdiff)
                 if (diff_total > 1e-06) :
                     no_diff=False
-                    if showPlot and showPlot.find("Diff") >=0 : 
-                        graphs = plot(diff)
-                        #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
-                    else: 
-                        graphs = plot(ref1.data, ref2.data)
-                        #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
+                    if showPlot:
+                        if showPlot.find("Diff") >=0 : 
+                            graphs = plot(diff)
+                            #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
+                        else: 
+                            graphs = plot(ref1.data, ref2.data)
+                            #for graph in graphs: graph.setExtendedState(JFrame.MAXIMIZED_BOTH)
                     print '%10.2f\t%32s' % (diff_total, p1)
                     if outputFile:
                         diffp = set_part(p1, 'DIFF-%s-%s' % (os.path.basename(file1), os.path.basename(file2)), Pathname.A_PART)
