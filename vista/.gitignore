@@ -2,3 +2,5 @@
 /build
 **.class
 *$py.class
+**/*.dsc
+**/*.dsd
