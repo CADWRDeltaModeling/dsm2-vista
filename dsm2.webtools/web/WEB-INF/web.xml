@@ -60,6 +60,10 @@
     <servlet-name>data</servlet-name>
     <servlet-class>dsm2.server.DSSDataServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>h5.data.server.h5info</servlet-name>
+    <servlet-class>h5.data.server.H5InfoServlet</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>catalog</servlet-name>
     <url-pattern>/catalog/*</url-pattern>
@@ -95,6 +99,10 @@
   <servlet-mapping>
     <servlet-name>h5list</servlet-name>
     <url-pattern>/h5list/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>h5.data.server.h5info</servlet-name>
+    <url-pattern>/h5/data/server/h5info/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>dsm2echo</servlet-name>
