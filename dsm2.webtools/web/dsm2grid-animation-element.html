@@ -487,6 +487,8 @@
 			    // --- draw line for x2
 			    if (this.typeNames[this.type] == "ec"){
 			    	var x2pts = this._calcX2Points(data);
+			    } else {
+			    	this.x2line=null;
 			    }
 
 			    if (this.x2line){
@@ -498,7 +500,7 @@
   						var point = pt._subtract(this.map.getPixelOrigin())
   						return point;
 					}.bind(this);
-					if (!this.x2line){
+					if (!this.x2line && this.typeNames[this.type] == "ec"){
 						this.x2lg = d3.line()
 							.curve(d3.curveBasis)
 							.x(function(d){ return mapProjectPoint(d).x; })
@@ -551,7 +553,7 @@
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
-					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
+					this.data_fetch_size = 48*5; //Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {

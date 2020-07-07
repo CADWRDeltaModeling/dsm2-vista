@@ -182,7 +182,7 @@
 		</delete>
     	<copy file="dsm2.webtools.war" tofile="${dist.dir}/${tomcat.name}/webapps/ROOT.war"/>
     	<copy todir="${dist.dir}/jre">
-    		<fileset dir="C:/Program Files (x86)/Java/jre1.8.0_201"></fileset>
+    		<fileset dir="C:/Program Files (x86)/Java/jre1.8.0_251"></fileset>
     	</copy>
     	<zip destfile="dsm2.webtools.server.zip" basedir="${dist.dir}">
     	</zip>
