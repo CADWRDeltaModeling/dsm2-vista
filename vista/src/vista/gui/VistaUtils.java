@@ -352,7 +352,7 @@ public class VistaUtils {
 	public static String setExtension(String filename, String extension) {
 		if (filename == null)
 			return null;
-		int dotIndex = filename.indexOf(".");
+		int dotIndex = filename.lastIndexOf(".");
 		if (dotIndex > 0) {
 			filename = filename.substring(0, dotIndex) + "." + extension;
 		} else if (dotIndex == 0) {
