@@ -321,6 +321,8 @@
 				}).style('fill', 'none').style('stroke-width', function(d) {
 					return d.properties.width / 100.0;
 				}).style('shape-rendering', 'optimizeSpeed');
+				
+				this.gX2 = this.svg.append("g").attr("class", "leaflet-zoom-hide");
 			},
 
 			// Reposition the SVG to cover the features.
@@ -334,7 +336,8 @@
 
 				this.gChannels.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 				this.gReservoirs.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-				
+				this.gX2.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
 				var factor = (bottomRight[0] - topLeft[0])
 				this.flow_features.attr("d", this.path).style(
 						"stroke-width",
@@ -484,7 +487,10 @@
 			    // --- draw line for x2
 			    if (this.typeNames[this.type] == "ec"){
 			    	var x2pts = this._calcX2Points(data);
+			    } else {
+			    	this.x2line=null;
 			    }
+
 			    if (this.x2line){
 					this.x2line.data([x2pts]).attr("d",this.x2lg);
 			    } else {
@@ -494,7 +500,7 @@
   						var point = pt._subtract(this.map.getPixelOrigin())
   						return point;
 					}.bind(this);
-					if (this.x2line){
+					if (!this.x2line && this.typeNames[this.type] == "ec"){
 						this.x2lg = d3.line()
 							.curve(d3.curveBasis)
 							.x(function(d){ return mapProjectPoint(d).x; })
@@ -547,7 +553,7 @@
 				this.slice = this.slice + this.step_size; // increment slice pointer
 				this.prev_elapsed = elapsed;
 				if (this.slice >= this.sliceData.data.length) {
-					this.data_fetch_size = Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
+					this.data_fetch_size = 48*5; //Math.min(48 * 5 * this.step_size,1200); // to avoid huge chunk of data request 
 					this.slice = 0;
 					this.sliceData = this.nextSliceData; // start using next slice
 					if (this.sliceData == null) {

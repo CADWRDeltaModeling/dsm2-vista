@@ -336,7 +336,7 @@ public class H5TimeSliceServlet extends HttpServlet {
 		// dimension is time
 
 		selectedDims[0] = Math.min(dims[0] - startDims[0], sliceSize + 2 * tidalFilterShift);
-		sliceSize = (int) selectedDims[0]; // the slice size needs to be adjusted when we run out of data
+		sliceSize = Math.min(sliceSize, (int) selectedDims[0]); // the slice size needs to be adjusted when we run out of data
 		if (startDims.length == 4 || startDims.length == 5) { // qual has 4 dimensions for concentration,
 										// 2nd dimension for constituent type as
 										// defined in /output/constituent_names
