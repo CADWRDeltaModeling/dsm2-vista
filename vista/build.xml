@@ -13,8 +13,8 @@
     </description>
 	<property name="dist.dir" location="build/dist/vista"/>
 	<property name="vista.lib" location="lib" />
-	<property name="jython.installdir" location="d:/Programs/jython2.5.1"/>
-	<property name="jre8.installdir" location="C:\Program Files (x86)\Java\jdk1.8.0_191\jre"/>
+	<property name="jython.installdir" location="d:/Programs/jython2.5.3"/>
+	<property name="jre8.installdir" location="C:\Program Files (x86)\Java\jdk1.8.0_271\jre"/>
 
 	<!-- ================================= 
           target: default              
