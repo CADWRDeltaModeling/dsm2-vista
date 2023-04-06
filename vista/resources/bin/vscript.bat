@@ -60,11 +60,11 @@ rem ###############
 if defined ARGS goto run2
 
 :run1
-"%vista_home%/jre8/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -classpath %CPATH% org.python.util.jython -i "%vista_home%/lib/__init__.py"
+"%vista_home%/jre8/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -Dpython.console=org.python.util.JLineConsole -classpath %CPATH% org.python.util.jython -i "%vista_home%/lib/__init__.py"
 goto end
 
 :run2
-"%vista_home%/jre8/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -classpath %CPATH% org.python.util.jython -i  %ARGS%
+"%vista_home%/jre8/bin/java" -mx256m  -Djava.library.path=%LPATH% -Dvista.home="%vista_home%" -Dpython.home=%PYHOME% -Dpython.path=%PYPATH% -Dpython.console=org.python.util.JLineConsole -classpath %CPATH% org.python.util.jython -i  %ARGS%
 
 endlocal
 :end 
